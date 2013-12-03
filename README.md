@@ -130,7 +130,7 @@ Et normalement, tout fonctionne !
 ### Le template bootstrap3
 
 Cet outil a besoin de [Bootstrap 3](http://geodesie.ign.fr:8088/gitlab/components/bootstrapbundle)
-Attention, il n'est pas dans les dépendance, à vous de l'ajouter !
+Attention, il n'est pas dans les dépendances, à vous de l'ajouter !
 
 Dites à twig d'utiliser le template "forms.bootstrap3.html.twig" dans config/config.yml en complétant les inforamtions twig :
 
