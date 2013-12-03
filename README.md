@@ -21,7 +21,7 @@ Mettre à jour le fichier composer.json de votre projet avec les éléments suiv
 ```json
     "require": {
         ...,
-        "sgn/forms-bundle": "dev-master"
+        "sgn/forms-bundle": "1.*"
     },
     "repositories": [
         {
