@@ -1,0 +1,56 @@
+{% block sgn_ajax_autocomplete_widget %}
+    <style>
+        .select2-container .select2-choice {
+            display: block;
+            height: 34px;
+        }
+    </style>
+    <script>
+        jQuery(function() 
+        {
+            $("#{{ form.vars.id }}").css( "padding", "0px" );
+            $("#{{ form.vars.id }}").select2({
+                placeholder: "Search for {{ entity_alias }}",
+                minimumInputLength: 3,
+                ajax: {
+                    url: "{{ path("sgn_ajaxautocomplete") }}",
+                    dataType: 'json',
+                    quietMillis: 100,
+                    data: function (term, page) {
+                        return {
+                            letters: term, // search term
+                            page_limit: 10,
+                            page: page, // page number
+                            entity_alias: "{{ entity_alias }}"
+                        };
+                    },
+                    results: function (data,page) {
+                        var more = (page * 10) < data.total; // whether or not there are more results available
+                        return {results: data, more: more};
+                    },
+                },
+                initSelection: function(element, callback) {
+                    // the input tag has a value attribute preloaded that points to a preselected movie's id
+                    // this function resolves that id attribute to an object that select2 can render
+                    // using its formatResult renderer - that way the movie name is shown preselected
+                    var id=$(element).val();
+                    if (id!=="") {
+                        $.ajax("{{ path("sgn_ajaxautocomplete") }}", 
+                        {
+                            data: {
+                                letters: id, // search term
+                                page_limit: 1,
+                                page: 1, // page number
+                                entity_alias: "{{ entity_alias }}"
+                             },
+
+                            dataType: "json"
+                        }).done(function(data) { callback(data);   });
+                    }
+                },
+                dropdownCssClass: "bigdrop"
+            });
+        });
+    </script>
+  {{ form_widget(form) }}
+{% endblock %}
