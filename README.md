@@ -11,6 +11,9 @@ Il permet aujourd'hui de :
 TODO
 3. Création d'une interface générique pour les entités d'un bundle
 
+
+
+
 ## Installation
 
 Mettre à jour le fichier composer.json de votre projet avec les éléments suivants : 
@@ -28,7 +31,7 @@ Mettre à jour le fichier composer.json de votre projet avec les éléments suiv
     ]
 ```
 
-Puis mettre à jour vos dépendance avec composer : 
+Puis mettre à jour vos dépendances avec composer : 
 
 ```bash
     composer update
@@ -47,10 +50,13 @@ Enfin, activer le bundle dans votre fichier `app/AppKernel.php`:
     }
 ```
 
-## Utilisation
+## Configuration individuelle et utilisation
 
 ### Listes Ajax pour entités
 
+Cet outil a besoin de [Select2JS](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle)  et de [JQuery](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle). Deux bundles existent.
+Attention, ils ne sont pas dans le dépendances, à vous de les ajouter !
+Vous devez également les déclarer dans le header de votre page.
 
 1. Ajouter les champs que vous voulez "ajaxer" dans config/config.yml
 
@@ -85,8 +91,46 @@ twig:
             - SGNFormsBundle::fields.ajax.autocomplete.html.twig
 ```
 
+3. Importer les routes
+
+Dans routing.yml, ajouter :
+
+```json
+sgn_forms:
+    resource: '@SGNFormsBundle/Resources/config/routing.xml'
+
+``` 
+
+4. Dans le formulaire
+
+Il suffit enfin de déclarer votre champ de formulaire comme suit ;
+
+```php
+class PointRefType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder   ->add('nom', null)
+                   ->add('Site', 'sgn_ajax_autocomplete', array( 'entity_alias'=>'sites' ));
+        ...
+    }
+ }          
+``` 
+
+Où : 
+- sgn_ajax_autocomplete est le type du champ
+- entity_alias contient la valeur que vous avez déclaré dans sgn_forms.yml
+
+
+Et normalement, tout fonctionne !
+
+
+
 
 ### Le template bootstrap3
+
+Cet outil a besoin de [Bootstrap 3](http://geodesie.ign.fr:8088/gitlab/components/bootstrapbundle)
+Attention, il n'est pas dans les dépendance, à vous de l'ajouter !
 
 Dites à twig d'utiliser le template "forms.bootstrap3.html.twig" dans config/config.yml en complétant les inforamtions twig :
 
