@@ -55,12 +55,12 @@ Enfin, activer le bundle dans votre fichier `app/AppKernel.php`:
 ### Listes Ajax pour entités
 
 Cet outil a besoin de [Select2JS](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle)  et de [JQuery](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle). Deux bundles existent.
-Attention, ils ne sont pas dans le dépendances, à vous de les ajouter !
+Attention, ils ne sont pas dans les dépendances, à vous de les ajouter !
 Vous devez également les déclarer dans le header de votre page.
 
 1. Ajouter les champs que vous voulez "ajaxer" dans config/config.yml
 
-```json
+```
 sgn_forms:
     autocomplete_entities:
         sites:
@@ -76,14 +76,14 @@ sgn_forms:
 ```
 
 Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d'importer ce fichier dans votre config.yml :
-```json
+```
     imports:
     - { resource: sgn_forms.yml }
 ```
 
 2. Dites à twig d'utiliser le template "fields.ajax.autocomplete.html.twig" dans config/config.yml en complétant les inforamtions twig :
 
-```json
+```
 twig:
     ...
     form:
@@ -95,7 +95,7 @@ twig:
 
 Dans routing.yml, ajouter :
 
-```json
+```
 sgn_forms:
     resource: '@SGNFormsBundle/Resources/config/routing.xml'
 
@@ -105,7 +105,7 @@ sgn_forms:
 
 Il suffit enfin de déclarer votre champ de formulaire comme suit ;
 
-```php
+```
 class PointRefType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
