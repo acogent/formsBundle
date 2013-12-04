@@ -30,7 +30,6 @@ class Configuration implements ConfigurationInterface
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode('property')
-                                ->defaultValue('title')
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode('value')
