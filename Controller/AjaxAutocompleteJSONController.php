@@ -19,7 +19,7 @@ class AjaxAutocompleteJSONController extends Controller
     {
         $em           = $this->get('doctrine')->getManager();
         $request      = $this->getRequest();
-        $entities     = $this->get('service_container')->getParameter('sgn.autocomplete_entities');
+        $entities     = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
         $entity_alias = $request->get('entity_alias');
         $entity_inf   = $entities[$entity_alias];
         if (false === $this->get('security.context')->isGranted( $entity_inf['role'] )) {

@@ -148,3 +148,40 @@ twig:
         resources:
             - SGNFormsBundle::forms.bootstrap3.html.twig
 ```
+
+### Le générateur de formulaire et interface générique de consultation des entités 
+
+
+1. AppKernel.php
+
+Ajouter les bundles suivants, si ce n'est déjà fait :
+
+```
+new Components\JQueryBundle\ComponentsJQueryBundle(),
+new Components\JQueryUiBundle\ComponentsJQueryUiBundle(),
+new Components\jqGridBundle\ComponentsjqGridBundle(),
+new SGN\FormsBundle\SGNFormsBundle(),
+```
+2. config/config.yml
+
+```
+sgn_forms:
+    twig_template: "base.html.twig"
+    twig_bestof: ['PointRef', 'PointRefNumero','Site','Station', 'Pays', 'Instrument', 'Sitelog','GNSSSiteLocation', 'GNSSReceiver']
+```
+
+3. Importer les routes
+
+Dans routing.yml, ajouter :
+
+```
+sgn_forms_crud:
+    resource: "@SGNFormsBundle/Controller/"
+    type:     annotation
+    prefix:   /{_locale}/
+    defaults:
+        _locale: fr
+    requirements:
+        _locale: en|fr
+
+```
