@@ -21,7 +21,7 @@ Mettre à jour le fichier composer.json de votre projet avec les éléments suiv
 ```json
     "require": {
         ...,
-        "sgn/forms-bundle": "dev-master"
+        "sgn/forms-bundle": "1.*"
     },
     "repositories": [
         {
@@ -63,17 +63,24 @@ Vous devez également les déclarer dans le header de votre page.
 ```
 sgn_forms:
     autocomplete_entities:
+        # exemple complet
         sites:
             class: BDGSDatabaseBundle:Site
             role: ROLE_USER
             property: numero
-            search: begins_with # ends_with - LIKE '%value'  ou  contains - LIKE '%value%' begins_with - LIKE 'value%' (default)
+            value: id 
+            search: begins_with
+        # exemple minimale avec les valeurs par défaut
         pointrefs:
             class: BDGSDatabaseBundle:PointRef
-            role: ROLE_USER
             property: nomFR
 
 ```
+- class    : le nom 'doctrine' de la classe
+- role     : permet de dire qui peut faire de l'ajax par defaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d'interdire les modifs par anonymous
+- property : le nom du champ qui sera affiché
+- value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l'id qui est donc la valeur par defaut
+- search   : la façon dont est faite la recherche, par défaut begins_with . Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
 
 Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d'importer ce fichier dans votre config.yml :
 ```

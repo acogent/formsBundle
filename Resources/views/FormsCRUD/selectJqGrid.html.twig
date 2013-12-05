@@ -1,0 +1,59 @@
+<table id="list-grid-{{ entity }}"></table>
+<div id="grid-nav-{{ entity }}"></div>
+<script >
+$(document).ready(function() {
+    jQuery("#list-grid-{{ entity }}").jqGrid({
+        autowidth : true,
+        height    : 'auto',
+        mtype: "GET",
+        url       : "{{ url(
+                    'sgn_forms_formscrud_selectjqgrid',
+                    {
+                        'bundle'     : project,
+                        'format'     : 'json' ,
+                        'table'      :  table ,
+                        'collection' :  entity
+                    } ) }}",
+        postData: {
+            sourceId: getSourceId
+        },
+        datatype: "json",
+        jsonReader : {
+          repeatitems: false
+        },
+        colNames    : {{ columnNames|json_encode()|raw }},
+        colModel    : {{ columnModel|raw   }} ,
+        rowNum      : {{ limit }},
+        rowList     : {{ rowsList }},
+        pager       : "#grid-nav-{{ entity }}",
+        sortname    : 'id',
+        viewrecords : true,
+        gridview    : true,
+        sortorder   : "asc",
+        caption     : "",
+        beforeRequest    : hidePager,
+        beforeProcessing : showPagerOrNot
+    });
+
+    var grid = jQuery("#list-grid-{{ entity }}").jqGrid("navGrid", "#grid-nav-{{ entity }}",
+        { edit:false, add:false, del:false,search: false, view:false
+        },
+        { } //edit options
+    );
+    function getSourceId() {
+        // attention, c'est l'identifiant de la grille principale
+        return jQuery('#list-grid').jqGrid('getGridParam','selrow');
+    }
+    function hidePager() {
+        jQuery("#grid-nav-{{ entity }}_center").hide();
+    }
+
+    function showPagerOrNot(data) {
+        jQuery("#grid-nav-{{ entity }}_center").show();
+        if (data.records > 15) {
+            jQuery("#grid-nav-{{ entity }}_center").show();
+        }
+    }
+});
+
+</script>
