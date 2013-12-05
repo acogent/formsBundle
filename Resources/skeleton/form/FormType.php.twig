@@ -1,0 +1,119 @@
+<?php
+
+namespace {{ namespace }}\Form{{ entity_namespace ? '\\' ~ entity_namespace : '' }};
+
+{% block use_statements %}
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+{% endblock use_statements %}
+
+{% block class_definition %}
+class {{ form_class }} extends AbstractType
+{% endblock class_definition %}
+{
+{% block class_body %}
+    {% if fields|length > 0 %}
+    /**
+     * @param FormBuilderInterface $builder
+     * @param array $options
+     */
+    public function buildForm(FormBuilderInterface $builder, array $options)
+    {
+        $builder
+
+        {%- for field in fields %}
+{% if 'date' in field %}
+                ->add('{{ field }}', 'date', array('input'  => 'datetime', 'widget' => 'single_text', 'label' => '{{ entity_class|lower }}.{{ field }}.label'))
+{% else %}
+                ->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'))
+{% endif %}
+        {%- endfor %}
+        
+         {% if fieldsManyToOne|length > 0 %}
+       // Champs ManyToOne
+             {%- for field in fieldsManyToOne %}
+
+                ->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'))
+             // Si vous voulez une gestion de liste de choix avec ajax, supprimez la liste ci-dessu et décommentez celle ci-dessous. N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
+             // ->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
+             {%- endfor %}
+                
+         {% endif %}
+
+        ;
+
+         {% if fieldsOneToMany|length > 0 %}
+       // Champs OneToMany
+             {%- for field in fieldsOneToMany %}
+
+/* 
+        $builder->add('{{ field }}', 'collection', array(
+            'type' => new {{ field }}Type(),
+            'prototype' => true,
+            'allow_add' => true,
+            'allow_delete' => true,
+            'by_reference' => false,
+            'cascade_validation' => true,
+            ));
+*/
+             {%- endfor %}
+                
+         {% endif %}
+
+
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $event) {
+            $obj  = $event->getData();
+            $form = $event->getForm();
+            if ($obj->getId()) {
+                $form
+                ->add('submit', 'submit', array(
+                   'label' => 'Modifier',
+                   ))
+                ;
+            }
+            else{
+                 $form
+                 ->add('submit', 'submit', array(
+                   'label' => 'Ajouter',
+                 ))
+                ;
+            }
+        });
+
+/*
+        $builders->addEventListener(FormEvents::PRE_SUBMIT, function(FormEvent $event) {
+            $newObj = $event->getData();
+
+            if (...) {
+                // vous pouvez faire des traitements, pui modifier l'objet 
+                $event->setData($newObj);
+            }
+        });
+*/
+
+    }
+
+    {% endif %}
+
+    /**
+     * @param OptionsResolverInterface $resolver
+     */
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+        $resolver->setDefaults(array(
+            'data_class' => '{{ namespace }}\Entity{{ entity_namespace ? '\\' ~ entity_namespace : '' }}\{{ entity_class }}'
+        ));
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return '{{ form_type_name }}';
+    }
+{% endblock class_body %}
+}

@@ -1,0 +1,274 @@
+{% extends sgn_forms_crud_twig_template %}
+{% block stylesheets %}
+    {{ parent() }}
+    {{ jQueryUiCSS() }}
+    {{ jqGridCSS() }}
+    {{ select2CSS() }}
+<link rel="stylesheet" media="screen" href="{{ asset('bundles/sgnforms/css/jquery-ui-1.10.0.custom.css') }}" />
+
+    <style>
+    .ui-jqgrid .ui-pg-input {
+        font-size: 14px;
+        height: 20px;
+        margin: 0;
+        width: 50px;
+    }
+  /*  .ui-jqgrid .ui-pg-selbox {
+        display: block;
+        font-size: 14px;
+        height: 30px;
+        line-height: 20px;
+        margin: 0;
+        width: 100px;
+    }*/
+    </style>
+
+{% endblock stylesheets %}
+{% block div_body %}{% endblock div_body %}
+{% block body_100 %}
+    {% set btnTable = '' %}
+    {% if  entities  is defined and entities|length > 0  %}
+            <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
+                <option></option>
+                {% for entit in entities %}
+                    <option value="{{ entit.link }}" >{{entit.label|transEdit({},'twigcrud')}}</a></option>
+                    {% if entit.name in sgn_forms_crud_twig_bestof %}
+                        {% if entit.name  == entity %}
+                            {% set btnTable = btnTable|raw ~ '<li class="active" ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
+                        {% else %}
+                            {% set btnTable = btnTable|raw ~ '<li ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </select>
+
+          <ul class="nav nav-pills">
+            {{ btnTable|raw }}
+        </ul>
+      {% endif %}
+
+<div class="page-header"><h1>{{ (entity|lower~'.label')|transEdit({},'twigcrud') }}</h1></div>
+
+{% set id = null%}
+
+<div id="grid_container">
+    <table id="list-grid"></table>
+    <div id="grid-nav"></div>
+    <div id="frm-new" style="display:none"></div>
+    <div id="frm-edit" style="display:none"></div>
+</div>
+ {% if  collectionNames  is defined %}
+    <div id="related-grids" style="display:none">
+        <h2>{{ entity }} : <span id='selectedEntityId'></span></h2>
+        {% for collection , url  in collectionNames %}
+        <div id="related-grid-{{collection}}" >{{collection}}</div>
+         {% endfor %}
+    <br />
+</div>
+{% endif %}
+
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ jqGridJS() }}
+    {{ select2JS() }}
+
+<script >
+
+$(document).ready(function() {
+
+
+
+
+    $("#e1").select2({ placeholder: "Choisissez une table ..." });
+
+    var last_selected = null;
+    var last_loaded   = null;
+
+      jQuery("#list-grid").jqGrid({
+        autowidth : true,
+        height    : 'auto',
+        shrinkToFit : true,
+        mtype: "GET",
+        url       : "{{ url(
+                    'sgn_forms_formscrud_show',
+                    {
+                        'bundle' : project,
+                        'format' : 'json' ,
+                        'table'  : entity,
+                        'params' : params
+                    } ) }}",
+        datatype: "json",
+        jsonReader : {
+          repeatitems: false
+        },
+        colNames    : {{ columnNames|json_encode()|raw }},
+        colModel    : {{ columnModel|raw   }} ,
+        rowNum      : {{ limit }},
+        rowList     : {{ rowsList }},
+        pager       : "#grid-nav",
+        sortname    : 'id',
+        viewrecords : true,
+        gridview    : true,
+        sortorder   : "asc",
+        caption     : "",
+        onSelectRow      : relatedGridsReload,
+        beforeRequest    : hidePager,
+        beforeProcessing : showPagerOrNot,
+        loadComplete     : hideResearch
+    });
+
+
+    function relatedGridsReload(sel_id) {
+        if (jQuery("#related-grids").css('display') == "none")
+        {
+            jQuery("#related-grids").show();
+
+             {% for collection, url in collectionNames %}
+                myUrl = "{{ url }}";
+                myUrl = myUrl.replace( '0', sel_id);
+                $.ajax({
+                    type: "GET",
+                    url:myUrl,
+                    cache: false,
+                    success: function(data){
+                        jQuery('#related-grid-{{collection}}').append(data);
+                    }
+                });
+            {% endfor %}
+        }
+        if (sel_id != last_loaded ) {
+            {% for collection, url in collectionNames %}
+                jQuery("#list-grid-{{ collection }}" ).clearGridData();
+                jQuery("#list-grid-{{ collection }}").trigger('reloadGrid');
+            {% endfor %}
+            jQuery("#selectedEntityId").text(getSelectedEntityId);
+
+            last_loaded = sel_id;
+        }
+        last_selected = sel_id;
+    }
+    function getSelectedEntityId() {
+
+        var sel_id = jQuery("#list-grid").getGridParam('selrow');
+        if (last_loaded) jQuery("#list-grid tr#" + last_loaded + " td").css('font-weight', 'normal');
+        jQuery("#list-grid tr#" + sel_id + " td").css('font-weight', 'bold');
+        var id = jQuery("#list-grid").getCell(sel_id, 'id');
+        return id;
+    }
+
+    function hidePager() {
+        jQuery("#grid-nav_center").hide();
+    }
+
+    function showPagerOrNot(data) {
+       // console.log(data.records);
+        jQuery("#grid-nav_center").show();
+        if (jQuery("#related-grids").css('display') != 'none') {
+            jQuery("#related-grids").slideToggle('swing');
+        }
+    }
+
+    function hideResearch() {
+
+        if (jQuery("#searchmodfbox_list-grid")) {
+            jQuery("#searchmodfbox_list-grid a.ui-jqdialog-titlebar-close").click();
+        }
+    }
+
+    var grid = jQuery("#list-grid").jqGrid("navGrid", "#grid-nav",
+        {
+            add:true,  edit:true, view:true, del:true,search: true,
+            addfunc: function() {
+
+                if (jQuery("#frm-new").css('display') != 'none')
+                {
+                    jQuery("#frm-new").hide();
+                    jQuery("#frm-edit").hide();
+                    jQuery("#related-grids").show();
+                }
+                else{
+                    jQuery("#frm-new").show();
+                    jQuery("#frm-edit").hide();
+                    jQuery("#related-grids").hide();
+                    myUrl = "{{ url_new }}";
+                    $.ajax({
+                        type: "GET",
+                        url:myUrl,
+                        cache: false,
+                        success: function(data){
+                            jQuery('#frm-new').html(data);
+                        }
+                    });
+                }
+            },
+            editfunc: function() {
+                var sel_id = grid.getGridParam('selrow');
+                if (sel_id) {
+                    myUrl = "{{ url_edit }}";
+                    myUrl = myUrl.replace( '0', sel_id);
+                    $.ajax({
+                        type: "GET",
+                        url:myUrl,
+                        cache: false,
+                        success: function(data){
+                            jQuery('#frm-edit').html(data);
+                        }
+                    });
+                    if (jQuery("#frm-edit").css('display') != 'none')
+                    {
+                        jQuery("#frm-edit").hide();
+                        jQuery("#frm-new").hide();
+                        jQuery("#related-grids").show();
+                    }
+                    else{
+                        jQuery("#frm-edit").show();
+                        jQuery("#frm-new").hide();
+                        jQuery("#related-grids").hide();
+                    }
+                } else {
+                    viewModal("#alertmod", { gbox: "#gbox_" + grid_id, jqm: true });
+                    jQuery("#jqg_alrt").focus();
+                }
+            }
+
+        },
+        { } //edit options
+    );
+
+    jQuery("#list-grid").jqGrid("filterToolbar", {
+       // searchOperators: true,
+       // stringResult: true,
+       // searchOnEnter: false,
+        defaultSearch: "cn"
+    });
+
+    //jQuery("#list-grid").jqGrid('setSelection', 1);
+     jQuery("#list-grid").setCell(1);
+ });
+
+    jQuery(window).bind('resize', function() {
+    // Get width of parent container
+    var width = jQuery("#grid_container").width();
+    if (width == null || width < 1){
+        // For IE, revert to offsetWidth if necessary
+        width = jQuery("#grid_container").attr('offsetWidth');
+    }
+    width = width - 2; // Fudge factor to prevent horizontal scrollbars
+    if (width > 0 &&
+        // Only resize if new width exceeds a minimal threshold
+        // Fixes IE issue with in-place resizing when mousing-over frame bars
+        Math.abs(width - jQuery("#list-grid").width()) > 5)
+    {
+        jQuery("#list-grid").setGridWidth(width);
+        console.log(width);
+    }
+
+}).trigger('resize');
+
+
+</script>
+
+{% endblock %}

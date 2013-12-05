@@ -1,0 +1,272 @@
+@font-face {
+  font-family: 'FontAwesome';
+  src: url('../fonts/fontawesome-webfont.eot?v=3.0.1');
+  src: url('../fonts/fontawesome-webfont.eot?#iefix&v=3.0.1') format('embedded-opentype'),
+    url('../fonts/fontawesome-webfont.woff?v=3.0.1') format('woff'),
+    url('../fonts/fontawesome-webfont.ttf?v=3.0.1') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+html{color:#000;background:#FFF;}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var,optgroup{font-style:inherit;font-weight:inherit;}del,ins{text-decoration:none;}li{list-style:none;}caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym{border:0;font-variant:normal;}sup{vertical-align:baseline;}sub{vertical-align:baseline;}legend{color:#000;}input,button,textarea,select,optgroup,option{font-family:inherit;font-size:inherit;font-style:inherit;font-weight:inherit;}input,button,textarea,select{*font-size:100%;}
+
+html, body
+{
+    background-color: #EFEFEF;
+}
+
+body
+{
+    font-size:        14px;
+    font-family:      "Lucida Sans Unicode", "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+    color:            #313131;
+}
+
+a
+{
+    color:           #074A94;
+    text-decoration: none;
+}
+
+a:hover
+{
+    text-decoration: underline;
+}
+
+h1, h2, h3
+{
+    font-family:    Georgia, "Times New Roman", Times, serif;
+    color:          #404040;
+}
+
+h1
+{
+    font-size:      45px;
+    padding-bottom: 30px;
+}
+
+h2
+{
+    font-weight:   bold;
+    color:         #FFFFFF;
+    /* Font is duplicated of body (sans-serif) */
+    font-family:      "Lucida Sans Unicode", "Lucida Grande", Verdana, Arial, Helvetica, sans-serif;
+
+    margin-bottom:    10px;
+    background-color: #aacd4e;
+    padding:          2px 4px;
+    display:          inline-block;
+    text-transform:   uppercase;
+
+}
+
+p
+{
+    line-height:    20px;
+    padding-bottom: 20px;
+}
+
+.content
+{
+    margin-left           : 250px;
+    margin-right          : 10px;
+    background-color      : white;
+    border                : 1px solid #DFDFDF;
+    padding               : 20px;
+    -moz-border-radius    : 16px;
+    -webkit-border-radius : 16px;
+    border-radius         : 16px;
+    margin-bottom         : 20px;
+    word-wrap             : break-word;
+}
+
+.records_list th{
+    text-align : center;
+}
+
+.records_list th, .records_list td {
+    padding        : 10px;
+    padding-bottom : 5px;
+}
+
+.record_properties th, .record_properties td {
+    padding: 5px;
+}
+
+.required
+{
+    font-weight    : bold;
+    color          : red;
+}
+
+.btnLoad {
+    position              : relative;
+    background-color      : #FAA91A;
+    background-image      : -webkit-gradient(linear,left top,left bottom,from(white),to(#FAA91A));
+    background-image      : -moz-linear-gradient(top,white,#FAA91A);
+    background-image      : -o-linear-gradient(top,white,#FAA91A);
+    background-image      : -ms-linear-gradient(top,white,#FAA91A);
+    background-image      : linear-gradient(top,white,#FAA91A);
+    border                : #CCC solid 1px;
+    -moz-border-radius    : 3px;
+    -webkit-border-radius : 3px;
+    border-radius         : 3px;
+    color                 : #333;
+    font-weight           : bold;
+    text-shadow           : 0 1px 0 rgba(255, 255, 255, .5);
+    -webkit-user-select   : none;
+    -moz-user-select      : none;
+    -o-user-select        : none;
+    user-select           : none;
+    cursor                : pointer;
+    max-width             : 99%;
+    overflow              : hidden;
+    display               : -moz-inline-stack;
+    display               : inline-block;
+    height                : 30px;
+    zoom                  : 1;
+    padding               : 3px;
+    margin                : 2px;
+    min-width             : 150px;
+}
+
+
+.btnLoad:hover, .btnLoad:active {
+    border-color       : #BBB;
+    background-color   : #F8F8F8;
+    background-image   : -webkit-gradient(linear,left top,left bottom,from(#F8F8F8),to(#D9D9D9));
+    background-image   : -moz-linear-gradient(top,#F8F8F8,#D9D9D9);
+    background-image   : -o-linear-gradient(top,#F8F8F8,#D9D9D9);
+    background-image   : -ms-linear-gradient(top,#F8F8F8,#D9D9D9);
+    background-image   : linear-gradient(top,#F8F8F8,#D9D9D9);
+    -webkit-box-shadow : none;
+    -moz-box-shadow    : none;
+    box-shadow         : none;
+}
+
+/* Styles for JqGrids (new icons, etc.) */
+
+#related-grids .ui-widget-header
+{
+    background-image: url(../images/ui-bg_gloss-wave_35_f6a828_500x100.png);
+    border-color: #ccc;
+}
+
+.ui-state-default .ui-icon.ui-icon-plus:before       { content: "\f028"; }
+.ui-state-default .ui-icon.ui-icon-pencil:before     { content: "\f026"; }
+.ui-state-default .ui-icon.ui-icon-document:before   { content: "\f024"; }
+.ui-state-default .ui-icon.ui-icon-trash:before      { content: "\f023"; }
+.ui-state-default .ui-icon.ui-icon-search:before     { content: "\f021"; }
+.ui-state-default .ui-icon.ui-icon-refresh:before    { content: "\f025"; }
+
+.ui-state-default .ui-pg-div span.ui-icon  {
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: inherit;
+    -webkit-font-smoothing: antialiased;
+    text-indent: 0px;
+    display: inline;
+    width: auto;
+    height: auto;
+    line-height: normal;
+    vertical-align: baseline;
+    background-image: none;
+    background-position: 0% 0%;
+    background-repeat: repeat;
+    margin-top: 0;
+    color: #e78f08;
+}
+.ui-pg-div span:before {
+    text-decoration: inherit;
+    display: inline-block;
+    speak: none;
+    vertical-align: -10%;
+    font-size: 1.4em;
+}
+.ui-jqgrid .ui-state-default .ui-pg-button:hover {
+    padding-left: 0px;
+    padding-right: 1px;
+}
+.ui-jqgrid .ui-jqgrid-titlebar {
+    height: 20px;
+}
+
+/* Style des tableaux */
+
+table.elegant {
+    background-color      : #F9F9F9;
+    width                 : 100%;
+    -moz-border-radius    : 5px;
+    -webkit-border-radius : 5px;
+    border-radius         : 5px;
+    border                : 1px solid #DFDFDF;
+    border-collapse       : separate;
+    font-family           : Arial,"Bitstream Vera Sans",Helvetica,Verdana,sans-serif;
+    color                 : #333;
+}
+.elegant td, .elegant th {
+    border-top-color : white;
+    border-bottom    : 1px solid #DFDFDF;
+    border-right     : 1px solid #DFDFDF;
+    color            : #555;
+}
+.elegant th {
+    text-shadow : rgba(255, 255, 255, 0.796875) 0px 1px 0px;
+    font-family : Georgia,"Times New Roman","Bitstream Charter",Times,serif;
+    font-weight : bold;
+    padding     : 7px 7px 8px;
+    text-align  : center;
+    line-height : 1.3em;
+    font-size   : 14px;
+    width       : 20%;
+    background  : #f6f6f6 url(../images/ui-bg_glass_100_f6f6f6_1x400.png) 50% 50% repeat-x;
+}
+.elegant td {
+    font-size: 12px;
+    padding: 4px 7px 2px;
+    vertical-align: middle;
+    background-color: white;
+}
+.elegant td:last-child {
+    border-right: none;
+}
+.noBorder .elegant {
+    border: none;
+}
+
+/* Style des formulaires */
+
+.customForm {
+    display: inline;
+}
+.formInlineBlock {
+    display: inline-block;
+    width: 100%;
+}
+.customForm table, .customForm th {
+    width: auto;
+}
+.customForm table label {
+    padding-top: 3px;
+    margin: 0 20px;
+}
+.customForm input, .customForm button, .customForm select {
+    display: block;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+.customForm input[id$="_name"] {
+    width: 200px;
+}
+.customForm textarea {
+    min-width: 212px;
+}
+.customForm div *, button.floatButton, p.floatButton {
+    float: left;
+}
+.customForm #_submit {
+    float: left;
+    margin-top: 10px;
+    margin-left: 10px;
+}
