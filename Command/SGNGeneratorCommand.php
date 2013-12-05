@@ -11,11 +11,8 @@
 
 namespace SGN\FormsBundle\Command;
 
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
 
-use SGN\FormsBundle\Generator\SGNGenerator;
 
 /**
  * Base class for generator commands.
@@ -73,4 +70,5 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
 
         return $dialog;
     }
+
 }

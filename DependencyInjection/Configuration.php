@@ -22,6 +22,14 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->arrayNode('twig_bestof')
+                    ->prototype('scalar')->end()
+                    ->defaultValue(array('*'))
+                ->end()
+                ->scalarNode('twig_template')->defaultValue('SGNTemplateBundle:DevBlog:base.html.twig')->end()
+                ->scalarNode('twig_style')->defaultValue("{{ asset('bundles/sgnforms/css/style.css') }}")->end()
+           
+
                 ->arrayNode('autocomplete_entities')
                     ->useAttributeAsKey('id')
                     ->prototype('array')

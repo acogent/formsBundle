@@ -4,13 +4,14 @@ namespace SGN\FormsBundle\Command;
 
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\ArrayInput;
+use Doctrine\Bundle\DoctrineBundle\Mapping\MetadataFactory;
+use SGN\FormsBundle\Generator\SGNDoctrineFormGenerator;
 
-use SGN\FormsBundle\Command\generateFormCommand;
+
 
 /**
  * Generates the CRUD for all entities of DatabaseBundle
@@ -25,6 +26,7 @@ class generateFormsCommand extends ContainerAwareCommand
         $this->setName('SGN:generate:forms')
              ->setDescription("Generer les formulaires des entites d'un bundle")
              ->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des formulaires ?')
+             ;
     }
 
     /**
@@ -53,25 +55,43 @@ class generateFormsCommand extends ContainerAwareCommand
             }
         }
 
-        $arguments = array(
-            'command'      => 'SGN:g:f',
-        );
+        $bundle        = $this->getContainer()->get('kernel')->getBundle($bundleName);
+        $database_dir =$bundle->getPath();
         foreach ($entities as $entity) {
-            $output->writeln('Traitement de l\'entite '.$entity.'.');
-            $arguments['--entity'] = $bundleName.':'.$entity;
-            $arguments['--route-prefix'] = '/crud/'.strtolower($entity);
-
             $path = $database_dir."/Form/".$entity."Type.php";
-            if (file_exists($path))
+            if (!file_exists($path))
             {
-               $output->writeln("Le fichier $path existe, on passe." );
-               continue;
+                $entityClass   = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$entity;
+                $metadata      = $this->getEntityMetadata($entityClass);
+                $this->generateForm($bundle, $entity, $metadata);
+                $output->writeln('Generating the Form code: <info>OK</info>');
             }
-            $input = new ArrayInput($arguments);
-            $input->setInteractive(false);
-            $returnCode = $command->run($input, $output);
+            else{
+                $output->writeln('File exists : <error>'.$path.'</error>');
+            }
         }
         $output->writeln('Toutes les entités ont été traitées.');
+    }
+
+    protected function getEntityMetadata($entity)
+    {
+        $factory = new MetadataFactory($this->getContainer()->get('doctrine'));
+
+        $meta = $factory->getClassMetadata($entity)->getMetadata();
+        return $meta;
+    }
+
+    /**
+     * Tries to generate forms if they don't exist yet and if we need write operations on entities.
+     */
+    protected function generateForm($bundle, $entity, $metadata)
+    {
+        $generator = new SGNDoctrineFormGenerator($this->getContainer()->get('filesystem'));
+        $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
+        $skeletonDirs[] = __DIR__.'/../Resources';
+
+        $generator->setSkeletonDirs($skeletonDirs);
+        $generator->generate($bundle, $entity, $metadata[0]);
     }
 
 }

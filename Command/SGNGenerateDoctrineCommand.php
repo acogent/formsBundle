@@ -38,4 +38,9 @@ abstract class SGNGenerateDoctrineCommand extends SGNGeneratorCommand
         $meta = $factory->getClassMetadata($entity)->getMetadata();
         return $meta;
     }
+
+    protected function createGenerator($bundle = null)
+    {
+        return new SGNDoctrineCrudGenerator($this->getContainer()->get('filesystem'));
+    }
 }
