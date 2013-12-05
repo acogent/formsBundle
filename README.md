@@ -21,7 +21,7 @@ Mettre à jour le fichier composer.json de votre projet avec les éléments suiv
 ```json
     "require": {
         ...,
-        "sgn/forms-bundle": "dev-master"
+        "sgn/forms-bundle": "1.*"
     },
     "repositories": [
         {
@@ -55,35 +55,42 @@ Enfin, activer le bundle dans votre fichier `app/AppKernel.php`:
 ### Listes Ajax pour entités
 
 Cet outil a besoin de [Select2JS](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle)  et de [JQuery](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle). Deux bundles existent.
-Attention, ils ne sont pas dans le dépendances, à vous de les ajouter !
+Attention, ils ne sont pas dans les dépendances, à vous de les ajouter !
 Vous devez également les déclarer dans le header de votre page.
 
 1. Ajouter les champs que vous voulez "ajaxer" dans config/config.yml
 
-```json
+```
 sgn_forms:
     autocomplete_entities:
+        # exemple complet
         sites:
             class: BDGSDatabaseBundle:Site
             role: ROLE_USER
             property: numero
-            search: begins_with # ends_with - LIKE '%value'  ou  contains - LIKE '%value%' begins_with - LIKE 'value%' (default)
+            value: id 
+            search: begins_with
+        # exemple minimale avec les valeurs par défaut
         pointrefs:
             class: BDGSDatabaseBundle:PointRef
-            role: ROLE_USER
             property: nomFR
 
 ```
+- class    : le nom 'doctrine' de la classe
+- role     : permet de dire qui peut faire de l'ajax par defaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d'interdire les modifs par anonymous
+- property : le nom du champ qui sera affiché
+- value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l'id qui est donc la valeur par defaut
+- search   : la façon dont est faite la recherche, par défaut begins_with . Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
 
 Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d'importer ce fichier dans votre config.yml :
-```json
+```
     imports:
     - { resource: sgn_forms.yml }
 ```
 
 2. Dites à twig d'utiliser le template "fields.ajax.autocomplete.html.twig" dans config/config.yml en complétant les inforamtions twig :
 
-```json
+```
 twig:
     ...
     form:
@@ -95,7 +102,7 @@ twig:
 
 Dans routing.yml, ajouter :
 
-```json
+```
 sgn_forms:
     resource: '@SGNFormsBundle/Resources/config/routing.xml'
 
@@ -105,7 +112,7 @@ sgn_forms:
 
 Il suffit enfin de déclarer votre champ de formulaire comme suit ;
 
-```php
+```
 class PointRefType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -130,7 +137,7 @@ Et normalement, tout fonctionne !
 ### Le template bootstrap3
 
 Cet outil a besoin de [Bootstrap 3](http://geodesie.ign.fr:8088/gitlab/components/bootstrapbundle)
-Attention, il n'est pas dans les dépendance, à vous de l'ajouter !
+Attention, il n'est pas dans les dépendances, à vous de l'ajouter !
 
 Dites à twig d'utiliser le template "forms.bootstrap3.html.twig" dans config/config.yml en complétant les inforamtions twig :
 

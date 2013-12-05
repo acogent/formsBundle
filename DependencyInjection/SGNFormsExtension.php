@@ -22,9 +22,14 @@ class SGNFormsExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->setParameter('sgn.autocomplete_entities', $config['autocomplete_entities']);
+        $container->setParameter('sgn_forms.autocomplete_entities', $config['autocomplete_entities']);
+
+        $container->setParameter('sgn_forms.twig_template', $config['twig_template']);
+        $container->setParameter('sgn_forms.twig_style',    $config['twig_style']);
+        $container->setParameter('sgn_forms.twig_bestof',   $config['twig_bestof']);
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
+
     }
 }
