@@ -115,6 +115,8 @@ $(document).ready(function() {
         if (jQuery("#related-grids").css('display') == "none")
         {
             jQuery("#related-grids").show();
+            jQuery("#frm-edit").hide();
+            jQuery("#frm-new").hide();
 
              {% for collection, url in collectionNames %}
                 myUrl = "{{ url }}";
