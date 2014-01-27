@@ -1,204 +1,68 @@
 {# Surcharge des champs de formulaire pour bootstrap 3 #}
 
-{% extends "form_table_layout.html.twig" %}
+{% extends "SGNFormsBundle::forms.bootstrap3.html.twig" %}
+{# {% form_theme form 'SGNFormsBundle::forms.table.bootstrap3.html.twig' %} #}
+{# {% extends "form_div_layout.html.twig" %} #}
 
 {# Form #}
 
-{% block form %}
+{% block form_row %}
 {% spaceless %}
-    {{ form_start(form, {attr: {class: 'form-horizontal', novalidate: 'novalidate', role :'form'}}) }}
-        {{ form_widget(form) }}
-    {{ form_end(form) }}
+    <tr>
+        <td>
+            {{ form_label(form) }}
+        </td>
+        <td>
+            {{ form_errors(form) }}
+            {{ form_widget(form) }}
+        </td>
+    </tr>
 {% endspaceless %}
-{% endblock form %}
+{% endblock form_row %}
 
-{# Widgets #}
-{% block choice_widget_collapsed %}
+{% block button_row %}
 {% spaceless %}
-    {% if required and empty_value is none and not empty_value_in_choices %}
-        {% set required = false %}
-    {% endif %}
-    <select class="form-control" {{ block('widget_attributes') }}{% if multiple %} multiple="multiple"{% endif %}>
-        {% if empty_value is not none %}
-            <option value=""{% if required and value is empty %} selected="selected"{% endif %}>{{ empty_value|trans({}, translation_domain) }}</option>
-        {% endif %}
-        {% if preferred_choices|length > 0 %}
-            {% set options = preferred_choices %}
-            {{ block('choice_widget_options') }}
-            {% if choices|length > 0 and separator is not none %}
-                <option disabled="disabled">{{ separator }}</option>
-            {% endif %}
-        {% endif %}
-        {% set options = choices %}
-        {{ block('choice_widget_options') }}
-    </select>
+    <tr>
+        <td></td>
+        <td>
+            {{ form_widget(form) }}
+        </td>
+    </tr>
 {% endspaceless %}
-{% endblock choice_widget_collapsed %}
+{% endblock button_row %}
 
-{% block textarea_widget %}
+{% block hidden_row %}
 {% spaceless %}
-    <textarea class="form-control" {{ block('widget_attributes') }}>{{ value }}</textarea>
+    <tr style="display: none">
+        <td colspan="2">
+            {{ form_widget(form) }}
+        </td>
+    </tr>
 {% endspaceless %}
-{% endblock textarea_widget %}
+{% endblock hidden_row %}
 
-{% block form_widget_simple %}
-    {% set type = type|default('text') %}
-    <input type="{{ type }}" class="form-control" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}" {% endif %}/>
-{% endblock form_widget_simple %}
-
-
-{% block submit_widget %}
-    {% set attr = attr|merge({class: 'btn btn-primary'}) %}
-    {% set type = type|default('submit') %}
-    {{ block('button_widget') }}
-{% endblock %}
-
-{% block choice_widget_expanded %}
+{% block form_widget_compound %}
 {% spaceless %}
-    {% for child in form %}
-        {{ form_label(
-            child,
-            null,
-            {
-                in_choice_list: true,
-                widget        : form_widget(child),
-                multiple      : multiple,
-            }
-        ) }}
-    {% endfor %}
+    <table {{ block('widget_container_attributes') }}>
+        {% if form.parent is empty and errors|length > 0 %}
+        <tr>
+            <td colspan="2">
+                {{ form_errors(form) }}
+            </td>
+        </tr>
+        {% endif %}
+        {{ block('form_rows') }}
+        {{ form_rest(form) }}
+    </table>
 {% endspaceless %}
-{% endblock choice_widget_expanded %}
-
-{% block datetime_widget %}
-{% spaceless %}
-    {% if widget == 'single_text' %}
-        {{ block('form_widget_simple') }}
-    {% else %}
-        <div {{ block('widget_container_attributes') }}>
-            {{ form_errors(form.date) }}
-            {{ form_errors(form.time) }}
-            {{ form_widget(form.date, { datetime: true } ) }}&nbsp;
-            {{ form_widget(form.time, { datetime: true } ) }}
-        </div>
-    {% endif %}
-{% endspaceless %}
-{% endblock datetime_widget %}
-
-{% block date_widget %}
-{% spaceless %}
-    {% if widget == 'single_text' %}
-        {{ block('form_widget_simple') }}
-    {% else %}
-        {% if datetime is not defined or false == datetime %}
-        <div {{ block('widget_container_attributes') }}>
-        {% endif %}
-            {{ date_pattern|replace({
-                '{{ year }}':  form_widget(form.year, {attr: { class : 'col-md-1'} }),
-                '{{ month }}': form_widget(form.month, {attr: { class : 'col-md-1'} }),
-                '{{ day }}':   form_widget(form.day, {attr: { class : 'col-md-1' } }),
-            })|raw }}
-        {% if datetime is not defined or false == datetime %}
-        </div>
-        {% endif %}
-    {% endif %}
-{% endspaceless %}
-{% endblock date_widget %}
-
-{% block time_widget %}
-{% spaceless %}
-    {% if widget == 'single_text' %}
-        {{ block('form_widget_simple') }}
-    {% else %}
-        {% if datetime is not defined or false == datetime %}
-        <div {{ block('widget_container_attributes') }}>
-        {% endif %}
-            {{ form_widget(form.hour, { attr: { class : 'col-md-1' } }) }}:{{ form_widget(form.minute, { attr: { class : 'col-md-1' } }) }}{% if with_seconds %}:{{ form_widget(form.second, { attr: { class : 'col-md-1' } }) }}{% endif %}
-        {% if datetime is not defined or false == datetime %}
-        </div>
-        {% endif %}
-
-    {% endif %}
-{% endspaceless %}
-{% endblock time_widget %}
-
-{% block money_widget %}
-{% spaceless %}
-    {% set append = '{{' == money_pattern[0:2] %}
-    <div class="{{ append ? 'input-append' : 'input-prepend' }}">
-        {% if not append %}
-            <span class="input-group-addon">
-                {{ money_pattern|replace({ '{{ widget }}':''}) }}
-            </span>
-        {% endif %}
-        {{ block('form_widget_simple') }}
-        {% if append %}
-            <span class="input-group-addon">
-                {{ money_pattern|replace({ '{{ widget }}':''}) }}
-            </span>
-        {% endif %}
-    </div>
-
-{% endspaceless %}
-{% endblock money_widget %}
-
-{% block percent_widget %}
-{% spaceless %}
-    <div class="input-group">
-        {{ parent() }}
-        <span class="input-group-addon">%</span>
-    </div>
-{% endspaceless %}
-{% endblock percent_widget %}
-
-{# Labels #}
-
-{% block form_label %}
-{% spaceless %}
-    {% if in_choice_list is defined and in_choice_list and widget is defined %}
-        {% if not compound %}
-            {% set label_attr = label_attr|merge({for: id}) %}
-        {% endif %}
-        {% if required %}
-            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' required')|trim}) %}
-        {% endif %}
-        {% if label is empty %}
-            {% set label = name|humanize %}
-        {% endif %}
-
-        {% if multiple is defined and multiple %}
-            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' checkbox')|trim}) %}
-        {% elseif multiple is defined and not multiple %}
-            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' radio')|trim}) %}
-        {% endif %}
-        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>
-            {{ widget|raw }}
-            <span>
-                {{ label|trans({}, translation_domain) }}
-            </span>
-        </label>
-    {% else %}
-        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' col-sm-3 control-label')|trim}) %}
-        {{ parent() }}
-    {% endif %}
-{% endspaceless %}
-{% endblock form_label %}
-
-{# Rows #}
-
-{% block form_errors %}
-{% spaceless %}
-    {% if errors|length > 0 %}
-    {% if form.parent %}<span class="help-inline alert-danger" >{% else %}<div class="alert alert-danger" >{% endif %}
-        {{ parent() }}
-    {% if form.parent %}</span>{% else %}</div>{% endif %}
-    {% endif %}
-{% endspaceless %}
-{% endblock form_errors %}
+{% endblock form_widget_compound %}
 
 {% block submit_row %}
-    <div class="form-group">
-        <div class="col-sm-offset-3 col-sm-10">
-          {{ form_widget(form) }}
-        </div>
-    </div>
+{% spaceless %}
+<div class="table-responsive">
+    <table class="table"><tr>
+       <td style="border-top: 0px;"> {{ form_widget(form) }}</td>
+    </tr></table>
+</div>
+{% endspaceless %}
 {% endblock %}
