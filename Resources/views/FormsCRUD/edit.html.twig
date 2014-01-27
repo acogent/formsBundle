@@ -1,8 +1,7 @@
-{# {% form_theme form 'SGNTwigCrudBundle:Form:fieldsArray.html.twig' %} #}
-
+{% form_theme form 'SGNFormsBundle::forms.table.bootstrap3.html.twig' %}
+{# {% form_theme form 'form_table_layout.html.twig' %} #}
 <h2>Edit</h2>
 {{ form_start(form) }}
     {{ form_errors(form) }}
     {{ form_widget(form) }}
 {{ form_end(form) }}
-
