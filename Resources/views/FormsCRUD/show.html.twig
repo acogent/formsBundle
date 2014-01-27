@@ -4,8 +4,7 @@
     {{ jQueryUiCSS() }}
     {{ jqGridCSS() }}
     {{ select2CSS() }}
-<link rel="stylesheet" media="screen" href="{{ asset('bundles/sgnforms/css/jquery-ui-1.10.0.custom.css') }}" />
-
+    <link rel="stylesheet" media="screen" href="{{ asset('bundles/sgnforms/css/jquery-ui-1.10.0.custom.css') }}" />
     <style>
     .ui-jqgrid .ui-pg-input {
         font-size: 14px;
@@ -13,36 +12,33 @@
         margin: 0;
         width: 50px;
     }
-  /*  .ui-jqgrid .ui-pg-selbox {
-        display: block;
-        font-size: 14px;
-        height: 30px;
-        line-height: 20px;
-        margin: 0;
-        width: 100px;
-    }*/
+    .select2-container
+    {
+        margin-top: 5px;
+    }
+    .nav-pills
+    {
+        margin-top: 5px;
+    }
     </style>
-
 {% endblock stylesheets %}
-{% block div_body %}{% endblock div_body %}
-{% block body_100 %}
+{% block content %}
     {% set btnTable = '' %}
     {% if  entities  is defined and entities|length > 0  %}
-            <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
-                <option></option>
-                {% for entit in entities %}
-                    <option value="{{ entit.link }}" >{{entit.label|transEdit({},'twigcrud')}}</a></option>
-                    {% if entit.name in sgn_forms_crud_twig_bestof %}
-                        {% if entit.name  == entity %}
-                            {% set btnTable = btnTable|raw ~ '<li class="active" ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
-                        {% else %}
-                            {% set btnTable = btnTable|raw ~ '<li ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
-                        {% endif %}
+        <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
+            <option></option>
+            {% for entit in entities %}
+                <option value="{{ entit.link }}" >{{entit.label|transEdit({},'twigcrud')}}</a></option>
+                {% if entit.name in sgn_forms_crud_twig_bestof %}
+                    {% if entit.name  == entity %}
+                        {% set btnTable = btnTable|raw ~ '<li class="active" ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
+                    {% else %}
+                        {% set btnTable = btnTable|raw ~ '<li ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
                     {% endif %}
-                {% endfor %}
-            </select>
-
-          <ul class="nav nav-pills">
+                {% endif %}
+            {% endfor %}
+        </select>
+        <ul class="nav nav-pills">
             {{ btnTable|raw }}
         </ul>
       {% endif %}
@@ -63,10 +59,9 @@
         {% for collection , url  in collectionNames %}
         <div id="related-grid-{{collection}}" >{{collection}}</div>
          {% endfor %}
-    <br />
-</div>
+        <br />
+    </div>
 {% endif %}
-
 
 {% endblock %}
 
@@ -78,10 +73,6 @@
 <script >
 
 $(document).ready(function() {
-
-
-
-
     $("#e1").select2({ placeholder: "Choisissez une table ..." });
 
     var last_selected = null;
@@ -119,7 +110,6 @@ $(document).ready(function() {
         beforeProcessing : showPagerOrNot,
         loadComplete     : hideResearch
     });
-
 
     function relatedGridsReload(sel_id) {
         if (jQuery("#related-grids").css('display') == "none")
@@ -268,7 +258,5 @@ $(document).ready(function() {
 
 }).trigger('resize');
 
-
 </script>
-
 {% endblock %}
