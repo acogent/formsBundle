@@ -496,8 +496,8 @@ class FormsCRUDController extends Controller
     {
         $class = strtoupper($bundle).'\DatabaseBundle\Entity\\'.$table;
         $type  = strtoupper($bundle).'\DatabaseBundle\Form\\'.$table.'Type';
-        $em = $this->getDoctrine()->getManager();
-        $obj = $em->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table)
+        $em    = $this->getDoctrine()->getManager();
+        $obj   = $em->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table)
                 ->findOneById($id );
 
         $form  = $this->createForm(new $type(), $obj);
