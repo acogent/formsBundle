@@ -20,17 +20,37 @@ use SGN\FormsBundle\Utils\Serializor;
 
 class FormsCRUDController extends Controller
 {
+
     /**
      *
      * @Route("/{bundle}/{table}/{format}/show/{params}/", requirements= { "params"=".+"})
      * @Route("/{bundle}/{table}/{format}/show/" )
+     * @Route("/{bundle}/{table}" )
+     * @Route("/{bundle}/" )
+     * @Route("/" )
      *
      * @Template()
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function showAction($bundle, $table , $format='html', $params="limit/10"  )
+    public function showAction($bundle = "x", $table = 'x' , $format='html', $params="limit/10"  )
     {
-      
+        if ($bundle == "x")
+        {
+            $bundles = $this->container->getParameter('sgn_forms.bundles');
+            $bundle = $bundles [0];
+        }
+        if ($table == "x")
+        {
+            $tables = $this->container->getParameter('sgn_forms.twig_bestof');
+            foreach ($tables as $ta)
+            {
+                if (substr($ta, 0, strpos($ta, '.') )  == $bundle)
+                {
+                    $table = substr($ta,  strpos($ta, '.')+1);
+                    break;
+                }
+            }
+        }
         $em = $this->getDoctrine()->getManager();
         // c'est pour retourner des données
         if ($format == 'json')
@@ -69,10 +89,17 @@ class FormsCRUDController extends Controller
         $limit    = $limits[0];
         $rowsList = $limits[1];
 
+        $tables = $this->container->getParameter('sgn_forms.twig_bestof');
+        foreach ($tables as $ta)
+        {
+            if (substr($ta, 0, strpos($ta, '.') )  == $bundle)
+            {
+                $twig_bestof[] = substr($ta,  strpos($ta, '.')+1);
+            }
+        }
         $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this, strtoupper($bundle).'DatabaseBundle' );
         $data = $em->getRepository($entity)
         ->findBy($criteria, null , $limit , null );
-
         if ($data)
         {
             $builder = $em->getRepository($entity)
@@ -98,6 +125,7 @@ class FormsCRUDController extends Controller
                 'collectionNames' => $collectionNames,
                 'entity'          => $table,
                 'count'           => $count,
+                'twig_bestof'     => $twig_bestof,
                 'entities'        => $tab_entities,
                 'limit'           => $limit,
                 'rowsList'        => $rowsList,
@@ -114,6 +142,7 @@ class FormsCRUDController extends Controller
                 'collectionNames' => null,
                 'entity'          => $table,
                 'count'           => 0,
+                'twig_bestof'     => $twig_bestof,
                 'entities'        => $tab_entities,
                 'limit'           => $limit,
                 'rowsList'        => $rowsList,

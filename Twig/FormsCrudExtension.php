@@ -18,7 +18,8 @@ class FormsCrudExtension extends \Twig_Extension
         return array(
             'sgn_forms_crud_twig_template' =>  $this->container->getParameter('sgn_forms.twig_template'),
             'sgn_forms_crud_twig_style'    =>  $this->container->getParameter('sgn_forms.twig_style'),
-            'sgn_forms_crud_twig_bestof'   =>  $this->container->getParameter('sgn_forms.twig_bestof')
+            'sgn_forms_crud_twig_bestof'   =>  $this->container->getParameter('sgn_forms.twig_bestof'),
+            'sgn_forms_bundles'            =>  $this->container->getParameter('sgn_forms.bundles')
         );
     }
 

@@ -9,7 +9,7 @@
             <tag name="form.type" alias="sgn_ajax_autocomplete" />
             <argument type="service" id="service_container"/>
         </service>
-        
+
         <service id="sgn_forms_crud_twig.twig.forms_crud_twig_extension" class="SGN\FormsBundle\Twig\FormsCrudExtension">
             <tag name="twig.extension" />
             <argument type="service" id="service_container"/>

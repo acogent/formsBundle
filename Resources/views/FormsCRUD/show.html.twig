@@ -20,38 +20,67 @@
     {
         margin-top: 5px;
     }
+    .hb_inner {
+        position: absolute;
+        top: 20px;
+        right: 15px;
+        padding: 15px !important;
+        width: 520px !important;
+    }
     </style>
 {% endblock stylesheets %}
+{% set bundle = "" %}
+{% block header_banner_inner %}
+<div class="hb_inner">
+    <div class="btn-group btn-group">
+       {% for bundle in sgn_forms_bundles %}
+         {% if bundle  != project %}
+            <a href="{{ path('sgn_forms_formscrud_show_3', {bundle: bundle}) }}" role="button" class="btn btn-info"><span class="glyphicon glyphicon-pushpin"></span> {{ bundle|raw }}</a>
+           {% endif %}
+        {% endfor %}
+    </div>
+    <br/>
+      <div class="btn-group btn-group-sm">
+       {% for bestof in twig_bestof %}
+         {% if bestof  != entity %}
+            <a href="{{ path('sgn_forms_formscrud_show_2', {bundle: project, table: bestof  }) }}" role="button" class="btn btn-info"><span class="glyphicon glyphicon-paperclip"></span> {{ bestof|raw }}</a>
+           {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+
 {% block content %}
-    {% set btnTable = '' %}
+<div class="row">
     {% if  entities  is defined and entities|length > 0  %}
         <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
             <option></option>
             {% for entit in entities %}
                 <option value="{{ entit.link }}" >{{entit.label|transEdit({},'twigcrud')}}</a></option>
-                {% if entit.name in sgn_forms_crud_twig_bestof %}
-                    {% if entit.name  == entity %}
-                        {% set btnTable = btnTable|raw ~ '<li class="active" ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
-                    {% else %}
-                        {% set btnTable = btnTable|raw ~ '<li ><a href="'~ entit.link ~'" >'~ entit.name|raw ~'</a></li>'  %}
-                    {% endif %}
-                {% endif %}
             {% endfor %}
         </select>
-        <ul class="nav nav-pills">
-            {{ btnTable|raw }}
-        </ul>
       {% endif %}
 
-<div class="page-header"><h1>{{ (entity|lower~'.label')|transEdit({},'twigcrud') }}</h1></div>
-
+<h3>{{ project }} - {{ entity }}</h3>
 {% set id = null%}
 
 <div id="grid_container">
-    <table id="list-grid"></table>
+    <table  class="table table-striped" id="list-grid"></table>
     <div id="grid-nav"></div>
-    <div id="frm-new" style="display:none"></div>
-    <div id="frm-edit" style="display:none"></div>
+    <br/>
+     <div id="res_content" style="display:none;">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title" id="panel-title"></h3>
+            </div>
+            <div id="result_panel" class="panel-body">
+                <div id="result_waiting">
+                    <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
  {% if  collectionNames  is defined %}
     <div id="related-grids" style="display:none">
@@ -115,8 +144,7 @@ $(document).ready(function() {
         if (jQuery("#related-grids").css('display') == "none")
         {
             jQuery("#related-grids").show();
-            jQuery("#frm-edit").hide();
-            jQuery("#frm-new").hide();
+            jQuery("#res_content").hide();
 
              {% for collection, url in collectionNames %}
                 myUrl = "{{ url }}";
@@ -175,15 +203,14 @@ $(document).ready(function() {
             add:true,  edit:true, view:true, del:true,search: true,
             addfunc: function() {
 
-                if (jQuery("#frm-new").css('display') != 'none')
+                if (jQuery("#res_content").css('display') != 'none')
                 {
-                    jQuery("#frm-new").hide();
-                    jQuery("#frm-edit").hide();
+                    jQuery("#res_content").hide();
                     jQuery("#related-grids").show();
                 }
                 else{
-                    jQuery("#frm-new").show();
-                    jQuery("#frm-edit").hide();
+                    jQuery("#res_content").show();
+                    jQuery("#panel-title").html ("New");
                     jQuery("#related-grids").hide();
                     myUrl = "{{ url_new }}";
                     $.ajax({
@@ -191,7 +218,7 @@ $(document).ready(function() {
                         url:myUrl,
                         cache: false,
                         success: function(data){
-                            jQuery('#frm-new').html(data);
+                            jQuery('#result_panel').html(data);
                         }
                     });
                 }
@@ -206,18 +233,17 @@ $(document).ready(function() {
                         url:myUrl,
                         cache: false,
                         success: function(data){
-                            jQuery('#frm-edit').html(data);
+                            jQuery('#result_panel').html(data);
                         }
                     });
-                    if (jQuery("#frm-edit").css('display') != 'none')
+                    if (jQuery("#res_content").css('display') != 'none')
                     {
-                        jQuery("#frm-edit").hide();
-                        jQuery("#frm-new").hide();
+                        jQuery("#res_content").hide();
                         jQuery("#related-grids").show();
                     }
                     else{
-                        jQuery("#frm-edit").show();
-                        jQuery("#frm-new").hide();
+                        jQuery("#res_content").show();
+                        jQuery("#panel-title").html ("Edit");
                         jQuery("#related-grids").hide();
                     }
                 } else {
