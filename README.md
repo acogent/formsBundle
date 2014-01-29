@@ -148,14 +148,16 @@ twig:
         resources:
             - SGNFormsBundle::forms.bootstrap3.html.twig
 ```
-Déclarer un template d'aministration 
+
+Déclarer un template d'aministration :
+
 ```json
 twig:
     ...
     globals:
         ADMIN_LAYOUT: 'BDGSWebsiteBundle::admin_layout.html.twig'
 ```
-où 'BDGSWebsiteBundle::admin_layout.html.twig' est votre layout.
+où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exmple, à vous de mettre votre template.
 
 
 ### Le générateur de formulaire et interface générique de consultation des entités 
@@ -169,13 +171,16 @@ Ajouter les bundles suivants, si ce n'est déjà fait :
 new Components\JQueryBundle\ComponentsJQueryBundle(),
 new Components\JQueryUiBundle\ComponentsJQueryUiBundle(),
 new Components\jqGridBundle\ComponentsjqGridBundle(),
+new Components\Select2Bundle\ComponentsSelect2Bundle(),
 new SGN\FormsBundle\SGNFormsBundle(),
 ```
 2. config/config.yml
 
 ```
 sgn_forms:
-    twig_bestof: ['PointRef', 'PointRefNumero','Site','Station', 'Pays', 'Instrument', 'Sitelog','GNSSSiteLocation', 'GNSSReceiver']
+    bundles: ['BDGSDatabaseBundle', 'SITELOGDatabaseBundle']
+    orm: 'default'
+    bestof_entity: ['PointRef', 'PointRefNumero','Site','Station', 'Pays', 'Instrument', 'Sitelog','GNSSSiteLocation', 'GNSSReceiver']
 ```
 
 3. Importer les routes
