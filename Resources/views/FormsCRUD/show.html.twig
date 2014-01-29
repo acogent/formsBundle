@@ -42,7 +42,7 @@
     </div>
     <br/>
       <div class="btn-group btn-group-sm">
-       {% for bestof in twig_bestof %}
+       {% for bestof in bestof_entity %}
          {% if bestof  != entity %}
             <a href="{{ path('sgn_forms_formscrud_show_2', {bundle: project, table: bestof  }) }}" role="button" class="btn btn-info"><span class="glyphicon glyphicon-paperclip"></span> {{ bestof|raw }}</a>
            {% endif %}

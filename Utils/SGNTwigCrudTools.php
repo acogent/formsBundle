@@ -16,6 +16,7 @@ class SGNTwigCrudTools
     {
         $em = $me->getDoctrine()->getManager();
         $metadatas = $em->getMetadataFactory()->getAllMetadata();
+        $tab_entities = array();
         foreach ($metadatas as $metadata) {
             $bundleShortName = SGNTwigCrudTools::getBundleShortName($metadata->getName());
             if ( $bundleShortName <> $bundle  && $bundle <> '*') continue;
