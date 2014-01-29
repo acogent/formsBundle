@@ -180,7 +180,7 @@ new SGN\FormsBundle\SGNFormsBundle(),
 sgn_forms:
     bundles: ['BDGSDatabaseBundle', 'SITELOGDatabaseBundle']
     orm: 'default'
-    bestof_entity: ['PointRef', 'PointRefNumero','Site','Station', 'Pays', 'Instrument', 'Sitelog','GNSSSiteLocation', 'GNSSReceiver']
+    bestof_entity: ['BDGSDatabaseBundle.PointRef', 'BDGSDatabaseBundle.PointRefNumero', 'SITELOGDatabaseBundle.Sitelog','SITELOGDatabaseBundle.GNSSSiteLocation']
 ```
 
 3. Importer les routes

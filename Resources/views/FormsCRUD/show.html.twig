@@ -36,7 +36,7 @@
     <div class="btn-group btn-group">
        {% for bundle in sgn_forms_bundles %}
          {% if bundle  != project %}
-            <a href="{{ path('sgn_forms_formscrud_show_3', {bundle: bundle}) }}" role="button" class="btn btn-info"><span class="glyphicon glyphicon-pushpin"></span> {{ bundle|raw }}</a>
+            <a href="{{ path('sgn_forms_formscrud_show_3', {bundle: bundle}) }}" role="button" class="btn btn-info"><span class="glyphicon glyphicon-pushpin"></span> {{ bundle[:-6] }}</a>
            {% endif %}
         {% endfor %}
     </div>

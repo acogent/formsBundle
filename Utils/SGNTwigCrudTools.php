@@ -40,9 +40,7 @@ class SGNTwigCrudTools
      */
     public static function getProjectName($bundle)
     {
-        list($project,$bundleName) = explode('DatabaseBundle' , $bundle);
-
-        return strtolower($project);
+        return $bundle;
     }
 
     /**
@@ -52,11 +50,10 @@ class SGNTwigCrudTools
      */
     private static function getEntityLink($me, $name, $bundle)
     {
-        list($project,$bundleName) = explode('DatabaseBundle' , $bundle);
         $url = $me->get('router')->generate(
             'sgn_forms_formscrud_show',
             array(
-                'bundle' => strtolower($project) ,
+                'bundle' => $bundle ,
                 'table'  => $name  ,
                 'format'=>'html'
                 ),
