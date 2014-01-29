@@ -148,6 +148,15 @@ twig:
         resources:
             - SGNFormsBundle::forms.bootstrap3.html.twig
 ```
+Déclarer un template d'aministration 
+```json
+twig:
+    ...
+    globals:
+        ADMIN_LAYOUT: 'BDGSWebsiteBundle::admin_layout.html.twig'
+```
+où 'BDGSWebsiteBundle::admin_layout.html.twig' est votre layout.
+
 
 ### Le générateur de formulaire et interface générique de consultation des entités 
 
@@ -166,7 +175,6 @@ new SGN\FormsBundle\SGNFormsBundle(),
 
 ```
 sgn_forms:
-    twig_template: "base.html.twig"
     twig_bestof: ['PointRef', 'PointRefNumero','Site','Station', 'Pays', 'Instrument', 'Sitelog','GNSSSiteLocation', 'GNSSReceiver']
 ```
 
