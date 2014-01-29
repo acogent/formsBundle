@@ -30,7 +30,6 @@ class Configuration implements ConfigurationInterface
                     ->prototype('scalar')->end()
                     ->defaultValue(array('*'))
                 ->end()
-                ->scalarNode('twig_template')->defaultValue('SGNTemplateBundle:DevBlog:base.html.twig')->end()
                 ->scalarNode('twig_style')->defaultValue("{{ asset('bundles/sgnforms/css/style.css') }}")->end()
            
 
