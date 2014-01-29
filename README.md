@@ -198,3 +198,4 @@ sgn_forms_crud:
         _locale: en|fr
 
 ```
+4. Générer les formulaires pour les Bundles configurés
