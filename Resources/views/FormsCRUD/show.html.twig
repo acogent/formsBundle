@@ -58,7 +58,7 @@
         <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
             <option></option>
             {% for entit in entities %}
-                <option value="{{ entit.link }}" >{{entit.label|transEdit({},'twigcrud')}}</a></option>
+                <option value="{{ entit.link }}" >{{ entit.name}}</a></option>
             {% endfor %}
         </select>
       {% endif %}

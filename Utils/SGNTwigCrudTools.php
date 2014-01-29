@@ -24,7 +24,7 @@ class SGNTwigCrudTools
             $tab_entity['project']    = SGNTwigCrudTools::getProjectName($bundle);
             $tab_entity['name']       = SGNTwigCrudTools::getName( $metadata->getName());
             $tab_entity['identifier'] = $metadata->getIdentifier();
-            $tab_entity['label']      = SGNTwigCrudTools::getEntityTrans($tab_entity, 'label');
+           // $tab_entity['label']      = SGNTwigCrudTools::getEntityTrans($tab_entity, 'label');
             $tab_entity['link']       = SGNTwigCrudTools::getEntityLink($me,$tab_entity['name'], $bundle);
             $tab_entities[strtolower($tab_entity['name'])] = $tab_entity;
 
