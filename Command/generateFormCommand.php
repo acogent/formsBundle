@@ -39,7 +39,7 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
                 new InputOption('entity', '', InputOption::VALUE_REQUIRED, "Le nom de l'entité"),
              ))
             ->setDescription("Genere le formulaire d'une entité")
-            ->setName('SGN:generate:form')
+            ->setName('sgn:generate:form')
         ;
     }
 
