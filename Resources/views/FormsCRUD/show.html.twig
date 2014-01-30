@@ -66,33 +66,58 @@
 <h3>{{ project }} - {{ entity }}</h3>
 {% set id = null%}
 
+
 <div id="grid_container">
     <table  class="table table-striped" id="list-grid"></table>
     <div id="grid-nav"></div>
-    <br/>
-     <div id="res_content" style="display:none;">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="panel-title" id="panel-title"></h3>
-            </div>
-            <div id="result_panel" class="panel-body">
-                <div id="result_waiting">
-                    <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+</div>
+<br>
+
+ {% if  collectionNames  is defined %}
+  
+<ul id="myTab" class="nav nav-tabs">
+    <li class="active"><a href="#related-grids" data-toggle="tab">Related data</a></li>
+    <li class=""><a href="#show" data-toggle="tab">Show</a></li>
+    <li class=""><a href="#edit" data-toggle="tab">Edit</a></li>
+    <li class=""><a href="#new" data-toggle="tab">New</a></li>
+    <li class=""><a href="#delete" data-toggle="tab">Delete</a></li>
+</ul>
+<div id="myTabContent" class="tab-content" style="display:none;">
+    <div class = "tab-pane fade active in" id="related-grids">
+        <h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+        {% for collection , url  in collectionNames %}
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title" id="panel-title">{{collection}}</h3>
+                </div>
+                <div id="result_panel" class="panel-body">
+                    <div id="related-grid-{{collection}}" ></div>
                 </div>
             </div>
+         {% endfor %}
+    </div>
+    <div class = "tab-pane fade" id="show"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+        <div id="showEntity">
+            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+        </div>
+    </div>
+    <div class = "tab-pane fade" id="edit"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+        <div id="editEntity">
+            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+        </div>
+    </div>
+    <div class = "tab-pane fade" id="new"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+        <div id="newEntity">
+            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+        </div>
+    </div>
+    <div class = "tab-pane fade" id="delete"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+        <div id="deletEntity">
+            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
         </div>
     </div>
 </div>
- {% if  collectionNames  is defined %}
-    <div id="related-grids" style="display:none">
-        <h2>{{ entity }} : <span id='selectedEntityId'></span></h2>
-        {% for collection , url  in collectionNames %}
-        <div id="related-grid-{{collection}}" >{{collection}}</div>
-         {% endfor %}
-        <br />
-    </div>
 {% endif %}
-
 {% endblock %}
 
 {% block javascripts %}
@@ -136,42 +161,62 @@ $(document).ready(function() {
         sortorder   : "asc",
         caption     : "",
         onSelectRow      : relatedGridsReload,
-        beforeRequest    : hidePager,
-        beforeProcessing : showPagerOrNot,
         loadComplete     : hideResearch
     });
 
     function relatedGridsReload(sel_id) {
-        if (jQuery("#related-grids").css('display') == "none")
-        {
-            jQuery("#related-grids").show();
-            jQuery("#res_content").hide();
+        jQuery("#myTabContent").show();
+        wait = " En developpement ... <img src=\"{{ asset('bundles/bdgsworkflow/images/working.gif') }}\" alt=\"working...\" />";
+        jQuery('#editEntity').html(wait);
+        jQuery('#showEntity').html(wait);
+        jQuery('#newEntity').html(wait);
+        jQuery('#deletEntity').html(wait);
+        {% for collection, url in collectionNames %}
+            myUrl = "{{ url }}";
+            myUrl = myUrl.replace( '0', sel_id);
+            $.ajax({
+                type   : "GET",
+                url    : myUrl,
+                cache  : false,
+                success: function(data){
+                    jQuery('#related-grid-{{collection}}').append(data);
+                }
+            });
+        {% endfor %}
 
-             {% for collection, url in collectionNames %}
-                myUrl = "{{ url }}";
-                myUrl = myUrl.replace( '0', sel_id);
-                $.ajax({
-                    type: "GET",
-                    url:myUrl,
-                    cache: false,
-                    success: function(data){
-                        jQuery('#related-grid-{{collection}}').append(data);
-                    }
-                });
-            {% endfor %}
-        }
+         myUrl = "{{ url_new }}";
+            $.ajax({
+                type   : "GET",
+                url    : myUrl,
+                cache  : false,
+                success: function(data){
+                    // jQuery('#newEntity').html(data);
+                }
+            });
+        myUrl = "{{ url_edit }}";
+            myUrl = myUrl.replace( '0', sel_id);
+            $.ajax({
+                type   : "GET",
+                url    : myUrl,
+                cache  : false,
+                success: function(data){
+                    // jQuery('#editEntity').html(data);
+                }
+            });
+ 
         if (sel_id != last_loaded ) {
             {% for collection, url in collectionNames %}
                 jQuery("#list-grid-{{ collection }}" ).clearGridData();
                 jQuery("#list-grid-{{ collection }}").trigger('reloadGrid');
             {% endfor %}
-            jQuery("#selectedEntityId").text(getSelectedEntityId);
+            jQuery(".selectedEntityId").text(getSelectedEntityId);
 
             last_loaded = sel_id;
         }
         last_selected = sel_id;
     }
-    function getSelectedEntityId() {
+    function getSelectedEntityId() 
+    {
 
         var sel_id = jQuery("#list-grid").getGridParam('selrow');
         if (last_loaded) jQuery("#list-grid tr#" + last_loaded + " td").css('font-weight', 'normal');
@@ -180,20 +225,8 @@ $(document).ready(function() {
         return id;
     }
 
-    function hidePager() {
-        jQuery("#grid-nav_center").hide();
-    }
-
-    function showPagerOrNot(data) {
-       // console.log(data.records);
-        jQuery("#grid-nav_center").show();
-        if (jQuery("#related-grids").css('display') != 'none') {
-            jQuery("#related-grids").slideToggle('swing');
-        }
-    }
-
-    function hideResearch() {
-
+    function hideResearch() 
+    {
         if (jQuery("#searchmodfbox_list-grid")) {
             jQuery("#searchmodfbox_list-grid a.ui-jqdialog-titlebar-close").click();
         }
@@ -201,58 +234,7 @@ $(document).ready(function() {
 
     var grid = jQuery("#list-grid").jqGrid("navGrid", "#grid-nav",
         {
-            add:true,  edit:true, view:true, del:true,search: true,
-            addfunc: function() {
-
-                if (jQuery("#res_content").css('display') != 'none')
-                {
-                    jQuery("#res_content").hide();
-                    jQuery("#related-grids").show();
-                }
-                else{
-                    jQuery("#res_content").show();
-                    jQuery("#panel-title").html ("New");
-                    jQuery("#related-grids").hide();
-                    myUrl = "{{ url_new }}";
-                    $.ajax({
-                        type: "GET",
-                        url:myUrl,
-                        cache: false,
-                        success: function(data){
-                            jQuery('#result_panel').html(data);
-                        }
-                    });
-                }
-            },
-            editfunc: function() {
-                var sel_id = grid.getGridParam('selrow');
-                if (sel_id) {
-                    myUrl = "{{ url_edit }}";
-                    myUrl = myUrl.replace( '0', sel_id);
-                    $.ajax({
-                        type: "GET",
-                        url:myUrl,
-                        cache: false,
-                        success: function(data){
-                            jQuery('#result_panel').html(data);
-                        }
-                    });
-                    if (jQuery("#res_content").css('display') != 'none')
-                    {
-                        jQuery("#res_content").hide();
-                        jQuery("#related-grids").show();
-                    }
-                    else{
-                        jQuery("#res_content").show();
-                        jQuery("#panel-title").html ("Edit");
-                        jQuery("#related-grids").hide();
-                    }
-                } else {
-                    viewModal("#alertmod", { gbox: "#gbox_" + grid_id, jqm: true });
-                    jQuery("#jqg_alrt").focus();
-                }
-            }
-
+            add:false,  edit:false, view:false, del:false,search: true
         },
         { } //edit options
     );
@@ -282,7 +264,6 @@ $(document).ready(function() {
         Math.abs(width - jQuery("#list-grid").width()) > 5)
     {
         jQuery("#list-grid").setGridWidth(width);
-        console.log(width);
     }
 
 }).trigger('resize');

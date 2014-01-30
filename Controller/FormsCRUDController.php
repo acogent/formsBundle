@@ -505,7 +505,7 @@ class FormsCRUDController extends Controller
             $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
             $em->persist($obj);
             $em->flush();
-
+            $request->getSession()->getFlashBag()->add('success', 'Enr has been saved');
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
@@ -522,7 +522,37 @@ class FormsCRUDController extends Controller
      * @Template()
      */
 
-    public function editAction($bundle, $table , $id ,  Request $request )
+    public function editAction( Request $request , $bundle, $table , $id )
+    {
+        $bundlename  = Validators::validateBundleName($bundle);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+        $class = $dir.'\Entity\\'.$table;
+        $type  = $dir.'\Form\\'.$table.'Type';
+        $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj   = $em->getRepository($bundle.':'.$table)
+                ->findOneById($id );
+
+        $form  = $this->createForm(new $type(), $obj);
+       // var_dump($form);
+        $form->handleRequest($request);
+        
+        if ($form->isValid()) {
+            $em->flush();
+            return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
+                array('bundle' => $bundle, 'table' => $table)));
+        }
+        return  array(
+            'form' => $form->createView(),
+        );
+    }
+     /**
+     *
+     * @Route("/{bundle}/{table}/delete/{id}/")
+     * 
+     * @Template()
+     */
+    public function deleteAction($bundle, $table , $id ,  Request $request)
     {
         $bundlename  = Validators::validateBundleName($bundle);
         $BundleValid = $this->get('Kernel')->getBundle($bundlename);
@@ -540,7 +570,13 @@ class FormsCRUDController extends Controller
 
         if ($form->isValid()) {
             $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
-            $em->persist($obj);
+            $entity = $em->getRepository('IFIDatabaseBundle:Alti')->find($id);
+
+            if (!$entity) {
+                throw $this->createNotFoundException('Unable to find entity.');
+            }
+
+            $em->remove($entity);
             $em->flush();
 
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
