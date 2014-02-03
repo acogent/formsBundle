@@ -4,7 +4,7 @@ namespace SGN\FormsBundle\Extension;
 
 use SGN\AdminInterfaceBundle\Extension\ExtensionInterface;
 
-class UserAiExtension implements ExtensionInterface
+class AdminGeneratorExtension implements ExtensionInterface
 {
     public function getMenu()
     {
