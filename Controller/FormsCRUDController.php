@@ -127,8 +127,14 @@ class FormsCRUDController extends Controller
                 'entities'        => $tab_entities,
                 'limit'           => $limit,
                 'rowsList'        => $rowsList,
-                'url_new'         => $this->getURLNew($bundle, $table),
-                'url_edit'        => $this->getURLEdit($bundle, $table),
+                'url_new'         => $this->generateUrl('sgn_forms_formscrud_new', array('bundle'=>$bundle, 'table'=>$table), true),
+                'url_showone'     => $this->generateUrl('sgn_forms_formscrud_showone', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
+
+
+
+                //'url_edit'      => $this->getURLEdit($bundle, $table),
+                'url_edit'        => $this->generateUrl('sgn_forms_formscrud_edit', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
+                'url_delete'      => $this->generateUrl('sgn_forms_formscrud_delete', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0)),
                 'params'          => $params
                 );
 
@@ -140,11 +146,12 @@ class FormsCRUDController extends Controller
                 'collectionNames' => null,
                 'entity'          => $table,
                 'count'           => 0,
-                'bestof_entity'     => $bestof_entity,
+                'bestof_entity'   => $bestof_entity,
                 'entities'        => $tab_entities,
                 'limit'           => $limit,
                 'rowsList'        => $rowsList,
                 'url_new'         => null,
+                'url_showone'     => null,
                 'url_edit'        => null,
                 'params'          => $params
                 );
@@ -497,7 +504,12 @@ class FormsCRUDController extends Controller
         $type  = $dir.'\Form\\'.$table.'Type';
 
         $obj   = new $class();
-        $form  = $this->createForm(new $type(), $obj);
+        $form  = $this->createForm(new $type(), $obj, array(
+            'action' => $this->generateUrl(
+                'sgn_forms_formscrud_new', 
+                array('bundle' => $bundle, 'table' => $table)
+            ),
+        ));
 
         $form->handleRequest($request);
 
@@ -536,7 +548,12 @@ class FormsCRUDController extends Controller
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
         }
 
-        $form  = $this->createForm(new $type(), $obj);
+        $form  = $this->createForm(new $type(), $obj, array(
+            'action' => $this->generateUrl(
+                'sgn_forms_formscrud_edit', 
+                array('bundle' => $bundle, 'table' => $table, 'id' => $id)
+            ),
+        ));
 
         $form->handleRequest($request);
         
@@ -550,6 +567,35 @@ class FormsCRUDController extends Controller
             'form' => $form->createView(),
         );
     }
+
+    /**
+     *
+     * @Route("/{bundle}/{table}/showone/{id}/")
+     *
+     * @Template()
+     */
+
+    public function showoneAction( $bundle, $table , $id,  Request $request )
+    {
+        $bundlename  = Validators::validateBundleName($bundle);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+        $class       = $dir.'\Entity\\'.$table;
+        $type        = $dir.'\Form\\'.$table.'Type';
+        $em          = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj         = $em->getRepository($bundle.':'.$table)  ->findOneById($id );
+        
+        if (!$obj) {
+            throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
+        }
+
+        $serializer  = $this->container->get('jms_serializer');
+        $jsonobj     = $serializer->serialize($obj, 'json');
+        return  array(
+            'obj' => $jsonobj
+        );
+    }
+
      /**
      *
      * @Route("/{bundle}/{table}/delete/{id}/")
@@ -568,7 +614,12 @@ class FormsCRUDController extends Controller
         $obj   = $em->getRepository($bundle.':'.$table)
                 ->findOneById($id );
 
-        $form  = $this->createForm(new $type(), $obj);
+        $form  = $this->createForm(new $type(), $obj, array(
+            'action' => $this->generateUrl(
+                'sgn_forms_formscrud_delete', 
+                array('bundle' => $bundle, 'table' => $table, 'id' => $id)
+            ),
+        ));
 
         $form->handleRequest($request);
 
@@ -805,7 +856,7 @@ class FormsCRUDController extends Controller
      * @param  string $entity  le nom de l'entité
      * @return url          l'url générée
      */
-    private function getURLNew($project,$entity)
+/*    private function getURLNew($project,$entity)
     {
         $url = $this->get('router')->generate(
             'sgn_forms_formscrud_new',
@@ -817,14 +868,14 @@ class FormsCRUDController extends Controller
         );
         return $url;
     }
-
+*/
     /**
      * Fabrique l'URL pour le formulaire EDIT
      * @param  string $project le nom du projet
      * @param  string $entity  le nom de l'entité
      * @return url          l'url générée
      */
-    private function getURLEdit($project,$entity )
+ /*   private function getURLEdit($project,$entity )
     {
         $url = $this->get('router')->generate(
             'sgn_forms_formscrud_edit',
@@ -837,7 +888,7 @@ class FormsCRUDController extends Controller
         );
         return $url;
     }
-
+*/
     /**
      * Renvoie un tableau contenant les URL utiles à la fabrication des sous-formulaires
      * @param  array $data    tableau issu d'une sérialisation du résultat d'une requete

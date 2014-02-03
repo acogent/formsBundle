@@ -53,6 +53,7 @@
 
 
 {% block content %}
+{# {{ dump(app.request.query) }} #}
 <div class="row">
     {% if  entities  is defined and entities|length > 0  %}
         <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
@@ -76,14 +77,14 @@
  {% if  collectionNames  is defined %}
   
 <ul id="myTab" class="nav nav-tabs">
-    <li class="active"><a href="#related-grids" data-toggle="tab">Related data</a></li>
+    <li class=""><a href="#related-grids" data-toggle="tab">Related data</a></li>
     <li class=""><a href="#show" data-toggle="tab">Show</a></li>
     <li class=""><a href="#edit" data-toggle="tab">Edit</a></li>
-    <li class=""><a href="#new" data-toggle="tab">New</a></li>
+    <li class="active"><a href="#new" data-toggle="tab">New</a></li>
     <li class=""><a href="#delete" data-toggle="tab">Delete</a></li>
 </ul>
-<div id="myTabContent" class="tab-content" style="display:none;">
-    <div class = "tab-pane fade active in" id="related-grids">
+<div id="myTabContent" class="tab-content">
+    <div class = "tab-pane fade" id="related-grids">
         <h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         {% for collection , url  in collectionNames %}
             <div class="panel panel-primary">
@@ -98,22 +99,23 @@
     </div>
     <div class = "tab-pane fade" id="show"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         <div id="showEntity">
-            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+            Vous devez effectuer une selection pour pouvoir l'afficher.
         </div>
     </div>
     <div class = "tab-pane fade" id="edit"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         <div id="editEntity">
-            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+            Vous devez effectuer une selection pour pouvoir l'éditer.
         </div>
     </div>
-    <div class = "tab-pane fade" id="new"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+    <div class = "tab-pane fade active in" id="new"><h2>{{ entity }} : </h2>
         <div id="newEntity">
-            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+            {{ render(controller('SGNFormsBundle:FormsCRUD:new', {
+                'bundle': project, 'table': entity
+            })) }}
         </div>
-    </div>
     <div class = "tab-pane fade" id="delete"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         <div id="deletEntity">
-            <img src="{{ asset('bundles/bdgsworkflow/images/working.gif') }}" alt="working..." />
+            Vous devez effectuer une selection pour pouvoir la supprimer.
         </div>
     </div>
 </div>
@@ -127,13 +129,14 @@
 
 <script >
 
+    var last_selected = null;
+    var last_loaded   = null;
+    var wait = "<img src=\"{{ asset('bundles/bdgsworkflow/images/working.gif') }}\" alt=\"working...\" />";
+
 $(document).ready(function() {
     $("#e1").select2({ placeholder: "Choisissez une table ..." });
 
-    var last_selected = null;
-    var last_loaded   = null;
-
-      jQuery("#list-grid").jqGrid({
+    jQuery("#list-grid").jqGrid({
         autowidth : true,
         height    : 'auto',
         shrinkToFit : true,
@@ -165,11 +168,13 @@ $(document).ready(function() {
     });
 
     function relatedGridsReload(sel_id) {
-        jQuery("#myTabContent").show();
-        wait = " En developpement ... <img src=\"{{ asset('bundles/bdgsworkflow/images/working.gif') }}\" alt=\"working...\" />";
+        // jQuery("#myTabContent").show();
+        if($('#myTab li.active a').attr('href') == "#new") {
+            $('#myTab a[href="#related-grids"]').tab('show');
+        }
+
         jQuery('#editEntity').html(wait);
         jQuery('#showEntity').html(wait);
-        jQuery('#newEntity').html(wait);
         jQuery('#deletEntity').html(wait);
         {% for collection, url in collectionNames %}
             myUrl = "{{ url }}";
@@ -184,25 +189,27 @@ $(document).ready(function() {
             });
         {% endfor %}
 
-         myUrl = "{{ url_new }}";
-            $.ajax({
-                type   : "GET",
-                url    : myUrl,
-                cache  : false,
-                success: function(data){
-                    // jQuery('#newEntity').html(data);
-                }
-            });
         myUrl = "{{ url_edit }}";
-            myUrl = myUrl.replace( '0', sel_id);
-            $.ajax({
-                type   : "GET",
-                url    : myUrl,
-                cache  : false,
-                success: function(data){
-                    // jQuery('#editEntity').html(data);
-                }
-            });
+        myUrl = myUrl.replace( '0', sel_id);
+        $.ajax({
+            type   : "GET",
+            url    : myUrl,
+            cache  : false,
+            success: function(data){
+                jQuery('#editEntity').html(data);
+            }
+        });
+
+        myUrl = "{{ url_showone }}";
+        myUrl = myUrl.replace( '0', sel_id);
+        $.ajax({
+            type   : "GET",
+            url    : myUrl,
+            cache  : false,
+            success: function(data){
+                jQuery('#showEntity').html(data);
+            }
+        });
  
         if (sel_id != last_loaded ) {
             {% for collection, url in collectionNames %}
@@ -215,6 +222,7 @@ $(document).ready(function() {
         }
         last_selected = sel_id;
     }
+
     function getSelectedEntityId() 
     {
 
