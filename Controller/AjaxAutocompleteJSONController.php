@@ -2,14 +2,10 @@
 
 namespace SGN\FormsBundle\Controller;
 
-
-
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-
 use Symfony\Component\HttpFoundation\Response;
 
 class AjaxAutocompleteJSONController extends Controller
@@ -22,15 +18,15 @@ class AjaxAutocompleteJSONController extends Controller
         $entities     = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
         $entity_alias = $request->get('entity_alias');
         $entity_inf   = $entities[$entity_alias];
-        if (false === $this->get('security.context')->isGranted( $entity_inf['role'] )) {
+        if ( false === $this->get('security.context')->isGranted($entity_inf['role']) )
+        {
             throw new AccessDeniedException();
         }
+        $letters      = $request->get('letters');
+        $maxRows      = $request->get('page_limit');
 
-        $letters = $request->get('letters');
-        $maxRows = $request->get('page_limit');
-
-
-        switch ($entity_inf['search']){
+        switch ( $entity_inf['search'] )
+        {
             case "begins_with":
                 $like = $letters . '%';
             break;
@@ -41,22 +37,24 @@ class AjaxAutocompleteJSONController extends Controller
                 $like = '%' . $letters . '%';
             break;
             default:
-                throw new \Exception('Unexpected value of parameter "search"');
+                throw new \Exception('Unexpected value of parameter “search”.');
         }
 
         $property = $entity_inf['property'];
+        $value    = $entity_inf['value'];
 
-        if ($entity_inf['case_insensitive']) {
-                $where_clause_lhs = 'WHERE LOWER(e.' . $property . ')';
-                $where_clause_rhs = 'LIKE LOWER(:like)';
+        if ($entity_inf['case_insensitive'])
+        {
+            $where_clause_lhs = 'WHERE LOWER(e.' . $property . ')';
+            $where_clause_rhs = 'LIKE LOWER(:like)';
         } else {
 
-                $where_clause_lhs = 'WHERE e.' . $property;
-                $where_clause_rhs = 'LIKE :like';
+            $where_clause_lhs = 'WHERE e.' . $property;
+            $where_clause_rhs = 'LIKE :like';
         }
 
         $results = $em->createQuery(
-            'SELECT e.' . $property . ', e.id
+            'SELECT e.' . $property . ', e.' . $value . '
              FROM ' . $entity_inf['class'] . ' e ' .
              $where_clause_lhs . ' ' . $where_clause_rhs . ' ' .
             'ORDER BY e.' . $property)
@@ -67,12 +65,12 @@ class AjaxAutocompleteJSONController extends Controller
         $res = array();
 
         foreach ($results AS $r){
-            $res[] = array("id"=>$r['id'],"text"=>$r[$entity_inf['property']]);
+            $res[] = array("id"=>$r[$value],"text"=>$r[$property]);
         }
         if (count($results) == 1)
         {
-            $res = array("id"=>$r['id'],"text"=>$r[$entity_inf['property']]);
+            $res = array("id"=>$r[$value],"text"=>$r[$property]);
         }
-        return new Response(json_encode($res));      
+        return new Response(json_encode($res));
     }
 }
