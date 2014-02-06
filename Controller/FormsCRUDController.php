@@ -589,7 +589,7 @@ class FormsCRUDController extends Controller
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
         }
 
-        $serializer  = $this->container->get('jms_serializer');
+        $serializer  = $this->container->get('serializer');
         $jsonobj     = $serializer->serialize($obj, 'json');
         return  array(
             'obj' => $jsonobj
