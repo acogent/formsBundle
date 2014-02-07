@@ -28,6 +28,11 @@
         padding: 15px !important;
         width: 520px !important;
     }
+    #grid_container table>tbody>tr>td[role="gridcell"] {
+        padding: 0px;
+        padding-left: 8px;
+    }
+
     </style>
 {% endblock stylesheets %}
 {% set bundle = "" %}
@@ -76,15 +81,16 @@
 
  {% if  collectionNames  is defined %}
   
-<ul id="myTab" class="nav nav-tabs">
-    <li class=""><a href="#related-grids" data-toggle="tab">Related data</a></li>
-    <li class=""><a href="#show" data-toggle="tab">Show</a></li>
-    <li class=""><a href="#edit" data-toggle="tab">Edit</a></li>
-    <li class="active"><a href="#new" data-toggle="tab">New</a></li>
-    <li class=""><a href="#delete" data-toggle="tab">Delete</a></li>
-</ul>
-<div id="myTabContent" class="tab-content">
-    <div class = "tab-pane fade" id="related-grids">
+  <div class="btn-group">    
+    <button role="button" class="btn btn-primary btn-md" onclick="showHide('related-grids');" ><span class="glyphicon glyphicon-list-alt"></span> Related datas</button>
+    <button role="button" class="btn btn-primary btn-md" onclick="showHide('show');"><span class="glyphicon glyphicon-eye-open"> </span> Show</a>
+    <button role="button" class="btn btn-warning btn-md" onclick="showHide('edit');"><span class="glyphicon glyphicon-edit"></span> Edit</button>
+    <button role="button" class="btn btn-warning btn-md" onclick="showHide('new');"><span class="glyphicon glyphicon-plus"></span> New</button>
+    <button role="button" class="btn btn-danger btn-md"  onclick="showHide('delete');"> <span class="glyphicon glyphicon-remove"></span> Delete</button>
+ </div>
+
+<div id="myTabContent" class="tab-content" >
+    <div class = "tab-pane" id="related-grids" >
         <h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         {% for collection , url  in collectionNames %}
             <div class="panel panel-primary">
@@ -97,23 +103,23 @@
             </div>
          {% endfor %}
     </div>
-    <div class = "tab-pane fade" id="show"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+    <div class = "tab-pane" id="show" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         <div id="showEntity">
             Vous devez effectuer une selection pour pouvoir l'afficher.
         </div>
     </div>
-    <div class = "tab-pane fade" id="edit"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+    <div class = "tab-pane" id="edit" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         <div id="editEntity">
             Vous devez effectuer une selection pour pouvoir l'éditer.
         </div>
     </div>
-    <div class = "tab-pane fade active in" id="new"><h2>{{ entity }} : </h2>
+    <div class = "tab-pane" id="new" style="display:none;"><h2>{{ entity }} : </h2>
         <div id="newEntity">
             {{ render(controller('SGNFormsBundle:FormsCRUD:new', {
                 'bundle': project, 'table': entity
             })) }}
         </div>
-    <div class = "tab-pane fade" id="delete"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+    <div class = "tab-pane" id="delete" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         <div id="deletEntity">
             Vous devez effectuer une selection pour pouvoir la supprimer.
         </div>
@@ -129,6 +135,16 @@
 
 <script >
 
+    function showHide(id)
+    {
+        jQuery("#show").hide();
+        jQuery("#edit").hide();
+        jQuery("#new").hide();
+        jQuery("#delete").hide();
+        jQuery("#related-grids").hide();
+       
+        jQuery("#"+id).show();
+    }
     var last_selected = null;
     var last_loaded   = null;
     var wait = "<img src=\"{{ asset('bundles/bdgsworkflow/images/working.gif') }}\" alt=\"working...\" />";
@@ -164,18 +180,33 @@ $(document).ready(function() {
         sortorder   : "asc",
         caption     : "",
         onSelectRow      : relatedGridsReload,
-        loadComplete     : hideResearch
+        // loadComplete     : hideResearch,
+        //  gridComplete: function(){
+        //     var ids = jQuery("#list-grid").jqGrid('getDataIDs');
+        //     for(var i=0;i < ids.length;i++){
+        //         var cl = ids[i];
+        //         edit    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-edit'></span></a>"; 
+        //         restore = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-open'></span></a>"; 
+        //         del     = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-remove'></span></a>"; 
+        //         show    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-eye-open'></span></a>"; 
+        //         related = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-list-alt'></span></a>"; 
+        //         save    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-save'></span></a>"; 
+        //         jQuery("#list-grid").jqGrid('setRowData',ids[i],{act:related+show+edit+save+restore+del});
+        //     }    
+        // },
     });
 
     function relatedGridsReload(sel_id) {
         // jQuery("#myTabContent").show();
-        if($('#myTab li.active a').attr('href') == "#new") {
-            $('#myTab a[href="#related-grids"]').tab('show');
-        }
+        // jQuery("#related-grids").show();
+        // if($('#myTab li.active a').attr('href') == "#new") {
+        //     $('#myTab a[href="#related-grids"]').tab('show');
+        // }
 
         jQuery('#editEntity').html(wait);
         jQuery('#showEntity').html(wait);
         jQuery('#deletEntity').html(wait);
+
         {% for collection, url in collectionNames %}
             myUrl = "{{ url }}";
             myUrl = myUrl.replace( '0', sel_id);
@@ -248,8 +279,8 @@ $(document).ready(function() {
     );
 
     jQuery("#list-grid").jqGrid("filterToolbar", {
-       // searchOperators: true,
-       // stringResult: true,
+       // searchOperators: true ,
+      // stringResult: true,
        // searchOnEnter: false,
         defaultSearch: "cn"
     });
@@ -258,7 +289,7 @@ $(document).ready(function() {
      jQuery("#list-grid").setCell(1);
  });
 
-    jQuery(window).bind('resize', function() {
+jQuery(window).bind('resize', function() {
     // Get width of parent container
     var width = jQuery("#grid_container").width();
     if (width == null || width < 1){
