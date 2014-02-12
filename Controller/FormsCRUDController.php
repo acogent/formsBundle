@@ -87,7 +87,7 @@ class FormsCRUDController extends Controller
         $limits   = $this->getLimitsFromParams($params);
         $limit    = $limits[0];
         $rowsList = $limits[1];
-
+        // pour les liens de droite
         $tables = $this->container->getParameter('sgn_forms.bestof_entity');
         foreach ($tables as $ta)
         {
@@ -97,21 +97,54 @@ class FormsCRUDController extends Controller
             }
         }
         $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this,$bundle );
-        $data = $em->getRepository($entity) ->findBy($criteria, null , $limit , null );
-        if ($data)
+        
+        // Pour jQgrid
+        $metadata            = $em->getClassMetadata($entity);
+        $DBtable             = $metadata->table['name'];
+        $fields              = array_keys($metadata->reflFields);
+        $associationMappings = array_keys($metadata->associationMappings);
+       
+        // pour personnaliser les tables jQGrid
+        $table_fields = $this->container->getParameter('sgn_forms.entities_fields');
+        if (array_key_exists($entity,$table_fields))
         {
-            $builder = $em->getRepository($entity)
-            ->createQueryBuilder('a')
-            ->select('count(a)');
+            $selects  = explode(',', $table_fields[$entity]);
+            foreach($selects as $sel )
+            {
+                $sels[] = trim($sel);
+            }
+            $AllFields = array_unique(array_merge($sels, $fields));
+        }
+        else
+        {
+            $AllFields =  $fields;
+        }
+        
+        $select = 's.'.implode(' , s.', $AllFields);
+        foreach($associationMappings as $assoc)
+        {
+            $select = str_replace('s.'.$assoc, 'IDENTITY(s.'.$assoc.') as '.$assoc, $select);
+        }
+        
+        $builder = $em->getRepository($entity) ->createQueryBuilder('s') ->select($select);
+        $builder = $this->getWhereFromParams($params, $builder);
+        $query   = $builder ->getQuery();
+        $query->setMaxResults( $limit );
+       // $sql     = $query->getSql(); var_dump($sql);
+       
+        $result  = $query->getResult();
 
-            $$builder    = $this->getWhereFromParams($params, $builder);
-            $count = $builder
-                ->getQuery()
-                ->getSingleScalarResult();
+        if ($result)
+        {
+            $builder = $em->getRepository($entity) ->createQueryBuilder('a')->select('count(a)');
+
+            $$builder = $this->getWhereFromParams($params, $builder);
+            $query    = $builder ->getQuery();
+            $sql      = $query->getSql();
+            $count    = $query->getSingleScalarResult();
 
             if ($count  < $limit) $limit = $count;
-            $result          = Serializor::toArray($data);
-
+            
             $columnNames     = $this->getColumnNames($result[0]);
             $collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
             $columnModel     = $this->getColumnModel($result[0], $em, $entity);
@@ -129,10 +162,6 @@ class FormsCRUDController extends Controller
                 'rowsList'        => $rowsList,
                 'url_new'         => $this->generateUrl('sgn_forms_formscrud_new', array('bundle'=>$bundle, 'table'=>$table), true),
                 'url_showone'     => $this->generateUrl('sgn_forms_formscrud_showone', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
-
-
-
-                //'url_edit'      => $this->getURLEdit($bundle, $table),
                 'url_edit'        => $this->generateUrl('sgn_forms_formscrud_edit', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
                 'url_delete'      => $this->generateUrl('sgn_forms_formscrud_delete', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0)),
                 'params'          => $params
