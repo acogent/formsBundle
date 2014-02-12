@@ -131,8 +131,21 @@ Où :
 
 Et normalement, tout fonctionne !
 
+### Tri des colonnes pour jQgrid
 
+Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid.
+Maintenant, par défaut, l'ordre sera lié à l'héritage (les champs des classes parents en premier).
+Mais, vous pouvez le changer. Il suffit de déclarer les champs dans le fichier config.yml de votre application ou mieux dans le fichier que vous avez créé précédemment.
 
+```
+sgn_forms:
+    ....
+    entities_fields: 
+        'BDGSDatabaseBundle:PointRef': 'id , nomFR'
+        'SITELOGDatabaseBundle:Sitelog': 'id, Domes'
+
+```
+L'entrée "entities_fields" est obligatoire. Listez ensuite les entités avec leur bundle et la liste des champs ordonnés séparé par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés.
 
 ### Le template bootstrap3
 
