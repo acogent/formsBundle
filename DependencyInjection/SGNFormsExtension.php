@@ -25,9 +25,10 @@ class SGNFormsExtension extends Extension
         $container->setParameter('sgn_forms.autocomplete_entities', $config['autocomplete_entities']);
 
         $container->setParameter('sgn_forms.twig_style',    $config['twig_style']);
-        $container->setParameter('sgn_forms.bestof_entity',   $config['bestof_entity']);
-        $container->setParameter('sgn_forms.orm',   $config['orm']);
+        $container->setParameter('sgn_forms.bestof_entity', $config['bestof_entity']);
+        $container->setParameter('sgn_forms.orm',           $config['orm']);
         $container->setParameter('sgn_forms.bundles',       $config['bundles']);
+        $container->setParameter('sgn_forms.entities_fields',       $config['entities_fields']);
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
 
