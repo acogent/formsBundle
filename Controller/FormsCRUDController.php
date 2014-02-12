@@ -436,6 +436,15 @@ class FormsCRUDController extends Controller
                     $val = str_replace("<", "", $val);
                     $builder->andWhere("a.$champ < '$val'");
                 }
+                else if ($val  == "NULL" || $val  == "null")
+                {
+                    $builder->andWhere("a.$champ is NULL");
+                }
+                else if ($val  == "NOT NULL" || $val  == "not null")
+                {
+                    $builder->andWhere("a.$champ is NOT NULL");
+                }
+
                 else{
                     $builder->andWhere("a.$champ = '$val'");
                 }  
