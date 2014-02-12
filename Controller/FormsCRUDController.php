@@ -148,9 +148,10 @@ class FormsCRUDController extends Controller
         $query   = $builder ->getQuery();
         $query->setMaxResults( $limit );
         
-
-        $request = $this->getRequest();
-        $request->getSession()->getFlashBag()->add('notice', $query->getSQL());
+        if (true === $this->get('security.context')->isGranted('ROLE_ADMIN')) {
+            $request = $this->getRequest();
+            $request->getSession()->getFlashBag()->add('notice', $query->getSQL());
+        }
        
        // $sql     = $query->getSql(); var_dump($sql);
         $result  = $query->getResult();
