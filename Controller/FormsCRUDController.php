@@ -100,10 +100,31 @@ class FormsCRUDController extends Controller
         
         // Pour jQgrid
         $metadata            = $em->getClassMetadata($entity);
+      //  var_dump($metadata ); exit();
         $DBtable             = $metadata->table['name'];
-        $fields              = array_keys($metadata->reflFields);
-        $associationMappings = array_keys($metadata->associationMappings);
-       
+        $fields              = array_keys($metadata->fieldMappings);
+        $associationMappings =  $metadata->associationMappings ;
+        $keyAssoc = array();
+        foreach ($associationMappings as $key=>$assoc)
+        {
+            if (isset ($assoc['joinColumns']))
+            {
+                $keyAssoc[] = $key;
+            }
+        }
+        $fields = array_unique(array_merge($fields, $keyAssoc));
+        foreach ($fields as $field)
+        {
+            if (in_array($field, $keyAssoc))
+            {
+
+                $s_fields[] = 'IDENTITY(s.'.$field.') as '.$field ;
+            }
+            else
+            {
+                $s_fields[] = 's.'.trim($field);
+            }
+        }
         // pour personnaliser les tables jQGrid
         $table_fields = $this->container->getParameter('sgn_forms.entities_fields');
         if (array_key_exists($entity,$table_fields))
@@ -111,27 +132,21 @@ class FormsCRUDController extends Controller
             $selects  = explode(',', $table_fields[$entity]);
             foreach($selects as $sel )
             {
-                $sels[] = trim($sel);
+                $sels[] = 's.'.trim($sel);
             }
-            $AllFields = array_unique(array_merge($sels, $fields));
+
+            $AllFields = array_unique(array_merge($sels, $s_fields));
         }
         else
         {
-            $AllFields =  $fields;
+            $AllFields =  $s_fields;
         }
-        
-        $select = 's.'.implode(' , s.', $AllFields);
-        foreach($associationMappings as $assoc)
-        {
-            $select = str_replace('s.'.$assoc, 'IDENTITY(s.'.$assoc.') as '.$assoc, $select);
-        }
-        
+        $select = implode (' , ',$AllFields );
         $builder = $em->getRepository($entity) ->createQueryBuilder('s') ->select($select);
         $builder = $this->getWhereFromParams($params, $builder);
         $query   = $builder ->getQuery();
         $query->setMaxResults( $limit );
        // $sql     = $query->getSql(); var_dump($sql);
-       
         $result  = $query->getResult();
 
         if ($result)
