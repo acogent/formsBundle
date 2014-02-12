@@ -106,11 +106,16 @@ class FormsCRUDController extends Controller
         $fields              = array_keys($metadata->fieldMappings);
         $associationMappings =  $metadata->associationMappings ;
         $keyAssoc = array();
+        $colNames = array();
         foreach ($associationMappings as $key=>$assoc)
         {
             if (isset ($assoc['joinColumns']))
             {
                 $keyAssoc[] = $key;
+            }
+            else
+            {
+                $colNames[$key] = $assoc;
             }
         }
         $fields = array_unique(array_merge($fields, $keyAssoc));
@@ -168,7 +173,8 @@ class FormsCRUDController extends Controller
             if ($count  < $limit) $limit = $count;
             
             $columnNames     = $this->getColumnNames($result[0]);
-            $collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
+            //$collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
+            $collectionNames = $this->getCollectionNames($colNames,$bundle,$table);
             $columnModel     = $this->getColumnModel($result[0], $em, $entity);
 
             return array(
@@ -772,8 +778,7 @@ class FormsCRUDController extends Controller
                 }
             }
             else{
-                $enr = $em->getRepository($bundle.":".$table)
-                ->findOneById($id );
+                $enr = $em->getRepository($bundle.":".$table) ->findOneById($id );
                 $method_name = 'get' . $collection ;
                 if (method_exists($enr, $method_name)) $datas = $enr->$method_name();
                 if(count($datas) > 0 )
@@ -814,7 +819,6 @@ class FormsCRUDController extends Controller
 
             return $response;
         }
-
         return array(
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
