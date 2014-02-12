@@ -254,7 +254,6 @@ class FormsCRUDController extends Controller
             $builder    = $this->getWhereFromFilters($filters, $builder);
             
             $query = $builder->getQuery();
-
             $count = $builder->getQuery() ->getSingleScalarResult();
 
             if( $count > 0 && $limit > 0) {
@@ -271,7 +270,7 @@ class FormsCRUDController extends Controller
                             ->createQueryBuilder('a')
                             ->select('a');
             
-            $builder= $this->getWhereFromFilters($filters, $builder);
+            $builder= $this->getWhereFromFilters($filters, $builder, true);
             
             $query = $builder->getQuery();
             $query->setFirstResult( $start );
@@ -293,8 +292,7 @@ class FormsCRUDController extends Controller
             $searchString = $filters['searchString'];
             $searchOper   = $filters['searchOper'];
 
-            $repository = $this->getDoctrine()
-                ->getRepository($entity);
+            $repository = $this->getDoctrine()->getRepository($entity);
 
             $builder = $repository
                 ->createQueryBuilder('u')
@@ -345,9 +343,10 @@ class FormsCRUDController extends Controller
             $start = $limit*$page - $limit;
             if($start < 0) $start = 0;
 
-            $data = $em->getRepository($entity)
-            ->findBy($criteria, $orderBy , $limit , $start );
+            $data = $em->getRepository($entity) ->findBy($criteria, $orderBy , $limit , $start );
             $result = array();
+            $result['debug']   = print_r( 'search false' , true);
+
             $result['page']    = $page;
             $result['records'] = $count;
             $result['total']   = $total_pages;
@@ -408,11 +407,17 @@ class FormsCRUDController extends Controller
      * @param  string $params la chaine de caractère contenant les parametres
      * @return builder
      */
-    private function getWhereFromFilters($filters, $builder)
+    private function getWhereFromFilters($filters, $builder, $order = false)
     {
         $array_exclude = array('rows','page','nd', 'sord','sidx','source','sourceId','_search','searchField');
         $builder->where('1=1');
+        $orderby = "";
 
+        if (array_key_exists('sidx', $filters) && $order === true)
+        {
+            $builder->orderBy ('a.'.$filters['sidx'], $filters['sord']);
+        }
+        
         foreach($filters as $champ=>$val)
         {
             if (!in_array($champ, $array_exclude))
