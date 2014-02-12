@@ -31,7 +31,6 @@ class FormsCRUDController extends Controller
      */
     public function showAction($bundle = "x", $table = 'x' , $format='html', $params="limit/10"  )
     {
-
         if ($bundle == "x")
         {
             $bundles = $this->container->getParameter('sgn_forms.bundles');
@@ -80,6 +79,8 @@ class FormsCRUDController extends Controller
      */
     private function getFormatHtml($em, $bundle, $table, $params)
     {
+        $request = $this->getRequest();
+        $request->getSession()->getFlashBag()->add('info', "Les joker possibles, pour les champs texte, sont % et _. Pour les champs numériques, vous pouvez utiliser > et <. Pour une recherche plus compliquée, utilisez l'outil de recherche dédié");
         $data   = null;
         $entity = $bundle.":".$table;
 
@@ -146,6 +147,11 @@ class FormsCRUDController extends Controller
         $builder = $this->getWhereFromParams($params, $builder);
         $query   = $builder ->getQuery();
         $query->setMaxResults( $limit );
+        
+
+        $request = $this->getRequest();
+        $request->getSession()->getFlashBag()->add('notice', $query->getSQL());
+       
        // $sql     = $query->getSql(); var_dump($sql);
         $result  = $query->getResult();
 
@@ -265,7 +271,7 @@ class FormsCRUDController extends Controller
             $query->setMaxResults( $limit );
             
             $data =  $query->getResult();
-           
+
             $result = array();
             $result['debug']   = print_r(array('sql' => $query->getSQL(),'parameters' => $criteria,), true);
             $result['page']    = $page;
@@ -399,11 +405,33 @@ class FormsCRUDController extends Controller
     {
         $array_exclude = array('rows','page','nd', 'sord','sidx','source','sourceId','_search','searchField');
         $builder->where('1=1');
+
         foreach($filters as $champ=>$val)
         {
             if (!in_array($champ, $array_exclude))
-            {
-                $builder->andWhere("a.$champ like '$val'");
+            {   
+                if (strpos("&".$val, "%") || strpos($val, "?"))
+                {
+                    $builder->andWhere("a.$champ like '$val'");
+                }
+                else if (strpos("&".$val, ">") == 1)
+                {
+                    $val = str_replace(">", "", $val);
+                    $builder->andWhere("a.$champ > '$val'");
+                }
+                else if (strpos("&".$val, "=") == 1)
+                {
+                    $val = str_replace("=", "", $val);
+                    $builder->andWhere("a.$champ = '$val'");
+                }
+                else if (strpos("&".$val, "<") == 1)
+                {
+                    $val = str_replace("<", "", $val);
+                    $builder->andWhere("a.$champ < '$val'");
+                }
+                else{
+                    $builder->andWhere("a.$champ = '$val'");
+                }  
             }
         }
 
