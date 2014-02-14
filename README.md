@@ -65,14 +65,16 @@ sgn_forms:
     autocomplete_entities:
         # exemple complet
         sites:
-            class: BDGSDatabaseBundle:Site
-            role: ROLE_USER
+            class:    BDGSDatabaseBundle:Site
+            role:     ROLE_USER
             property: numero
-            value: id 
-            search: begins_with
+            value:    id 
+            search:   begins_with
+            target:   both
+            show:     property_value
         # exemple minimale avec les valeurs par défaut
         pointrefs:
-            class: BDGSDatabaseBundle:PointRef
+            class:    BDGSDatabaseBundle:PointRef
             property: nomFR
 
 ```
@@ -80,9 +82,11 @@ sgn_forms:
 - role     : permet de dire qui peut faire de l’ajax par défaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d’interdire les modifs par anonymous
 - property : le nom du champ qui sera affiché
 - value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l’id qui est donc la valeur par defaut
-- search   : la façon dont est faite la recherche, par défaut begins_with . Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
+- search   : la façon dont est faite la recherche, par défaut begins_with. Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
+- target   : le ou les attribut(s) sur le(s)quel(s) porte la recherche, par défaut property. Est utile si value est différent de l’id de l’entité. Valeurs possibles : property, value, both
+- show     : ce qu’affiche ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajac affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses).
 
-Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d'importer ce fichier dans votre config.yml :
+Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d’importer ce fichier dans votre config.yml :
 ```
     imports:
     - { resource: sgn_forms.yml }
