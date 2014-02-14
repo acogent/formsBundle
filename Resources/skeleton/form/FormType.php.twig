@@ -38,7 +38,7 @@ class {{ form_class }} extends AbstractType
 
                 ->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'))
              // Si vous voulez une gestion de liste de choix avec ajax, supprimez la liste ci-dessu et décommentez celle ci-dessous. N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
-             // ->add('{{ field }}', 'sgn_ajax_autocomplete',    array(''label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
+             // ->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
              {%- endfor %}
                 
          {% endif %}

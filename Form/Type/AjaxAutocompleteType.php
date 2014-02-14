@@ -45,7 +45,7 @@ class AjaxAutocompleteType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $entities = $this->container->getParameter('sgn.autocomplete_entities');
+        $entities = $this->container->getParameter('sgn_forms.autocomplete_entities');
 
         if (null === $options['entity_alias']) {
             throw new LogicException('You must provide a entity alias "entity_alias" and tune it in config file');
