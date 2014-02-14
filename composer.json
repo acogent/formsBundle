@@ -4,5 +4,13 @@
     "autoload": {
         "psr-0": { "SGN\\FormsBundle": "" }
     },
+    "require": {
+        "components/bootstrap-bundle": "3.*",
+        "components/jquery-bundle": "1.*",
+        "components/jquery-ui-bundle": "1.*",
+        "components/jqgrid-bundle": "4.*",
+        "components/select2-bundle": "3.*",
+        "jms/serializer-bundle" : "dev-master"
+    },
     "target-dir": "SGN/FormsBundle"
 }

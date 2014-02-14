@@ -23,7 +23,7 @@ class generateFormsCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->setName('SGN:generate:forms')
+        $this->setName('sgn:generate:forms')
              ->setDescription("Generer les formulaires des entites d'un bundle")
              ->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des formulaires ?')
              ;
@@ -36,7 +36,7 @@ class generateFormsCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $command      = $this->getApplication()->find('SGN:generate:forms');
+        $command      = $this->getApplication()->find('sgn:generate:forms');
         $bundleName   = $input->getArgument('bundle');
         $database_dir = $this->getContainer()->get('kernel')->getBundle($bundleName)->getPath();
         $entities     = array();

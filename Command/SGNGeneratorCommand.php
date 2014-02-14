@@ -12,7 +12,7 @@
 namespace SGN\FormsBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-
+use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
 
 /**
  * Base class for generator commands.

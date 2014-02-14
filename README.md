@@ -148,3 +148,54 @@ twig:
         resources:
             - SGNFormsBundle::forms.bootstrap3.html.twig
 ```
+
+Déclarer un template d'aministration :
+
+```json
+twig:
+    ...
+    globals:
+        ADMIN_LAYOUT: 'BDGSWebsiteBundle::admin_layout.html.twig'
+```
+où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exmple, à vous de mettre votre template.
+
+
+### Le générateur de formulaire et interface générique de consultation des entités 
+
+
+1. AppKernel.php
+
+Ajouter les bundles suivants, si ce n'est déjà fait :
+
+```
+new Components\JQueryBundle\ComponentsJQueryBundle(),
+new Components\JQueryUiBundle\ComponentsJQueryUiBundle(),
+new Components\jqGridBundle\ComponentsjqGridBundle(),
+new Components\Select2Bundle\ComponentsSelect2Bundle(),
+new SGN\FormsBundle\SGNFormsBundle(),
+```
+2. config/config.yml
+
+```
+sgn_forms:
+    bundles: ['BDGSDatabaseBundle', 'SITELOGDatabaseBundle']
+    orm: 'default'
+    bestof_entity: ['BDGSDatabaseBundle.PointRef', 'BDGSDatabaseBundle.PointRefNumero', 'SITELOGDatabaseBundle.Sitelog','SITELOGDatabaseBundle.GNSSSiteLocation']
+```
+
+3. Importer les routes
+
+Dans routing.yml, ajouter :
+
+```
+sgn_forms_crud:
+    resource: "@SGNFormsBundle/Controller/"
+    type:     annotation
+    prefix:   /{_locale}/
+    defaults:
+        _locale: fr
+    requirements:
+        _locale: en|fr
+
+```
+4. Générer les formulaires pour les Bundles configurés

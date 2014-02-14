@@ -16,9 +16,10 @@ class FormsCrudExtension extends \Twig_Extension
     public function getGlobals()
     {
         return array(
-            'sgn_forms_crud_twig_template' =>  $this->container->getParameter('sgn_forms.twig_template'),
             'sgn_forms_crud_twig_style'    =>  $this->container->getParameter('sgn_forms.twig_style'),
-            'sgn_forms_crud_twig_bestof'   =>  $this->container->getParameter('sgn_forms.twig_bestof')
+            'sgn_forms_crud_bestof_entity' =>  $this->container->getParameter('sgn_forms.bestof_entity'),
+            'sgn_forms_crud_orm'           =>  $this->container->getParameter('sgn_forms.orm'),
+            'sgn_forms_bundles'            =>  $this->container->getParameter('sgn_forms.bundles')
         );
     }
 

@@ -11,17 +11,15 @@
 
 namespace SGN\FormsBundle\Command;
 
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Output\Output;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use SGN\FormsBundle\Generator\SGNDoctrineFormGenerator;
 use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
 use Sensio\Bundle\GeneratorBundle\Manipulator\RoutingManipulator;
-
-
-use SGN\FormsBundle\Generator\SGNDoctrineFormGenerator;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\Output;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 /**
  * Generates a CRUD for a Doctrine entity.
  *
@@ -41,7 +39,7 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
                 new InputOption('entity', '', InputOption::VALUE_REQUIRED, "Le nom de l'entité"),
              ))
             ->setDescription("Genere le formulaire d'une entité")
-            ->setName('SGN:generate:form')
+            ->setName('sgn:generate:form')
         ;
     }
 
@@ -52,9 +50,9 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
     {
         $dialog = $this->getDialogHelper();
 
-        $entity                = Validators::validateEntityName($input->getOption('entity'));
+        $entity                = $this->validateEntityName($input->getOption('entity'));
         list($bundle, $entity) = $this->parseShortcutNotation($entity);
-        $format                = Validators::validateFormat($input->getOption('format'));
+        $format                = $this->validateFormat($input->getOption('format'));
         $prefix                = $this->getRoutePrefix($input, $entity);
        
         $entityClass   = $this->getContainer()->get('doctrine')->getAliasNamespace($bundle).'\\'.$entity;
@@ -118,4 +116,24 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
     // {
     //     $this->formGenerator = $formGenerator;
     // }
+
+    private  function validateFormat($format)
+    {
+        $format = strtolower($format);
+
+        if (!in_array($format, array('php', 'xml', 'yml', 'annotation'))) {
+            throw new \RuntimeException(sprintf('Format "%s" is not supported.', $format));
+        }
+
+        return $format;
+    }
+
+    private  function validateEntityName($entity)
+    {
+        if (false === strpos($entity, ':')) {
+            throw new \InvalidArgumentException(sprintf('The entity name must contain a : ("%s" given, expecting something like AcmeBlogBundle:Blog/Post)', $entity));
+        }
+
+        return $entity;
+    }
 }

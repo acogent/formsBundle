@@ -2,36 +2,55 @@
 
 namespace SGN\FormsBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-
-use Symfony\Component\HttpFoundation\Response;
-
-use Symfony\Component\HttpFoundation\Request;
-
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
-
 use SGN\FormsBundle\Utils\SGNTwigCrudTools;
 use SGN\FormsBundle\Utils\Serializor;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Sensio\Bundle\GeneratorBundle\Command\Validators;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 
 class FormsCRUDController extends Controller
 {
+
     /**
      *
      * @Route("/{bundle}/{table}/{format}/show/{params}/", requirements= { "params"=".+"})
      * @Route("/{bundle}/{table}/{format}/show/" )
+     * @Route("/{bundle}/{table}" )
+     * @Route("/{bundle}/" )
+     * @Route("/" )
      *
      * @Template()
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function showAction($bundle, $table , $format='html', $params="limit/10"  )
+    public function showAction($bundle = "x", $table = 'x' , $format='html', $params="limit/10"  )
     {
-      
-        $em = $this->getDoctrine()->getManager();
+
+        if ($bundle == "x")
+        {
+            $bundles = $this->container->getParameter('sgn_forms.bundles');
+            $bundle = $bundles [0];
+        }
+        if (!strpos($bundle, "Bundle"))$bundle .= "Bundle";
+        if ($table == "x")
+        {
+            $tables = $this->container->getParameter('sgn_forms.bestof_entity');
+            foreach ($tables as $ta)
+            {
+                if (substr($ta, 0, strpos($ta, '.') )  == $bundle)
+                {
+                    $table = substr($ta,  strpos($ta, '.')+1);
+                    break;
+                }
+            }
+        }
+        $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         // c'est pour retourner des données
         if ($format == 'json')
         {
@@ -62,17 +81,23 @@ class FormsCRUDController extends Controller
     private function getFormatHtml($em, $bundle, $table, $params)
     {
         $data   = null;
-        $entity = strtoupper($bundle).'DatabaseBundle:'.$table;
+        $entity = $bundle.":".$table;
 
         $criteria = $this->getCriteriaFromParams($params);
         $limits   = $this->getLimitsFromParams($params);
         $limit    = $limits[0];
         $rowsList = $limits[1];
 
-        $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this, strtoupper($bundle).'DatabaseBundle' );
-        $data = $em->getRepository($entity)
-        ->findBy($criteria, null , $limit , null );
-
+        $tables = $this->container->getParameter('sgn_forms.bestof_entity');
+        foreach ($tables as $ta)
+        {
+            if (substr($ta, 0, strpos($ta, '.') )  == $bundle)
+            {
+                $bestof_entity[] = substr($ta,  strpos($ta, '.')+1);
+            }
+        }
+        $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this,$bundle );
+        $data = $em->getRepository($entity) ->findBy($criteria, null , $limit , null );
         if ($data)
         {
             $builder = $em->getRepository($entity)
@@ -88,36 +113,45 @@ class FormsCRUDController extends Controller
             $result          = Serializor::toArray($data);
 
             $columnNames     = $this->getColumnNames($result[0]);
-            $collectionNames = $this->getCollectionNames($result[0], strtolower($bundle),$table);
+            $collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
             $columnModel     = $this->getColumnModel($result[0], $em, $entity);
 
             return array(
-                'project'         => strtolower($bundle),
+                'project'         => $bundle,
                 'columnModel'     => $columnModel,
                 'columnNames'     => $columnNames,
                 'collectionNames' => $collectionNames,
                 'entity'          => $table,
                 'count'           => $count,
+                'bestof_entity'   => $bestof_entity,
                 'entities'        => $tab_entities,
                 'limit'           => $limit,
                 'rowsList'        => $rowsList,
-                'url_new'         => $this->getURLNew($bundle, $table),
-                'url_edit'        => $this->getURLEdit($bundle, $table),
+                'url_new'         => $this->generateUrl('sgn_forms_formscrud_new', array('bundle'=>$bundle, 'table'=>$table), true),
+                'url_showone'     => $this->generateUrl('sgn_forms_formscrud_showone', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
+
+
+
+                //'url_edit'      => $this->getURLEdit($bundle, $table),
+                'url_edit'        => $this->generateUrl('sgn_forms_formscrud_edit', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
+                'url_delete'      => $this->generateUrl('sgn_forms_formscrud_delete', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0)),
                 'params'          => $params
                 );
 
         }else{
              return array(
-                'project'         => strtolower($bundle),
+                'project'         => $bundle,
                 'columnModel'     => "[]",
                 'columnNames'     => "",
                 'collectionNames' => null,
                 'entity'          => $table,
                 'count'           => 0,
+                'bestof_entity'   => $bestof_entity,
                 'entities'        => $tab_entities,
                 'limit'           => $limit,
                 'rowsList'        => $rowsList,
                 'url_new'         => null,
+                'url_showone'     => null,
                 'url_edit'        => null,
                 'params'          => $params
                 );
@@ -135,7 +169,7 @@ class FormsCRUDController extends Controller
      */
     private function getFormatJson($em, $bundle, $table, $filters, $params)
     {
-        $entity = strtoupper($bundle).'DatabaseBundle:'.$table;
+        $entity   = $bundle.":".$table;
         $criteria = $this->getCriteriaFromParams($params);
         $limits   = $this->getLimitsFromParams($params);
         $result   = array();
@@ -174,7 +208,7 @@ class FormsCRUDController extends Controller
             if($start <0) $start = 0;
 
             $criteria = $this->getParamsFronJQG($filters);
-            $data = $em->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table)
+            $data = $em->getRepository($entity)
             ->findBy($criteria, $orderBy , $limit , $start );
             $result = array();
 
@@ -190,9 +224,8 @@ class FormsCRUDController extends Controller
             $searchString = $filters['searchString'];
             $searchOper   = $filters['searchOper'];
 
-            $entity = strtoupper($bundle).'DatabaseBundle:'.$table;
             $repository = $this->getDoctrine()
-                ->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table);
+                ->getRepository($entity);
 
             $builder = $repository
                 ->createQueryBuilder('u')
@@ -243,7 +276,7 @@ class FormsCRUDController extends Controller
             $start = $limit*$page - $limit;
             if($start < 0) $start = 0;
 
-            $data = $em->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table)
+            $data = $em->getRepository($entity)
             ->findBy($criteria, $orderBy , $limit , $start );
             $result = array();
             $result['page']    = $page;
@@ -463,19 +496,28 @@ class FormsCRUDController extends Controller
 
     public function newAction($bundle, $table , Request $request )
     {
-        $class = strtoupper($bundle).'\DatabaseBundle\Entity\\'.$table;
-        $type  = strtoupper($bundle).'\DatabaseBundle\Form\\'.$table.'Type';
+        $bundlename  = Validators::validateBundleName($bundle);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+        
+        $class = $dir.'\Entity\\'.$table;
+        $type  = $dir.'\Form\\'.$table.'Type';
 
         $obj   = new $class();
-        $form  = $this->createForm(new $type(), $obj);
+        $form  = $this->createForm(new $type(), $obj, array(
+            'action' => $this->generateUrl(
+                'sgn_forms_formscrud_new', 
+                array('bundle' => $bundle, 'table' => $table)
+            ),
+        ));
 
         $form->handleRequest($request);
 
         if ($form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
+            $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
             $em->persist($obj);
             $em->flush();
-
+            $request->getSession()->getFlashBag()->add('info', 'Enregistrement ajouté.');
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
@@ -492,21 +534,104 @@ class FormsCRUDController extends Controller
      * @Template()
      */
 
-    public function editAction($bundle, $table , $id ,  Request $request )
+    public function editAction( $bundle, $table , $id,  Request $request )
     {
-        $class = strtoupper($bundle).'\DatabaseBundle\Entity\\'.$table;
-        $type  = strtoupper($bundle).'\DatabaseBundle\Form\\'.$table.'Type';
-        $em = $this->getDoctrine()->getManager();
-        $obj = $em->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table)
+        $bundlename  = Validators::validateBundleName($bundle);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+        $class = $dir.'\Entity\\'.$table;
+        $type  = $dir.'\Form\\'.$table.'Type';
+        $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj   = $em->getRepository($bundle.':'.$table)
+                ->findOneById($id );
+        if (!$obj) {
+            throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
+        }
+
+        $form  = $this->createForm(new $type(), $obj, array(
+            'action' => $this->generateUrl(
+                'sgn_forms_formscrud_edit', 
+                array('bundle' => $bundle, 'table' => $table, 'id' => $id)
+            ),
+        ));
+
+        $form->handleRequest($request);
+        
+        if ($form->isValid()) {
+            $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
+            $em->flush();
+            return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
+                array('bundle' => $bundle, 'table' => $table)));
+        }
+        return  array(
+            'form' => $form->createView(),
+        );
+    }
+
+    /**
+     *
+     * @Route("/{bundle}/{table}/showone/{id}/")
+     *
+     * @Template()
+     */
+
+    public function showoneAction( $bundle, $table , $id,  Request $request )
+    {
+        $bundlename  = Validators::validateBundleName($bundle);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+        $class       = $dir.'\Entity\\'.$table;
+        $type        = $dir.'\Form\\'.$table.'Type';
+        $em          = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj         = $em->getRepository($bundle.':'.$table)  ->findOneById($id );
+        
+        if (!$obj) {
+            throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
+        }
+
+        $serializer  = $this->container->get('serializer');
+        $jsonobj     = $serializer->serialize($obj, 'json');
+        return  array(
+            'obj' => $jsonobj
+        );
+    }
+
+     /**
+     *
+     * @Route("/{bundle}/{table}/delete/{id}/")
+     * 
+     * @Template()
+     */
+    public function deleteAction($bundle, $table , $id ,  Request $request)
+    {
+        $bundlename  = Validators::validateBundleName($bundle);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+
+        $class = $dir.'\Entity\\'.$table;
+        $type  = $dir.'\Form\\'.$table.'Type';
+        $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj   = $em->getRepository($bundle.':'.$table)
                 ->findOneById($id );
 
-        $form  = $this->createForm(new $type(), $obj);
+        $form  = $this->createForm(new $type(), $obj, array(
+            'action' => $this->generateUrl(
+                'sgn_forms_formscrud_delete', 
+                array('bundle' => $bundle, 'table' => $table, 'id' => $id)
+            ),
+        ));
 
         $form->handleRequest($request);
 
         if ($form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($obj);
+            $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+            $entity = $em->getRepository('IFIDatabaseBundle:Alti')->find($id);
+
+            if (!$entity) {
+                throw $this->createNotFoundException('Unable to find entity.');
+            }
+
+            $em->remove($entity);
             $em->flush();
 
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
@@ -539,7 +664,7 @@ class FormsCRUDController extends Controller
         $datas = array();
 
         $id = isset($filters['sourceId']) ? $filters['sourceId'] : null;
-        $em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         if (isset($id) && $id != 'undefined')
         {
             if ($collection == 'Audit')
@@ -555,12 +680,12 @@ class FormsCRUDController extends Controller
                         $result[] = $datas[$index];
                     }
                     $columnNames     = $this->getColumnNames($result[0]);
-                    $collectionNames = $this->getCollectionNames($result[0], strtolower($bundle),$table);
+                    $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
                     $columnModel     = $this->getColumnModel($result[0]);
                 }
             }
             else{
-                $enr = $em->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table)
+                $enr = $em->getRepository($bundle.":".$table)
                 ->findOneById($id );
                 $method_name = 'get' . $collection ;
                 if (method_exists($enr, $method_name)) $datas = $enr->$method_name();
@@ -573,7 +698,7 @@ class FormsCRUDController extends Controller
                         $result[] = Serializor::toArray( $datas[$index]);
                     }
                     $columnNames     = $this->getColumnNames($result[0]);
-                    $collectionNames = $this->getCollectionNames($result[0], strtolower($bundle),$table);
+                    $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
                     $columnModel     = $this->getColumnModel($result[0]);
                 }
             }
@@ -620,16 +745,20 @@ class FormsCRUDController extends Controller
     {
 
         $auditManager = $this->container->get("simplethings_entityaudit.manager");
-        $tableAudit      = strtoupper($bundle)."\DatabaseBundle\Entity\\".$table;
+        
+        $bundlename  = Validators::validateBundleName($bundle);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+        $tableAudit = $dir.'\Entity\\'.$table;
 
         if (! $auditManager->getMetadataFactory()->isAudited($tableAudit) )
         {
             $result = array();
         }
         else{
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
 
-            $entity = strtoupper($bundle).'DatabaseBundle:'.$table;
+            $entity = $bundle.':'.$table;
             $class = $em->getClassMetadata($entity);
             $tableName =  $class->table['name'] . '_audit';
 
@@ -655,7 +784,7 @@ class FormsCRUDController extends Controller
         $datas = array();
         if($request->isXmlHttpRequest())
         {
-            $em = $this->getDoctrine()->getManager();
+            $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
             if (isset($id) && $id != 'undefined'  && $id > 0)
             {
                 if ($collection == 'Audit')
@@ -668,12 +797,12 @@ class FormsCRUDController extends Controller
                             $result[] = $data;
                         }
                         $columnNames     = $this->getColumnNames($result[0]);
-                        $collectionNames = $this->getCollectionNames($result[0], strtolower($bundle),$table);
+                        $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
                         $columnModel     = $this->getColumnModel($result[0]);
                     }
                 }
                 else{
-                     $enr = $em->getRepository(strtoupper($bundle).'DatabaseBundle:'.$table)
+                     $enr = $em->getRepository($bundle.':'.$table)
                     ->findOneById($id );
 
                     $method_name = 'get' . $collection ;
@@ -685,7 +814,7 @@ class FormsCRUDController extends Controller
                             $result[] = Serializor::toArray($data);
                         }
                         $columnNames     = $this->getColumnNames($result[0]);
-                        $collectionNames = $this->getCollectionNames($result[0], strtolower($bundle),$table);
+                        $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
                         $columnModel     = $this->getColumnModel($result[0]);
                     }
                 }
@@ -727,7 +856,7 @@ class FormsCRUDController extends Controller
      * @param  string $entity  le nom de l'entité
      * @return url          l'url générée
      */
-    private function getURLNew($project,$entity)
+/*    private function getURLNew($project,$entity)
     {
         $url = $this->get('router')->generate(
             'sgn_forms_formscrud_new',
@@ -739,14 +868,14 @@ class FormsCRUDController extends Controller
         );
         return $url;
     }
-
+*/
     /**
      * Fabrique l'URL pour le formulaire EDIT
      * @param  string $project le nom du projet
      * @param  string $entity  le nom de l'entité
      * @return url          l'url générée
      */
-    private function getURLEdit($project,$entity )
+ /*   private function getURLEdit($project,$entity )
     {
         $url = $this->get('router')->generate(
             'sgn_forms_formscrud_edit',
@@ -759,7 +888,7 @@ class FormsCRUDController extends Controller
         );
         return $url;
     }
-
+*/
     /**
      * Renvoie un tableau contenant les URL utiles à la fabrication des sous-formulaires
      * @param  array $data    tableau issu d'une sérialisation du résultat d'une requete
@@ -771,8 +900,11 @@ class FormsCRUDController extends Controller
     {
         $collectionNames = array();
         $auditManager    = $this->container->get("simplethings_entityaudit.manager");
-        $tableAudit      = strtoupper($project)."\DatabaseBundle\Entity\\".$entity;
 
+        $bundlename  = Validators::validateBundleName($project);
+        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
+        $dir         = $BundleValid->getNamespace();
+        $tableAudit  = $dir.'\Entity\\'.$entity;
         foreach($data as $champ=>$val)
         {
             if(is_array($val ) )

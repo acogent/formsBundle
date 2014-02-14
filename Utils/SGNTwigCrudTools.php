@@ -16,6 +16,7 @@ class SGNTwigCrudTools
     {
         $em = $me->getDoctrine()->getManager();
         $metadatas = $em->getMetadataFactory()->getAllMetadata();
+        $tab_entities = array();
         foreach ($metadatas as $metadata) {
             $bundleShortName = SGNTwigCrudTools::getBundleShortName($metadata->getName());
             if ( $bundleShortName <> $bundle  && $bundle <> '*') continue;
@@ -23,7 +24,7 @@ class SGNTwigCrudTools
             $tab_entity['project']    = SGNTwigCrudTools::getProjectName($bundle);
             $tab_entity['name']       = SGNTwigCrudTools::getName( $metadata->getName());
             $tab_entity['identifier'] = $metadata->getIdentifier();
-            $tab_entity['label']      = SGNTwigCrudTools::getEntityTrans($tab_entity, 'label');
+           // $tab_entity['label']      = SGNTwigCrudTools::getEntityTrans($tab_entity, 'label');
             $tab_entity['link']       = SGNTwigCrudTools::getEntityLink($me,$tab_entity['name'], $bundle);
             $tab_entities[strtolower($tab_entity['name'])] = $tab_entity;
 
@@ -39,9 +40,7 @@ class SGNTwigCrudTools
      */
     public static function getProjectName($bundle)
     {
-        list($project,$bundleName) = explode('DatabaseBundle' , $bundle);
-
-        return strtolower($project);
+        return $bundle;
     }
 
     /**
@@ -51,11 +50,10 @@ class SGNTwigCrudTools
      */
     private static function getEntityLink($me, $name, $bundle)
     {
-        list($project,$bundleName) = explode('DatabaseBundle' , $bundle);
         $url = $me->get('router')->generate(
             'sgn_forms_formscrud_show',
             array(
-                'bundle' => strtolower($project) ,
+                'bundle' => $bundle ,
                 'table'  => $name  ,
                 'format'=>'html'
                 ),
