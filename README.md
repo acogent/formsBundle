@@ -70,8 +70,8 @@ sgn_forms:
             property: numero
             value:    id 
             search:   begins_with
-            target:   both
-            show:     property_value
+            target:   property
+            show:     property
         # exemple minimale avec les valeurs par défaut
         pointrefs:
             class:    BDGSDatabaseBundle:PointRef
