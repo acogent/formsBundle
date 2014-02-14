@@ -1,15 +1,15 @@
 # SGN FormsBundle
 
-Ce Bundle est une boite à outil "Formulaire" (FormType) de Symfony2.
-Vous n'êtes pas obligé de tout utiliser
-Il permet aujourd'hui de :
+Ce Bundle est une boîte à outil “Formulaire” (FormType) de Symfony2.
+Vous n’êtes pas obligé de tout utiliser.
+Il permet aujourd’hui de :
 
 1. générer des listes AJAX pour les relations Many2One, ce qui allège énormément la page chargée
-2. fournir un template "bootstrap 3" des champs de formulaires
+2. fournir un template “bootstrap 3” des champs de formulaires
 
 
 TODO
-3. Création d'une interface générique pour les entités d'un bundle
+3. Création d’une interface générique pour les entités d’un bundle
 
 
 
@@ -54,41 +54,45 @@ Enfin, activer le bundle dans votre fichier `app/AppKernel.php`:
 
 ### Listes Ajax pour entités
 
-Cet outil a besoin de [Select2JS](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle)  et de [JQuery](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle). Deux bundles existent.
+Cet outil a besoin de [Select2JS](http://geodesie.ign.fr:8088/gitlab/components/select2bundle)  et de [JQuery](http://geodesie.ign.fr:8088/gitlab/components/jquerybundle). Deux bundles existent.
 Attention, ils ne sont pas dans les dépendances, à vous de les ajouter !
 Vous devez également les déclarer dans le header de votre page.
 
-1. Ajouter les champs que vous voulez "ajaxer" dans config/config.yml
+1. Ajouter les champs que vous voulez “ajaxer” dans config/config.yml :
 
 ```
 sgn_forms:
     autocomplete_entities:
         # exemple complet
         sites:
-            class: BDGSDatabaseBundle:Site
-            role: ROLE_USER
+            class:    BDGSDatabaseBundle:Site
+            role:     ROLE_USER
             property: numero
-            value: id 
-            search: begins_with
+            value:    id 
+            search:   begins_with
+            target:   property
+            show:     property
         # exemple minimale avec les valeurs par défaut
         pointrefs:
-            class: BDGSDatabaseBundle:PointRef
+            class:    BDGSDatabaseBundle:PointRef
             property: nomFR
 
 ```
-- class    : le nom 'doctrine' de la classe
-- role     : permet de dire qui peut faire de l'ajax par defaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d'interdire les modifs par anonymous
+- class    : le nom ‘doctrine’ de la classe
+- role     : permet de dire qui peut faire de l’ajax par défaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d’interdire les modifs par anonymous
 - property : le nom du champ qui sera affiché
-- value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l'id qui est donc la valeur par defaut
-- search   : la façon dont est faite la recherche, par défaut begins_with . Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
+- value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l’id qui est donc la valeur par defaut
+- search   : la façon dont est faite la recherche, par défaut begins_with. Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
+- target   : le ou les attribut(s) sur le(s)quel(s) porte la recherche, par défaut property. Est utile si value est différent de l’id de l’entité. Valeurs possibles : property, value, both
+- show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses).
 
-Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d'importer ce fichier dans votre config.yml :
+Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d’importer ce fichier dans votre config.yml :
 ```
     imports:
     - { resource: sgn_forms.yml }
 ```
 
-2. Dites à twig d'utiliser le template "fields.ajax.autocomplete.html.twig" dans config/config.yml en complétant les inforamtions twig :
+2. Dites à twig d’utiliser le template “fields.ajax.autocomplete.html.twig” dans config/config.yml en complétant les inforamtions twig :
 
 ```
 twig:
@@ -98,7 +102,7 @@ twig:
             - SGNFormsBundle::fields.ajax.autocomplete.html.twig
 ```
 
-3. Importer les routes
+3. Importer les routes :
 
 Dans routing.yml, ajouter :
 
@@ -108,7 +112,7 @@ sgn_forms:
 
 ``` 
 
-4. Dans le formulaire
+4. Dans le formulaire :
 
 Il suffit enfin de déclarer votre champ de formulaire comme suit ;
 
@@ -118,7 +122,7 @@ class PointRefType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder   ->add('nom', null)
-                   ->add('Site', 'sgn_ajax_autocomplete', array( 'entity_alias'=>'sites' ));
+                   ->add('Site', 'sgn_ajax_autocomplete', array('entity_alias'=>'sites'));
         ...
     }
  }          
@@ -131,8 +135,21 @@ Où :
 
 Et normalement, tout fonctionne !
 
+### Tri des colonnes pour jQgrid
 
+Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid.
+Maintenant, par défaut, l'ordre sera lié à l'héritage (les champs des classes parents en premier).
+Mais, vous pouvez le changer. Il suffit de déclarer les champs dans le fichier config.yml de votre application ou mieux dans le fichier que vous avez créé précédemment.
 
+```
+sgn_forms:
+    ....
+    entities_fields: 
+        'BDGSDatabaseBundle:PointRef': 'id , nomFR'
+        'SITELOGDatabaseBundle:Sitelog': 'id, Domes'
+
+```
+L'entrée "entities_fields" est obligatoire. Listez ensuite les entités avec leur bundle et la liste des champs ordonnés séparé par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés.
 
 ### Le template bootstrap3
 

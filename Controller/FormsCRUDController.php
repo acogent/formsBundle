@@ -31,7 +31,6 @@ class FormsCRUDController extends Controller
      */
     public function showAction($bundle = "x", $table = 'x' , $format='html', $params="limit/10"  )
     {
-
         if ($bundle == "x")
         {
             $bundles = $this->container->getParameter('sgn_forms.bundles');
@@ -80,6 +79,8 @@ class FormsCRUDController extends Controller
      */
     private function getFormatHtml($em, $bundle, $table, $params)
     {
+        $request = $this->getRequest();
+        $request->getSession()->getFlashBag()->add('info', "Les joker possibles, pour les champs texte, sont % et _. Pour les champs numériques, vous pouvez utiliser > et <. Pour une recherche plus compliquée, utilisez l'outil de recherche dédié");
         $data   = null;
         $entity = $bundle.":".$table;
 
@@ -87,7 +88,7 @@ class FormsCRUDController extends Controller
         $limits   = $this->getLimitsFromParams($params);
         $limit    = $limits[0];
         $rowsList = $limits[1];
-
+        // pour les liens de droite
         $tables = $this->container->getParameter('sgn_forms.bestof_entity');
         foreach ($tables as $ta)
         {
@@ -97,23 +98,83 @@ class FormsCRUDController extends Controller
             }
         }
         $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this,$bundle );
-        $data = $em->getRepository($entity) ->findBy($criteria, null , $limit , null );
-        if ($data)
+        
+        // Pour jQgrid
+        $metadata            = $em->getClassMetadata($entity);
+      //  var_dump($metadata ); exit();
+        $DBtable             = $metadata->table['name'];
+        $fields              = array_keys($metadata->fieldMappings);
+        $associationMappings =  $metadata->associationMappings ;
+        $keyAssoc = array();
+        $colNames = array();
+        foreach ($associationMappings as $key=>$assoc)
         {
-            $builder = $em->getRepository($entity)
-            ->createQueryBuilder('a')
-            ->select('count(a)');
+            if (isset ($assoc['joinColumns']))
+            {
+                $keyAssoc[] = $key;
+            }
+            else
+            {
+                $colNames[$key] = $assoc;
+            }
+        }
+        $fields = array_unique(array_merge($fields, $keyAssoc));
+        foreach ($fields as $field)
+        {
+            if (in_array($field, $keyAssoc))
+            {
 
-            $$builder    = $this->getWhereFromParams($params, $builder);
-            $count = $builder
-                ->getQuery()
-                ->getSingleScalarResult();
+                $s_fields[] = 'IDENTITY(s.'.$field.') as '.$field ;
+            }
+            else
+            {
+                $s_fields[] = 's.'.trim($field);
+            }
+        }
+        // pour personnaliser les tables jQGrid
+        $table_fields = $this->container->getParameter('sgn_forms.entities_fields');
+        if (array_key_exists($entity,$table_fields))
+        {
+            $selects  = explode(',', $table_fields[$entity]);
+            foreach($selects as $sel )
+            {
+                $sels[] = 's.'.trim($sel);
+            }
+
+            $AllFields = array_unique(array_merge($sels, $s_fields));
+        }
+        else
+        {
+            $AllFields =  $s_fields;
+        }
+        $select = implode (' , ',$AllFields );
+        $builder = $em->getRepository($entity) ->createQueryBuilder('s') ->select($select);
+        $builder = $this->getWhereFromParams($params, $builder);
+        $query   = $builder ->getQuery();
+        $query->setMaxResults( $limit );
+        
+        if (true === $this->get('security.context')->isGranted('ROLE_ADMIN')) {
+            $request = $this->getRequest();
+            $request->getSession()->getFlashBag()->add('notice', $query->getSQL());
+        }
+       
+       // $sql     = $query->getSql(); var_dump($sql);
+        $result  = $query->getResult();
+
+        if ($result)
+        {
+            $builder = $em->getRepository($entity) ->createQueryBuilder('a')->select('count(a)');
+
+            $$builder = $this->getWhereFromParams($params, $builder);
+            $query    = $builder ->getQuery();
+            $sql      = $query->getSql();
+            $count    = $query->getSingleScalarResult();
 
             if ($count  < $limit) $limit = $count;
-            $result          = Serializor::toArray($data);
-
+            
             $columnNames     = $this->getColumnNames($result[0]);
-            $collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
+            //$collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
+            $collectionNames = $this->getCollectionNames($colNames,$bundle,$table);
             $columnModel     = $this->getColumnModel($result[0], $em, $entity);
 
             return array(
@@ -129,10 +190,6 @@ class FormsCRUDController extends Controller
                 'rowsList'        => $rowsList,
                 'url_new'         => $this->generateUrl('sgn_forms_formscrud_new', array('bundle'=>$bundle, 'table'=>$table), true),
                 'url_showone'     => $this->generateUrl('sgn_forms_formscrud_showone', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
-
-
-
-                //'url_edit'      => $this->getURLEdit($bundle, $table),
                 'url_edit'        => $this->generateUrl('sgn_forms_formscrud_edit', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
                 'url_delete'      => $this->generateUrl('sgn_forms_formscrud_delete', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0)),
                 'params'          => $params
@@ -183,6 +240,8 @@ class FormsCRUDController extends Controller
         $sourceid    = isset($filters['sourceId']) ? $filters['sourceId'] : null;
         $search      = isset($filters['_search']) ? $filters['_search'] : 'false';
         $searchField = isset($filters['searchField']) ? $filters['searchField'] : 'false';
+       
+
         if(!$sidx) $sidx = 1;
 
         $orderBy[$sidx] = $sord;
@@ -192,10 +251,10 @@ class FormsCRUDController extends Controller
             $builder = $em->getRepository($entity)
                             ->createQueryBuilder('a')
                             ->select('count(a)');
-            $$builder    = $this->getWhereFromFilters($filters, $builder);
-            $count = $builder
-                ->getQuery()
-                ->getSingleScalarResult();
+            $builder    = $this->getWhereFromFilters($filters, $builder);
+            
+            $query = $builder->getQuery();
+            $count = $builder->getQuery() ->getSingleScalarResult();
 
             if( $count > 0 && $limit > 0) {
                 $total_pages = ceil($count/$limit);
@@ -207,11 +266,20 @@ class FormsCRUDController extends Controller
             $start = $limit*$page - $limit;
             if($start <0) $start = 0;
 
-            $criteria = $this->getParamsFronJQG($filters);
-            $data = $em->getRepository($entity)
-            ->findBy($criteria, $orderBy , $limit , $start );
-            $result = array();
+            $builder = $em->getRepository($entity)
+                            ->createQueryBuilder('a')
+                            ->select('a');
+            
+            $builder= $this->getWhereFromFilters($filters, $builder, true);
+            
+            $query = $builder->getQuery();
+            $query->setFirstResult( $start );
+            $query->setMaxResults( $limit );
+            
+            $data =  $query->getResult();
 
+            $result = array();
+            $result['debug']   = print_r(array('sql' => $query->getSQL(),'parameters' => $criteria,), true);
             $result['page']    = $page;
             $result['records'] = $count;
             $result['total']   = $total_pages;
@@ -224,8 +292,7 @@ class FormsCRUDController extends Controller
             $searchString = $filters['searchString'];
             $searchOper   = $filters['searchOper'];
 
-            $repository = $this->getDoctrine()
-                ->getRepository($entity);
+            $repository = $this->getDoctrine()->getRepository($entity);
 
             $builder = $repository
                 ->createQueryBuilder('u')
@@ -233,10 +300,10 @@ class FormsCRUDController extends Controller
                 ;
 
             $builder = $this->addWhere($em, $entity, $builder, $searchField , $searchString, $searchOper);
-
             if (get_class($builder) == "Doctrine\ORM\QueryBuilder" )
             {
                 $query = $builder->getQuery();
+
                 // pour le debugage
                 $result['debug']   = print_r(array('sql' => $query->getSQL(),'parameters' => $query->getParameters(),), true);
 
@@ -276,9 +343,10 @@ class FormsCRUDController extends Controller
             $start = $limit*$page - $limit;
             if($start < 0) $start = 0;
 
-            $data = $em->getRepository($entity)
-            ->findBy($criteria, $orderBy , $limit , $start );
+            $data = $em->getRepository($entity) ->findBy($criteria, $orderBy , $limit , $start );
             $result = array();
+            $result['debug']   = print_r( 'search false' , true);
+
             $result['page']    = $page;
             $result['records'] = $count;
             $result['total']   = $total_pages;
@@ -339,17 +407,55 @@ class FormsCRUDController extends Controller
      * @param  string $params la chaine de caractère contenant les parametres
      * @return builder
      */
-    private function getWhereFromFilters($filters, $builder)
+    private function getWhereFromFilters($filters, $builder, $order = false)
     {
         $array_exclude = array('rows','page','nd', 'sord','sidx','source','sourceId','_search','searchField');
         $builder->where('1=1');
+        $orderby = "";
+
+        if (array_key_exists('sidx', $filters) && $order === true)
+        {
+            $builder->orderBy ('a.'.$filters['sidx'], $filters['sord']);
+        }
+        
         foreach($filters as $champ=>$val)
         {
             if (!in_array($champ, $array_exclude))
-            {
-                $builder->andWhere("a.$champ = '$val'");
+            {   
+                if (strpos("&".$val, "%") || strpos($val, "?"))
+                {
+                    $builder->andWhere("a.$champ like '$val'");
+                }
+                else if (strpos("&".$val, ">") == 1)
+                {
+                    $val = str_replace(">", "", $val);
+                    $builder->andWhere("a.$champ > '$val'");
+                }
+                else if (strpos("&".$val, "=") == 1)
+                {
+                    $val = str_replace("=", "", $val);
+                    $builder->andWhere("a.$champ = '$val'");
+                }
+                else if (strpos("&".$val, "<") == 1)
+                {
+                    $val = str_replace("<", "", $val);
+                    $builder->andWhere("a.$champ < '$val'");
+                }
+                else if ($val  == "NULL" || $val  == "null")
+                {
+                    $builder->andWhere("a.$champ is NULL");
+                }
+                else if ($val  == "NOT NULL" || $val  == "not null")
+                {
+                    $builder->andWhere("a.$champ is NOT NULL");
+                }
+
+                else{
+                    $builder->andWhere("a.$champ = '$val'");
+                }  
             }
         }
+
         return  $builder;
     }
 
@@ -584,15 +690,16 @@ class FormsCRUDController extends Controller
         $type        = $dir.'\Form\\'.$table.'Type';
         $em          = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         $obj         = $em->getRepository($bundle.':'.$table)  ->findOneById($id );
-        
+        $MetaData = $em->getClassMetadata($bundle.':'.$table);
         if (!$obj) {
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
         }
+        foreach ($MetaData->fieldNames as $value) {
+            $fields[$value] = $obj->{'get'.ucfirst($value)}();
+        }
 
-        $serializer  = $this->container->get('serializer');
-        $jsonobj     = $serializer->serialize($obj, 'json');
         return  array(
-            'obj' => $jsonobj
+            'obj' => $fields
         );
     }
 
@@ -685,8 +792,7 @@ class FormsCRUDController extends Controller
                 }
             }
             else{
-                $enr = $em->getRepository($bundle.":".$table)
-                ->findOneById($id );
+                $enr = $em->getRepository($bundle.":".$table) ->findOneById($id );
                 $method_name = 'get' . $collection ;
                 if (method_exists($enr, $method_name)) $datas = $enr->$method_name();
                 if(count($datas) > 0 )
@@ -727,7 +833,6 @@ class FormsCRUDController extends Controller
 
             return $response;
         }
-
         return array(
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
@@ -838,7 +943,7 @@ class FormsCRUDController extends Controller
      * @param  array $filters Les filtres de la grille envoyés par ajax
      * @return array          les paramètres
      */
-    private function getParamsFronJQG($filters)
+    private function getParamsFromJQG($filters)
     {
         $params = array();
         $exclude = array('_search', 'nd','page', 'rows', 'sldx', 'sord', 'sidx',
@@ -945,6 +1050,7 @@ class FormsCRUDController extends Controller
      */
     private function getColumnNames($data)
     {
+        //$columnNames = array('Actions');
         $columnNames = array();
         foreach($data as $champ=>$val)
         {
@@ -961,6 +1067,7 @@ class FormsCRUDController extends Controller
      */
     private function getColumnModel($data, $em = null , $entity = null)
     {
+       // $columnModel = "{name:'act',index:'act', width:75,sortable:false},";
         $columnModel = "";
         if ($em && $entity)
         {
@@ -988,7 +1095,7 @@ class FormsCRUDController extends Controller
                 }
             }
         }
-        return '['.$columnModel.']';
+        return '['.substr($columnModel,0,-1).']';
     }
 
     /**

@@ -4,6 +4,7 @@ namespace SGN\FormsBundle\Form\Type;
 
 
 use SGN\FormsBundle\Form\DataTransformer\EntityToPropertyTransformer;
+use SGN\FormsBundle\Form\DataTransformer\ValueToPropertyTransformer;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Exception\FormException;
@@ -59,13 +60,22 @@ class AjaxAutocompleteType extends AbstractType
         $options['property'] = $entities[$options['entity_alias']]['property'];
         $options['value']    = $entities[$options['entity_alias']]['value'];
 
-
-        $builder->addViewTransformer(new EntityToPropertyTransformer(
-            $this->container->get('doctrine')->getManager(),
-            $options['class'],
-            $options['property'],
-            $options['value']
-        ), true);
+        if ($options['value'] == 'id')
+        {
+            $builder->addViewTransformer(new EntityToPropertyTransformer(
+                $this->container->get('doctrine')->getManager(),
+                $options['class'],
+                $options['property'],
+                $options['value']
+            ), true);
+        }else{
+                $builder->addViewTransformer(new ValueToPropertyTransformer(
+                $this->container->get('doctrine')->getManager(),
+                $options['class'],
+                $options['property'],
+                $options['value']
+            ), true);
+        }
 
         $builder->setAttribute('entity_alias', $options['entity_alias']);
     }

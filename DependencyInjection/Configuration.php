@@ -19,10 +19,9 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('sgn_forms');
-
         $rootNode
             ->children()
-                ->scalarNode('orm')->defaultValue('default')->end()
+                ->scalarNode('orm')->defaultValue('default')->end() 
                 ->arrayNode('bestof_entity')
                     ->prototype('scalar')->end()
                     ->defaultValue(array('*'))
@@ -31,6 +30,19 @@ class Configuration implements ConfigurationInterface
                     ->prototype('scalar')->end()
                     ->cannotBeEmpty()
                 ->end()
+
+                ->arrayNode('entities_fields')
+                    ->beforeNormalization()
+                        ->ifString()
+                            ->then(function ($value) {
+                                return array($value);
+                            })
+                    ->end()
+                    ->useAttributeAsKey('name')
+                    ->prototype('scalar')->end()
+                ->end()
+
+
                 ->scalarNode('twig_style')->defaultValue("{{ asset('bundles/sgnforms/css/style.css') }}")->end()
            
 
@@ -56,14 +68,26 @@ class Configuration implements ConfigurationInterface
                                 ->defaultValue('begins_with')
                                 ->cannotBeEmpty()
                             ->end()
-                ->booleanNode('case_insensitive')
+                            ->scalarNode('target')
+                                ->defaultValue('property')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('show')
+                                ->defaultValue('property')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('filter')
+                                ->defaultValue('1 = 1')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->booleanNode('case_insensitive')
                                  ->defaultTrue()
                             ->end()
                         ->end()
-                    ->end()
                 ->end()
-                ;
 
+            ->end()
+            ;
         return $treeBuilder;
     }
 }
