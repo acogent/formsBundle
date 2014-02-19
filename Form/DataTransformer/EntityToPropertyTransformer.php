@@ -38,9 +38,12 @@ class EntityToPropertyTransformer implements DataTransformerInterface
             throw new FormException('Entities passed to the choice field must be managed');
         }
         if ($this->property) {
+            if ($this->property == "__toString") return $entity->__toString();
+
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
-               
+
             return $propertyAccessor->getValue($entity, $this->property);
+            }
         }
         return current($this->unitOfWork->getEntityIdentifier($entity));
     }
