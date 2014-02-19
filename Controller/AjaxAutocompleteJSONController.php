@@ -62,9 +62,6 @@ class AjaxAutocompleteJSONController extends Controller
                 throw new \Exception('Unexpected value of parameter “search”.');
         }
 
-        $property = $entity_inf['property'];
-        $value    = $entity_inf['value'];
-
         $where_clause_lhs2 = '';
         $where_clause_rhs2 = '';
         if ( $entity_inf['case_insensitive'] )
