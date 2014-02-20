@@ -72,7 +72,7 @@ sgn_forms:
             search:   begins_with
             target:   property
             show:     property
-        # exemple minimale avec les valeurs par défaut
+        # exemple minimal avec les valeurs par défaut
         pointrefs:
             class:    BDGSDatabaseBundle:PointRef
             property: nomFR
@@ -100,7 +100,7 @@ sgn_forms:
             search:   contains
             target:   both
             show:     value_property
-        # exemple minimale avec les valeurs par défaut pour __toString
+        # exemple minimal avec les valeurs par défaut pour __toString
         niverns:
             class:    BDGDatabaseBundle:NiveRn
             property: __toString
