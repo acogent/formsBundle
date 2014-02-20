@@ -30,20 +30,24 @@ class EntityToPropertyTransformer implements DataTransformerInterface
 
     public function transform($entity)
     {
-        if (null === $entity) {
-
+        if (null === $entity)
+        {
             return null;
         }
-        if (!$this->unitOfWork->isInIdentityMap($entity)) {
+
+        if (!$this->unitOfWork->isInIdentityMap($entity))
+        {
             throw new FormException('Entities passed to the choice field must be managed');
         }
-        if ($this->property) {
-            if ($this->property == "__toString") return $entity->__toString();
-
+        if ($this->property) 
+        {
+            if ($this->property == "__toString")
+            {
+                return $entity->__toString();
+            }
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
 
             return $propertyAccessor->getValue($entity, $this->property);
-            }
         }
         return current($this->unitOfWork->getEntityIdentifier($entity));
     }
