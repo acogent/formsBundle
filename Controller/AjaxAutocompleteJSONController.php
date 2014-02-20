@@ -25,43 +25,43 @@ class AjaxAutocompleteJSONController extends Controller
         $letters      = $request->get('letters');
         $maxRows      = $request->get('page_limit');
 
-        $class    = $entity_inf['class'];
-        $property = $entity_inf['property'];
-        $value    = $entity_inf['value'];
-        $target   = $entity_inf['target'];
-        $filter   = $entity_inf['filter'];
+        $class            = $entity_inf['class'];
+        $property         = $entity_inf['property'];
+        $value            = $entity_inf['value'];
+        $filter           = $entity_inf['filter'];
+        $case_insensitive = $entity_inf['case_insensitive'];
 
         if ( $property == "__toString" )
         {
-            $like = substr($letters, 0, strpos($letters, ' ')-1);
+            $res = array();
+            
+            $entities = $em->getRepository($class)->findAll();
+            $letters  = trim($letters, '%');
 
-            $where_clause_lhs1 = 'e.'.$value;
-            $where_clause_rhs1 = '= :like';
-            $where_clause = $where_clause_lhs1.' '.$where_clause_rhs1;
+            foreach($entities as $entity)
+            {
+                $id       = $entity->getId()."";
+                $toString = $entity->__toString();
+                $show     = $entity->getId()." (".$toString.")";
+                $showup   = $show;
+                if ( $case_insensitive )
+                {
+                    $letters  = strtoupper($letters);
+                    $toString = strtoupper($toString);
+                    $showup   = strtoupper($showup);
+                }
 
-            $result = $em->createQuery(
-                'SELECT e.id
-                 FROM '.$class.' e 
-                 WHERE '.$filter.' AND '.
-                 $where_clause)
-                ->setParameter('like', $like)
-                ->setMaxResults($maxRows)
-                ->getScalarResult();
+                if ( strpos($toString, $letters) === FALSE 
+                  && strpos($id,       $letters) === FALSE 
+                  && strpos($showup,   $letters) === FALSE
+                ) continue;
 
-            $show_value    = $result['id'];
-            $show_property = $this->getDoctrine()
-                                  ->getManager()
-                                  ->getRepository($class)
-                                  ->find($show_value)
-                                   ->__toString();
+                $res[] = array("id" => $id, "text" => $show);
+            }
 
-            $res = array("id"=>$show_value, $show_value." (".$show_property.")");
         }else{
 
-            $select =  'e.'.$property.', e.'.$value;
-            $orderBy = 'ORDER BY e.'.$property;
-
-            switch ( $target )
+            switch ( $entity_inf['target'] )
             {
                 case "property":
                     $target1 = "e.".$property;
@@ -83,20 +83,20 @@ class AjaxAutocompleteJSONController extends Controller
             {
                 case "begins_with":
                     $like = $letters . '%';
-                break;
+                    break;
                 case "ends_with":
                     $like = '%' . $letters;
-                break;
+                    break;
                 case "contains":
                     $like = '%' . $letters . '%';
-                break;
+                    break;
                 default:
                     throw new \Exception('Unexpected value of parameter “search”.');
             }
 
             $where_clause_lhs2 = '';
             $where_clause_rhs2 = '';
-            if ( $entity_inf['case_insensitive'] )
+            if ( $case_insensitive )
             {
                 $where_clause_lhs1 = 'LOWER('.$target1.')';
                 $where_clause_rhs1 = 'LIKE LOWER(:like)';
@@ -121,11 +121,11 @@ class AjaxAutocompleteJSONController extends Controller
             }
 
             $results = $em->createQuery(
-                'SELECT '.$select.'
-                 FROM '.$entity_inf['class'].' e 
+                'SELECT e.'.$property.', e.'.$value.'
+                 FROM '.$class.' e 
                  WHERE '.$filter.' AND '.
                  $where_clause.' '.
-                 $orderBy)
+                'ORDER BY e.'.$property)
                 ->setParameter('like', $like)
                 ->setMaxResults($maxRows)
                 ->getScalarResult();
@@ -134,15 +134,6 @@ class AjaxAutocompleteJSONController extends Controller
 
             foreach ($results as $r)
             {
-                if ( $property == "__toString" )
-                {
-                    $r[$property] = $this->getDoctrine()
-                                         ->getManager()
-                                         ->getRepository($entity_inf['class'])
-                                         ->find($r[$value])
-                                         ->__toString();
-                }
-
                 switch ( $entity_inf['show'] )
                 {
                     case "property":
@@ -160,30 +151,11 @@ class AjaxAutocompleteJSONController extends Controller
                     default:
                         throw new \Exception('Unexpected value of parameter “show”.');
                 }
-                $res[] = array("id"=>$r[$value],"text"=>$show);
-            }
-            if (count($results) == 1)
-            {
-                switch ( $entity_inf['show'] )
-                {
-                    case "property":
-                        $show = $results[$property];
-                        break;
-                    case "value":
-                        $show = $results[$value];
-                    break;
-                    case "property_value":
-                        $show = $results[$property]." (".$results[$value].")";
-                        break;
-                    case "value_property":
-                        $show = $results[$value]." (".$results[$property].")";
-                        break;
-                    default:
-                        throw new \Exception('Unexpected value of parameter “show”.');
-                }
-                $res = array("id"=>$r[$value],"text"=>$show);
+                $res[] = array("id" => $r[$value], "text" => $show);
             }
         }
+
+        if ( count($res) == 1 ) $res = $res[0];
         return new Response(json_encode($res));
     }
 }
