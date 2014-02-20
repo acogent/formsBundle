@@ -87,6 +87,7 @@ sgn_forms:
 - show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses).
 
 Note : Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search, target et show sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées.
+
 ```
 sgn_forms:
     autocomplete_entities:
