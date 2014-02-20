@@ -72,7 +72,7 @@ sgn_forms:
             search:   begins_with
             target:   property
             show:     property
-        # exemple minimale avec les valeurs par défaut
+        # exemple minimal avec les valeurs par défaut
         pointrefs:
             class:    BDGSDatabaseBundle:PointRef
             property: nomFR
@@ -81,11 +81,31 @@ sgn_forms:
 - class    : le nom ‘doctrine’ de la classe
 - role     : permet de dire qui peut faire de l’ajax par défaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d’interdire les modifs par anonymous
 - property : le nom du champ qui sera affiché
-- value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l’id qui est donc la valeur par defaut
+- value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l’id qui est donc la valeur par defaut. Si vous désirez utiliser une value différente de l‘id, choisissez un attribut unique de type texte (string)
 - search   : la façon dont est faite la recherche, par défaut begins_with. Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
 - target   : le ou les attribut(s) sur le(s)quel(s) porte la recherche, par défaut property. Est utile si value est différent de l’id de l’entité. Valeurs possibles : property, value, both
 - show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses).
 
+Note : Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search, target et show sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées.
+
+```
+sgn_forms:
+    autocomplete_entities:
+        # exemple complet avec __toString
+        canexs:
+            class:    BDGDatabaseBundle:AuxCanex
+            role:     ROLE_USER
+            property: __toString
+            value:    id 
+            search:   contains
+            target:   both
+            show:     value_property
+        # exemple minimal avec les valeurs par défaut pour __toString
+        niverns:
+            class:    BDGDatabaseBundle:NiveRn
+            property: __toString
+
+```
 Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d’importer ce fichier dans votre config.yml :
 ```
     imports:

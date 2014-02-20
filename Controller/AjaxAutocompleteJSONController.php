@@ -25,126 +25,137 @@ class AjaxAutocompleteJSONController extends Controller
         $letters      = $request->get('letters');
         $maxRows      = $request->get('page_limit');
 
-        $property = $entity_inf['property'];
-        $value    = $entity_inf['value'];
-        $filter   = $entity_inf['filter'];
+        $class            = $entity_inf['class'];
+        $property         = $entity_inf['property'];
+        $value            = $entity_inf['value'];
+        $filter           = $entity_inf['filter'];
+        $case_insensitive = $entity_inf['case_insensitive'];
 
-        switch ( $entity_inf['target'] )
+        if ( $property == "__toString" )
         {
-            case "property":
-                $target1 = "e.".$property;
-                $target2 = NULL;
-                break;
-            case "value":
-                $target1 = "e.".$value;
-                $target2 = NULL;
-                break;
-            case "both":
-                $target1 = "e.".$property;
-                $target2 = "e.".$value;
-                break;
-            default:
-                throw new \Exception('Unexpected value of parameter “target”.');
-        }
+            $res = array();
+            
+            $entities = $em->getRepository($class)->findAll();
+            $letters  = trim($letters, '%');
 
-        switch ( $entity_inf['search'] )
-        {
-            case "begins_with":
-                $like = $letters . '%';
-            break;
-            case "ends_with":
-                $like = '%' . $letters;
-            break;
-            case "contains":
-                $like = '%' . $letters . '%';
-            break;
-            default:
-                throw new \Exception('Unexpected value of parameter “search”.');
-        }
-
-        $property = $entity_inf['property'];
-        $value    = $entity_inf['value'];
-
-        $where_clause_lhs2 = '';
-        $where_clause_rhs2 = '';
-        if ( $entity_inf['case_insensitive'] )
-        {
-            $where_clause_lhs1 = 'LOWER('.$target1.')';
-            $where_clause_rhs1 = 'LIKE LOWER(:like)';
-            if ( $target2 != NULL )
+            foreach($entities as $entity)
             {
-                $where_clause_lhs2 = 'LOWER('.$target2.')';
-                $where_clause_rhs2 = 'LIKE LOWER(:like)';
+                $id       = $entity->getId()."";
+                $toString = $entity->__toString();
+                $show     = $entity->getId()." (".$toString.")";
+                $showup   = $show;
+                if ( $case_insensitive )
+                {
+                    $letters  = strtoupper($letters);
+                    $toString = strtoupper($toString);
+                    $showup   = strtoupper($showup);
+                }
+
+                if ( strpos($toString, $letters) === FALSE 
+                  && strpos($id,       $letters) === FALSE 
+                  && strpos($showup,   $letters) === FALSE
+                ) continue;
+
+                $res[] = array("id" => $id, "text" => $show);
             }
-        } else {
-            $where_clause_lhs1 = $target1;
-            $where_clause_rhs1 = 'LIKE :like';
-            if ( $target2 != NULL )
-            {
-                $where_clause_lhs2 = $target2;
-                $where_clause_rhs2 = 'LIKE :like';
-            }
-        }
-        $where_clause = $where_clause_lhs1.' '.$where_clause_rhs1;
-        if ( $where_clause_lhs2 != '' && $where_clause_rhs2 != '' )
-        {
-            $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
-        }
 
-        $results = $em->createQuery(
-            'SELECT e.'.$property.', e.'.$value.'
-             FROM '.$entity_inf['class'].' e 
-             WHERE '.$filter.' AND '.
-             $where_clause.' '.
-            'ORDER BY e.'.$property)
-            ->setParameter('like', $like)
-            ->setMaxResults($maxRows)
-            ->getScalarResult();
+        }else{
 
-        $res = array();
-
-        foreach ($results as $r)
-        {
-            switch ( $entity_inf['show'] )
+            switch ( $entity_inf['target'] )
             {
                 case "property":
-                    $show = $r[$property];
+                    $target1 = "e.".$property;
+                    $target2 = NULL;
                     break;
                 case "value":
-                    $show = $r[$value];
-                break;
-                case "property_value":
-                    $show = $r[$property]." (".$r[$value].")";
+                    $target1 = "e.".$value;
+                    $target2 = NULL;
                     break;
-                case "value_property":
-                    $show = $r[$value]." (".$r[$property].")";
+                case "both":
+                    $target1 = "e.".$property;
+                    $target2 = "e.".$value;
                     break;
                 default:
-                    throw new \Exception('Unexpected value of parameter “show”.');
+                    throw new \Exception('Unexpected value of parameter “target”.');
             }
-            $res[] = array("id"=>$r[$value],"text"=>$show);
-        }
-        if (count($results) == 1)
-        {
-            switch ( $entity_inf['show'] )
+
+            switch ( $entity_inf['search'] )
             {
-                case "property":
-                    $show = $r[$property];
+                case "begins_with":
+                    $like = $letters . '%';
                     break;
-                case "value":
-                    $show = $r[$value];
-                break;
-                case "property_value":
-                    $show = $r[$property]." (".$r[$value].")";
+                case "ends_with":
+                    $like = '%' . $letters;
                     break;
-                case "value_property":
-                    $show = $r[$value]." (".$r[$property].")";
+                case "contains":
+                    $like = '%' . $letters . '%';
                     break;
                 default:
-                    throw new \Exception('Unexpected value of parameter “show”.');
+                    throw new \Exception('Unexpected value of parameter “search”.');
             }
-            $res = array("id"=>$r[$value],"text"=>$show);
+
+            $where_clause_lhs2 = '';
+            $where_clause_rhs2 = '';
+            if ( $case_insensitive )
+            {
+                $where_clause_lhs1 = 'LOWER('.$target1.')';
+                $where_clause_rhs1 = 'LIKE LOWER(:like)';
+                if ( $target2 != NULL )
+                {
+                    $where_clause_lhs2 = 'LOWER('.$target2.')';
+                    $where_clause_rhs2 = 'LIKE LOWER(:like)';
+                }
+            } else {
+                $where_clause_lhs1 = $target1;
+                $where_clause_rhs1 = 'LIKE :like';
+                if ( $target2 != NULL )
+                {
+                    $where_clause_lhs2 = $target2;
+                    $where_clause_rhs2 = 'LIKE :like';
+                }
+            }
+            $where_clause = $where_clause_lhs1.' '.$where_clause_rhs1;
+            if ( $where_clause_lhs2 != '' && $where_clause_rhs2 != '' )
+            {
+                $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
+            }
+
+            $results = $em->createQuery(
+                'SELECT e.'.$property.', e.'.$value.'
+                 FROM '.$class.' e 
+                 WHERE '.$filter.' AND '.
+                 $where_clause.' '.
+                'ORDER BY e.'.$property)
+                ->setParameter('like', $like)
+                ->setMaxResults($maxRows)
+                ->getScalarResult();
+
+            $res = array();
+
+            foreach ($results as $r)
+            {
+                switch ( $entity_inf['show'] )
+                {
+                    case "property":
+                        $show = $r[$property];
+                        break;
+                    case "value":
+                        $show = $r[$value];
+                    break;
+                    case "property_value":
+                        $show = $r[$property]." (".$r[$value].")";
+                        break;
+                    case "value_property":
+                        $show = $r[$value]." (".$r[$property].")";
+                        break;
+                    default:
+                        throw new \Exception('Unexpected value of parameter “show”.');
+                }
+                $res[] = array("id" => $r[$value], "text" => $show);
+            }
         }
+
+        if ( count($res) == 1 ) $res = $res[0];
         return new Response(json_encode($res));
     }
 }
