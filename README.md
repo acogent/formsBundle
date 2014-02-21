@@ -86,7 +86,7 @@ sgn_forms:
 - target   : le ou les attribut(s) sur le(s)quel(s) porte la recherche, par défaut property. Est utile si value est différent de l’id de l’entité. Valeurs possibles : property, value, both
 - show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses).
 
-Note : Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search, target et show sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées.
+Note : Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search et target sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées. Par contre, role et show fonctionnent de la même manière :
 
 ```
 sgn_forms:
@@ -99,7 +99,7 @@ sgn_forms:
             value:    id 
             search:   contains
             target:   both
-            show:     value_property
+            show:     property
         # exemple minimal avec les valeurs par défaut pour __toString
         niverns:
             class:    BDGDatabaseBundle:NiveRn

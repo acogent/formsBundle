@@ -29,6 +29,8 @@ class AjaxAutocompleteJSONController extends Controller
         $property         = $entity_inf['property'];
         $value            = $entity_inf['value'];
         $filter           = $entity_inf['filter'];
+        $target           = $entity_inf['target'];
+        $show             = $entity_inf['show'];
         $case_insensitive = $entity_inf['case_insensitive'];
 
         if ( $property == "__toString" )
@@ -38,30 +40,46 @@ class AjaxAutocompleteJSONController extends Controller
             $entities = $em->getRepository($class)->findAll();
             $letters  = trim($letters, '%');
 
-            foreach($entities as $entity)
+            foreach ( $entities as $entity )
             {
                 $id       = $entity->getId()."";
                 $toString = $entity->__toString();
-                $show     = $entity->getId()." (".$toString.")";
-                $showup   = $show;
+                switch ( $show )
+                {
+                    case 'value':
+                        $showtext = $id;
+                        break;
+                    case 'property':
+                        $showtext = $toString;
+                        break;
+                    case 'property_value':
+                        $showtext = $toString." (".$id.")";
+                        break;
+                    case 'value_property':
+                        $showtext = $id." (".$toString.")";
+                        break;
+                    default:
+                        throw new \Exception('Unexpected value of parameter “show”.');
+                }
+                $showtextup = $showtext;
                 if ( $case_insensitive )
                 {
-                    $letters  = strtoupper($letters);
-                    $toString = strtoupper($toString);
-                    $showup   = strtoupper($showup);
+                    $letters    = strtoupper($letters);
+                    $toString   = strtoupper($toString);
+                    $showtextup = strtoupper($showtextup);
                 }
 
-                if ( strpos($toString, $letters) === FALSE 
-                  && strpos($id,       $letters) === FALSE 
-                  && strpos($showup,   $letters) === FALSE
+                if ( strpos($toString,   $letters) === FALSE 
+                  && strpos($id,         $letters) === FALSE 
+                  && strpos($showtextup, $letters) === FALSE
                 ) continue;
 
-                $res[] = array("id" => $id, "text" => $show);
+                $res[] = array("id" => $id, "text" => $showtext);
             }
 
         }else{
 
-            switch ( $entity_inf['target'] )
+            switch ( $target )
             {
                 case "property":
                     $target1 = "e.".$property;
@@ -134,24 +152,24 @@ class AjaxAutocompleteJSONController extends Controller
 
             foreach ($results as $r)
             {
-                switch ( $entity_inf['show'] )
+                switch ( $show )
                 {
                     case "property":
-                        $show = $r[$property];
+                        $showtext = $r[$property];
                         break;
                     case "value":
-                        $show = $r[$value];
+                        $showtext = $r[$value];
                     break;
                     case "property_value":
-                        $show = $r[$property]." (".$r[$value].")";
+                        $showtext = $r[$property]." (".$r[$value].")";
                         break;
                     case "value_property":
-                        $show = $r[$value]." (".$r[$property].")";
+                        $showtext = $r[$value]." (".$r[$property].")";
                         break;
                     default:
                         throw new \Exception('Unexpected value of parameter “show”.');
                 }
-                $res[] = array("id" => $r[$value], "text" => $show);
+                $res[] = array("id" => $r[$value], "text" => $showtext);
             }
         }
 
