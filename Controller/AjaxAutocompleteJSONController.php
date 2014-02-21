@@ -33,10 +33,15 @@ class AjaxAutocompleteJSONController extends Controller
         $show             = $entity_inf['show'];
         $case_insensitive = $entity_inf['case_insensitive'];
 
+        if ( ($show == "property_value" || $show == "value_property") && $target != "both" )
+        {
+            throw new \Exception('Inconsistency between values of parameters "target" and "show".');
+        }
+
+        $res = array();
+
         if ( $property == "__toString" )
         {
-            $res = array();
-            
             $entities = $em->getRepository($class)->findAll();
             $letters  = trim($letters, '%');
 
@@ -59,7 +64,7 @@ class AjaxAutocompleteJSONController extends Controller
                         $showtext = $id." (".$toString.")";
                         break;
                     default:
-                        throw new \Exception('Unexpected value of parameter “show”.');
+                        throw new \Exception('Unexpected value of parameter "show".');
                 }
                 $showtextup = $showtext;
                 if ( $case_insensitive )
@@ -94,7 +99,7 @@ class AjaxAutocompleteJSONController extends Controller
                     $target2 = "e.".$value;
                     break;
                 default:
-                    throw new \Exception('Unexpected value of parameter “target”.');
+                    throw new \Exception('Unexpected value of parameter "target".');
             }
 
             switch ( $entity_inf['search'] )
@@ -109,7 +114,7 @@ class AjaxAutocompleteJSONController extends Controller
                     $like = '%' . $letters . '%';
                     break;
                 default:
-                    throw new \Exception('Unexpected value of parameter “search”.');
+                    throw new \Exception('Unexpected value of parameter "search".');
             }
 
             $where_clause_lhs2 = '';
@@ -148,8 +153,6 @@ class AjaxAutocompleteJSONController extends Controller
                 ->setMaxResults($maxRows)
                 ->getScalarResult();
 
-            $res = array();
-
             foreach ($results as $r)
             {
                 switch ( $show )
@@ -159,7 +162,7 @@ class AjaxAutocompleteJSONController extends Controller
                         break;
                     case "value":
                         $showtext = $r[$value];
-                    break;
+                        break;
                     case "property_value":
                         $showtext = $r[$property]." (".$r[$value].")";
                         break;
@@ -167,13 +170,13 @@ class AjaxAutocompleteJSONController extends Controller
                         $showtext = $r[$value]." (".$r[$property].")";
                         break;
                     default:
-                        throw new \Exception('Unexpected value of parameter “show”.');
+                        throw new \Exception('Unexpected value of parameter "show".');
                 }
                 $res[] = array("id" => $r[$value], "text" => $showtext);
             }
         }
 
-        if ( $init == TRUE || $init == '1' ) $res = $res[0];
+        if ( $init == '1' ) $res = $res[0];
         return new Response(json_encode($res));
     }
 }
