@@ -11,14 +11,14 @@ use Symfony\Component\HttpFoundation\Response;
 class AjaxAutocompleteJSONController extends Controller
 {
 
-    public function getJSONAction()
+    public function getJSONAction($init)
     {
         $em           = $this->get('doctrine')->getManager();
         $request      = $this->getRequest();
         $entities     = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
         $entity_alias = $request->get('entity_alias');
         $entity_inf   = $entities[$entity_alias];
-        if ( false === $this->get('security.context')->isGranted($entity_inf['role']) )
+        if ( FALSE === $this->get('security.context')->isGranted($entity_inf['role']) )
         {
             throw new AccessDeniedException();
         }
@@ -173,7 +173,7 @@ class AjaxAutocompleteJSONController extends Controller
             }
         }
 
-        if ( count($res) == 1 ) $res = $res[0];
+        if ( $init == TRUE || $init == '1' ) $res = $res[0];
         return new Response(json_encode($res));
     }
 }

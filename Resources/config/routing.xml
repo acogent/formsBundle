@@ -4,7 +4,10 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/routing http://symfony.com/schema/routing/routing-1.0.xsd">
 
-    <route id="sgn_ajaxautocomplete" pattern="/sgn_ajaxautocomplete">
+    <route id="sgn_ajaxautocomplete" pattern="/sgn_ajaxautocomplete/{init}">
         <default key="_controller">SGNFormsBundle:AjaxAutocompleteJSON:getJSON</default>
+        <default key="init">0</default>
+        <requirement key="init">0|1</requirement>
     </route>
+
 </routes>
