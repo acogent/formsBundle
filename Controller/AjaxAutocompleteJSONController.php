@@ -143,15 +143,28 @@ class AjaxAutocompleteJSONController extends Controller
                 $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
             }
 
-            $results = $em->createQuery(
-                'SELECT e.'.$property.', e.'.$value.'
-                 FROM '.$class.' e 
-                 WHERE '.$filter.' AND '.
-                 $where_clause.' '.
-                'ORDER BY e.'.$property)
-                ->setParameter('like', $like)
-                ->setMaxResults($maxRows)
-                ->getScalarResult();
+            if ( $class != "query" )
+            {
+                $results = $em->createQuery(
+                                    'SELECT e.'.$property.', e.'.$value.'
+                                    FROM '.$class.' e 
+                                    WHERE '.$filter.' AND '.
+                                    $where_clause.' '.
+                                    'ORDER BY e.'.$property)
+                              ->setParameter('like', $like)
+                              ->setMaxResults($maxRows)
+                              ->getScalarResult();
+            }else{
+                $query = $entity_inf['query'];
+
+                $results = $em->createQuery($query.'
+                                    AND '.$filter.' AND '.
+                                    $where_clause.' '.
+                                    'ORDER BY e.'.$property)
+                              ->setParameter('like', $like)
+                              ->setMaxResults($maxRows)
+                              ->getScalarResult();
+            }
 
             foreach ($results as $r)
             {

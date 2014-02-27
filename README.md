@@ -86,6 +86,12 @@ sgn_forms:
 - target   : le ou les attribut(s) sur le(s)quel(s) porte la recherche, par défaut property. Est utile si value est différent de l’id de l’entité. Valeurs possibles : property, value, both
 - show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses). NB : les valeurs property_value et value_property imposent que target soit à “both”.
 
+Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d’importer ce fichier dans votre config.yml :
+```
+    imports:
+    - { resource: sgn_forms.yml }
+```
+
 Cas particuliers : 
 - Par défaut, la recherche porte sur l’entité (class) via son id et son attribut (property). Il est possible d’utiliser une valeur différente, grâce au paramètre value. Dans ce cas, veillez à choisir un attribut unique de type texte (string).
 
@@ -131,11 +137,18 @@ sgn_forms:
 ```
 NB : Cette méthode est particulièrement coûteuse en temps. À utiliser avec parcimonie.
 
-Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d’importer ce fichier dans votre config.yml :
+- Enfin, vous pouvez fournir la requête DQL qui sera à l’origine de la liste Ajax. Cette méthode est contraignante et demande des connaissances en DQL. Il faut préciser le nom complet des entités (Bundle:Entité). Il faut obligatoirement nommer l’entité sur laquelle porte la requête “e”. Il faut nécessairement une clause WHERE.
+
+
 ```
-    imports:
-    - { resource: sgn_forms.yml }
+sgn_forms:
+    autocomplete_entities:
+        niverns:
+            property: rnNom
+            query:    'SELECT r.id, e.rnNom FROM CANEXIntranetDatabaseBundle:NiveRnNom e JOIN e.niveRn r WHERE e.rnNomDate = (SELECT MAX(o.rnNomDate) FROM CANEXIntranetDatabaseBundle:NiveRnNom o WHERE o.niveRn = r.id)'
+
 ```
+
 
 2. Dites à twig d’utiliser le template “fields.ajax.autocomplete.html.twig” dans config/config.yml en complétant les inforamtions twig :
 
