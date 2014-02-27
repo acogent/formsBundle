@@ -59,6 +59,7 @@ class AjaxAutocompleteType extends AbstractType
         $options['class']    = $entities[$options['entity_alias']]['class'];
         $options['property'] = $entities[$options['entity_alias']]['property'];
         $options['value']    = $entities[$options['entity_alias']]['value'];
+        $options['entity']   = $entities[$options['entity_alias']]['entity'];
 
         if ( $options['value'] == 'id' && $options['entity'] )
         {
