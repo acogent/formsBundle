@@ -57,7 +57,19 @@ class EntityToPropertyTransformer implements DataTransformerInterface
         if (!$prop_value) {
             return null;
         }
-        $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $prop_value));
-        return $entity;
+
+        if ($this->property == "__toString")
+        {
+            $entities = $this->em->getRepository($this->class)->findAll();
+
+            foreach ( $entities as $entity )
+            {
+                if ( $prop_value == $entity->__toString() ) return $entity;
+            }
+        }else{
+            $entity = $this->em->getRepository($this->class)->findOneBy(array($this->property => $prop_value));
+            return $entity;
+        }
+
     }
 }
