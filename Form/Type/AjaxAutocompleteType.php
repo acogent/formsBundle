@@ -60,7 +60,7 @@ class AjaxAutocompleteType extends AbstractType
         $options['property'] = $entities[$options['entity_alias']]['property'];
         $options['value']    = $entities[$options['entity_alias']]['value'];
 
-        if ($options['value'] == 'id')
+        if ( $options['value'] == 'id' && $options['entity'] )
         {
             $builder->addViewTransformer(new EntityToPropertyTransformer(
                 $this->container->get('doctrine')->getManager(),

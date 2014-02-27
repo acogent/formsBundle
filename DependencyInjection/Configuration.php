@@ -83,6 +83,9 @@ class Configuration implements ConfigurationInterface
                             ->booleanNode('case_insensitive')
                                  ->defaultTrue()
                             ->end()
+                            ->booleanNode('entity')
+                                 ->defaultTrue()
+                            ->end()
                         ->end()
                 ->end()
 

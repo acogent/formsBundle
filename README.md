@@ -68,7 +68,7 @@ sgn_forms:
             class:    BDGSDatabaseBundle:Site
             role:     ROLE_USER
             property: numero
-            value:    id 
+            value:    id
             search:   begins_with
             target:   property
             show:     property
@@ -81,10 +81,34 @@ sgn_forms:
 - class    : le nom ‘doctrine’ de la classe
 - role     : permet de dire qui peut faire de l’ajax par défaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d’interdire les modifs par anonymous
 - property : le nom du champ qui sera affiché
-- value    : le nom du champ dont on renvoie une valeur. Dans le cas des entités, ce sera le plus souvent l’id qui est donc la valeur par defaut. Si vous désirez utiliser une value différente de l‘id, choisissez un attribut unique de type texte (string)
+- value    : le nom du champ dont on renvoie une valeur (si “id”, l‘entité est renvoyée)
 - search   : la façon dont est faite la recherche, par défaut begins_with. Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
 - target   : le ou les attribut(s) sur le(s)quel(s) porte la recherche, par défaut property. Est utile si value est différent de l’id de l’entité. Valeurs possibles : property, value, both
 - show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses). NB : les valeurs property_value et value_property imposent que target soit à “both”.
+
+Cas particuliers : 
+- Par défaut, la recherche porte sur l’entité (class) via son id et son attribut (property). Il est possible d’utiliser une valeur différente, grâce au paramètre value. Dans ce cas, veillez à choisir un attribut unique de type texte (string).
+
+```
+sgn_forms:
+    autocomplete_entities:
+        misscids:
+            class:    CANEXIntranetDatabaseBundle:AuxMission
+            value:    missCid
+            property: designation
+
+```
+- Si vous souhaitez que la recherche renvoie l’id de la classe en tant que value (mais pas la classe elle-même), vous pouvez mettre le paramètre entity à FALSE :
+
+```
+sgn_forms:
+    autocomplete_entities:
+        nivfrnids:
+            class:    CANEXIntranetDatabaseBundle:NivfRn
+            property: rnNom
+            entity:   false
+
+```
 
 Note : Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search et target sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées. Par contre, role et show fonctionnent de la même manière :
 
