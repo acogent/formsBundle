@@ -109,8 +109,7 @@ sgn_forms:
             entity:   false
 
 ```
-
-Note : Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search et target sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées. Par contre, role et show fonctionnent de la même manière :
+- Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search et target sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées. Par contre, role et show fonctionnent de la même manière :
 
 ```
 sgn_forms:
@@ -130,6 +129,8 @@ sgn_forms:
             property: __toString
 
 ```
+NB : Cette méthode est particulièrement coûteuse en temps. À utiliser avec parcimonie.
+
 Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d’importer ce fichier dans votre config.yml :
 ```
     imports:
