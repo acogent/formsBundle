@@ -663,7 +663,7 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
         
-        if ($form->isValid()) {
+        if ($form->isValid() && $request->isXmlHttpRequest()) {
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
             $em->flush();
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
