@@ -59,6 +59,8 @@ class ValueToPropertyTransformer implements DataTransformerInterface
                            ->getRepository($this->class)
                            ->findOneBy(array($this->property => $prop_value));
 
+            if ( $entity == NULL ) return NULL;
+
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
             
             return $propertyAccessor->getValue($entity, $this->value);
