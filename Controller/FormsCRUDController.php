@@ -636,11 +636,12 @@ class FormsCRUDController extends Controller
     /**
      *
      * @Route("/{bundle}/{table}/edit/{id}/")
+     * @Route("/{bundle}/{table}/edit/{id}/{ajax}")
      *
      * @Template()
      */
 
-    public function editAction( $bundle, $table , $id,  Request $request )
+    public function editAction( $bundle, $table , $id, $ajax = '', Request $request )
     {
         $bundlename  = Validators::validateBundleName($bundle);
         $BundleValid = $this->get('Kernel')->getBundle($bundlename);
@@ -663,7 +664,7 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
         
-        if ($form->isValid() && $request->isXmlHttpRequest()) {
+        if ( $form->isValid() && $ajax == '' ) {
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
             $em->flush();
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
