@@ -20,19 +20,19 @@ class EntityToPropertyTransformer implements DataTransformerInterface
 
     public function __construct(EntityManager $em, $class, $property, $value)
     {
-        $this->em = $em;
+        $this->em         = $em;
         $this->unitOfWork = $this->em->getUnitOfWork();
-        $this->class = $class;
-        $this->property = $property;
-        $this->value = $value;
+        $this->class      = $class;
+        $this->property   = $property;
+        $this->value      = $value;
 
     }
 
     public function transform($entity)
     {
-        if (null === $entity)
+        if ( NULL === $entity )
         {
-            return null;
+            return NULL;
         }
 
         if (!$this->unitOfWork->isInIdentityMap($entity))
@@ -54,8 +54,11 @@ class EntityToPropertyTransformer implements DataTransformerInterface
 
     public function reverseTransform($prop_value)
     {
-        if (!$prop_value) {
-            return null;
+        // $prop_value est la valeur de “property” si le champ reste inchangé, la valeur de ”value” si le champ a changé.
+
+        if ( !$prop_value )
+        {
+            return NULL;
         }
 
         if ($this->property == "__toString")
@@ -68,8 +71,11 @@ class EntityToPropertyTransformer implements DataTransformerInterface
             }
         }else{
             $entity = $this->em->getRepository($this->class)->findOneBy(array($this->property => $prop_value));
-            return $entity;
+            if ( $entity != NULL ) return $entity;
         }
 
+        $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $prop_value));
+        return $entity;
     }
+
 }
