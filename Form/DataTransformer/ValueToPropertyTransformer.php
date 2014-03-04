@@ -27,7 +27,10 @@ class ValueToPropertyTransformer implements DataTransformerInterface
 
     public function transform($val_value)
     {
-        if ( !$val_value ) return NULL;
+        if (!$val_value)
+        {
+            return NULL;
+        }
 
         if ( $this->query == "class" )
         {
@@ -36,7 +39,6 @@ class ValueToPropertyTransformer implements DataTransformerInterface
                            ->findOneBy(array($this->value => $val_value));
 
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
-
             return $propertyAccessor->getValue($entity, $this->property);
         }else{
             $result = $this->em
@@ -46,12 +48,16 @@ class ValueToPropertyTransformer implements DataTransformerInterface
 
             return $result[$this->property];
         }
-
     }
 
     public function reverseTransform($prop_value)
     {
-        if ( !$prop_value ) return NULL;
+        // $prop_value est la valeur de “property” si le champ reste inchangé, la valeur de ”value” si le champ a changé.
+
+        if (!$prop_value)
+        {
+            return NULL;
+        }
 
         if ( $this->query == "class" )
         {
@@ -59,10 +65,9 @@ class ValueToPropertyTransformer implements DataTransformerInterface
                            ->getRepository($this->class)
                            ->findOneBy(array($this->property => $prop_value));
 
-            if ( $entity == NULL ) return NULL;
+            if ( $entity == NULL ) return $prop_value;
 
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
-            
             return $propertyAccessor->getValue($entity, $this->value);
         }else{
             $result = $this->em
@@ -73,4 +78,5 @@ class ValueToPropertyTransformer implements DataTransformerInterface
             return $result[$this->value];
         }
     }
+
 }
