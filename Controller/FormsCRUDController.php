@@ -664,7 +664,7 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
         
-        if ( $form->isValid() && $ajax == '' ) {
+        if ( $ajax == '' && $form->isValid() ) {
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
             $em->flush();
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
