@@ -22,6 +22,9 @@ class {{ form_class }} extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        // $onChange = "ajaxFormRequest(this.form);";
+        // Si vous souhaitez personnaliser votre formulaire selon des données soumises, décommentez la ligne ci-dessus. À utiliser de la sorte : ->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label', 'entity_alias'=>'geocids', 'attr' => array('onchange' => $onChange)))
+
         $builder
 
         {%- for field in fields %}
@@ -37,7 +40,7 @@ class {{ form_class }} extends AbstractType
              {%- for field in fieldsManyToOne %}
 
                 ->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'))
-             // Si vous voulez une gestion de liste de choix avec ajax, supprimez la liste ci-dessu et décommentez celle ci-dessous. N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
+             // Si vous voulez une gestion de liste de choix avec Ajax, supprimez la liste ci-dessus et décommentez celle ci-dessous. N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
              // ->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
              {%- endfor %}
                 
@@ -83,15 +86,39 @@ class {{ form_class }} extends AbstractType
             }
         });
 
+        // Si vous souhaitez personnaliser votre formulaire selon des données soumises, utilisez des listeners du type :
+/*
+        $builder->addEventListener(
+            FormEvents::PRE_SET_DATA, 
+            function(FormEvent $event){
+                $form = $event->getForm();
+                $obj = $event->getData(); // ici : {{ entity_class }}
+                ∕∕ Vous pouvez appeler une fonction qui modifie le formulaire.
+            }
+        );
+
+        // Ici, monChamp est un champ de votre formulaire
+        $builder->get('monChamp')->addEventListener(
+            FormEvents::POST_SUBMIT, 
+            function(FormEvent $event){
+                $form = $event->getForm(); // ici : FormInterface de monChamp
+                ∕∕ Vous pouvez appeler une fonction qui modifie le formulaire.
+            }
+        );
+*/
 /*
         $builders->addEventListener(FormEvents::PRE_SUBMIT, function(FormEvent $event) {
             $newObj = $event->getData();
 
             if (...) {
-                // vous pouvez faire des traitements, pui modifier l'objet 
+                // vous pouvez faire des traitements, puis modifier l'objet 
                 $event->setData($newObj);
             }
         });
+
+
+
+
 */
 
     }
