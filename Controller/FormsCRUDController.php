@@ -596,11 +596,12 @@ class FormsCRUDController extends Controller
     /**
      *
      * @Route("/{bundle}/{table}/new/")
+     * @Route("/{bundle}/{table}/new/{ajax}")
      *
      * @Template()
      */
 
-    public function newAction($bundle, $table , Request $request )
+    public function newAction($bundle, $table , $ajax = '', Request $request )
     {
         $bundlename  = Validators::validateBundleName($bundle);
         $BundleValid = $this->get('Kernel')->getBundle($bundlename);
@@ -619,7 +620,7 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
 
-        if ($form->isValid()) {
+        if ($ajax == '' && $form->isValid()) {
             $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
             $em->persist($obj);
             $em->flush();
