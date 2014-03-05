@@ -2,8 +2,11 @@
 
 namespace SGN\FormsBundle\Form\Type;
 
+use SGN\FormsBundle\Form\DataTransformer\ClassvalueToPropertyTransformer;
 use SGN\FormsBundle\Form\DataTransformer\EntityToPropertyTransformer;
-use SGN\FormsBundle\Form\DataTransformer\ValueToPropertyTransformer;
+use SGN\FormsBundle\Form\DataTransformer\EntityToQuerypropertyTransformer;
+use SGN\FormsBundle\Form\DataTransformer\EntityToTostringTransformer;
+use SGN\FormsBundle\Form\DataTransformer\QueryvalueToPropertyTransformer;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Exception\FormException;
@@ -61,9 +64,11 @@ class AjaxAutocompleteType extends AbstractType
         $options['entity']   = $entities[$options['entity_alias']]['entity'];
         $options['query']    = $entities[$options['entity_alias']]['query'];
 
-        if ( $options['value'] == 'id' 
+        if ( $options['class'] != "query" 
+          && $options['query'] == "class"
+          && $options['value'] == 'id'
           && $options['entity'] 
-          && $options['class'] != "query" )
+          && $options['property'] != "__toString" )
         {
             $builder->addViewTransformer(new EntityToPropertyTransformer(
                 $this->container->get('doctrine')->getManager(),
@@ -71,8 +76,45 @@ class AjaxAutocompleteType extends AbstractType
                 $options['property'],
                 $options['value']
             ), true);
-        }else{
-            $builder->addViewTransformer(new ValueToPropertyTransformer(
+        }
+
+        if ( $options['class'] != "query" 
+          && $options['property'] == "__toString" )
+        {
+            $builder->addViewTransformer(new EntityToTostringTransformer(
+                $this->container->get('doctrine')->getManager(),
+                $options['class'],
+                $options['value']
+            ), true);
+        }
+
+        if ( $options['class'] != "query" 
+          && $options['value'] != 'id'
+         && !$options['entity'] )
+        {
+            $builder->addViewTransformer(new ClassvalueToPropertyTransformer(
+                $this->container->get('doctrine')->getManager(),
+                $options['class'],
+                $options['property'],
+                $options['value']
+            ), true);
+        }
+
+        if ( $options['query'] != "class" 
+          && $options['class'] == "query" )
+        {
+            $builder->addViewTransformer(new QueryvalueToPropertyTransformer(
+                $this->container->get('doctrine')->getManager(),
+                $options['query'],
+                $options['property'],
+                $options['value']
+            ), true);
+        }
+
+        if ( $options['query'] != "class" 
+          && $options['class'] != "query" )
+        {
+            $builder->addViewTransformer(new EntityToQuerypropertyTransformer(
                 $this->container->get('doctrine')->getManager(),
                 $options['class'],
                 $options['query'],

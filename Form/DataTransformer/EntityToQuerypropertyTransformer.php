@@ -10,19 +10,21 @@ use Symfony\Component\Form\Exception\UnexpectedTypeException;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\Exception\FormException;
 
-class EntityToPropertyTransformer implements DataTransformerInterface
+class EntityToQuerypropertyTransformer implements DataTransformerInterface
 {
     protected $em;
     protected $class;
+    protected $query;
     protected $property;
     protected $unitOfWork;
     protected $value;
 
-    public function __construct(EntityManager $em, $class, $property, $value)
+    public function __construct(EntityManager $em, $class, $query, $property, $value)
     {
         $this->em         = $em;
         $this->unitOfWork = $this->em->getUnitOfWork();
         $this->class      = $class;
+        $this->query      = $query;
         $this->property   = $property;
         $this->value      = $value;
 
@@ -42,7 +44,14 @@ class EntityToPropertyTransformer implements DataTransformerInterface
         if ($this->property) 
         {
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
-            return $propertyAccessor->getValue($entity, $this->property);
+            $val_value = $propertyAccessor->getValue($entity, $this->value);
+
+            $result = $this->em
+               ->createQuery($this->query." AND e.".$this->value." = :val_value")
+               ->setParameter('val_value', $val_value)
+               ->getOneOrNullResult();
+
+            return $result[$this->property];
         }
         return current($this->unitOfWork->getEntityIdentifier($entity));
     }
@@ -56,10 +65,15 @@ class EntityToPropertyTransformer implements DataTransformerInterface
             return NULL;
         }
 
-        $entity = $this->em->getRepository($this->class)->findOneBy(array($this->property => $prop_value));
-        if ( $entity != NULL ) return $entity;
+        $result = $this->em
+               ->createQuery($this->query." AND e.".$this->property." = :prop_value")
+               ->setParameter('prop_value', $prop_value)
+               ->getOneOrNullResult();
 
-        $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $prop_value));
+        $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $result[$this->value]));
+
+        if ( $entity == NULL ) $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $prop_value));
+
         return $entity;
     }
 
