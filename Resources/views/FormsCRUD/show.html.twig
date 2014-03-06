@@ -119,7 +119,7 @@
     <div class = "tab-pane" id="new" style="display:none;"><h2>{{ entity }} : </h2>
         <div id="newEntity">
             {{ render(controller('SGNFormsBundle:FormsCRUD:new', {
-                'bundle': project, 'table': entity
+                'bundle': project, 'table': entity, 'ajax':''
             })) }}
         </div>
     <div class = "tab-pane" id="delete" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
