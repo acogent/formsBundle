@@ -32,6 +32,7 @@ class AjaxAutocompleteJSONController extends Controller
         $target           = $entity_inf['target'];
         $show             = $entity_inf['show'];
         $case_insensitive = $entity_inf['case_insensitive'];
+        $query            = $entity_inf['query'];
 
         if ( ($show == "property_value" || $show == "value_property") && $target != "both" )
         {
@@ -143,7 +144,7 @@ class AjaxAutocompleteJSONController extends Controller
                 $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
             }
 
-            if ( $class != "query" )
+            if ( $query == "class" )
             {
                 $results = $em->createQuery(
                                     'SELECT e.'.$property.', e.'.$value.'
@@ -155,8 +156,6 @@ class AjaxAutocompleteJSONController extends Controller
                               ->setMaxResults($maxRows)
                               ->getScalarResult();
             }else{
-                $query = $entity_inf['query'];
-
                 $results = $em->createQuery($query.'
                                     AND '.$filter.' AND '.
                                     $where_clause.' '.
