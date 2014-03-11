@@ -188,7 +188,15 @@ class AjaxAutocompleteJSONController extends Controller
             }
         }
 
-        if ( $init == '1' ) $res = $res[0];
+        if ( $init == '1' )
+        {
+            if ( empty($res) )
+            {
+                $res = array("id" => NULL, "text" => "(not found)");
+            }else{
+                $res = $res[0];
+            }
+        }
         return new Response(json_encode($res));
     }
 }
