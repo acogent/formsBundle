@@ -310,5 +310,24 @@ jQuery(window).bind('resize', function() {
 
 }).trigger('resize');
 
+    function ajaxFormRequest(form)
+    {
+        var edit_index = form.action.indexOf("/edit/");
+
+        $.ajax({
+            type:    "POST",
+            url:     form.action + 'ajax',
+            data:    $(form).serialize()
+        })
+            .done(function(result){
+                if ( edit_index > 0 )
+                {
+                    jQuery('#editEntity').html(result);
+                }else{
+                    jQuery('#newEntity').html(result);
+                }
+            })
+    }
+
 </script>
 {% endblock %}
