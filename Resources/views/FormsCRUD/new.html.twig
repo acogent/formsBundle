@@ -3,3 +3,17 @@
     {{ form_errors(form) }}
     {{ form_widget(form) }}
 {{ form_end(form) }}
+
+<script>
+    function ajaxFormRequest(form)
+    {
+        $.ajax({
+            type:    "POST",
+            url:     form.action + 'ajax',
+            data:    $(form).serialize()
+        })
+            .done(function(result){
+                jQuery('#newEntity').html(result);
+            })
+    }
+</script>

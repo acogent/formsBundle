@@ -601,7 +601,7 @@ class FormsCRUDController extends Controller
      * @Template()
      */
 
-    public function newAction($bundle, $table , $ajax = '', Request $request )
+    public function newAction($bundle, $table, Request $request, $ajax = '')
     {
         $bundlename  = Validators::validateBundleName($bundle);
         $BundleValid = $this->get('Kernel')->getBundle($bundlename);
@@ -642,7 +642,7 @@ class FormsCRUDController extends Controller
      * @Template()
      */
 
-    public function editAction( $bundle, $table , $id, $ajax = '', Request $request )
+    public function editAction($bundle, $table , $id, Request $request, $ajax = '')
     {
         $bundlename  = Validators::validateBundleName($bundle);
         $BundleValid = $this->get('Kernel')->getBundle($bundlename);
