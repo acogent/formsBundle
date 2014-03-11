@@ -89,7 +89,6 @@ class AjaxAutocompleteType extends AbstractType
         }
 
         if ( $options['class'] != "query" 
-          && $options['value'] != 'id'
          && !$options['entity'] )
         {
             $builder->addViewTransformer(new ClassvalueToPropertyTransformer(
