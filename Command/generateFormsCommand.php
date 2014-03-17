@@ -47,6 +47,7 @@ class generateFormsCommand extends ContainerAwareCommand
                 while (($file = readdir($dh)) !== false) {
                     if (is_file($pathEntities.'/'.$file)
                         && strpos($file, 'Repository') === false
+                        && strpos($file, 'Listener') === false
                         && strpos($file, "~") === false) {
                         $entities[] = basename($file, '.php');
                     }
