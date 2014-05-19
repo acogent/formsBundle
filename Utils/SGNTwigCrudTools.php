@@ -73,7 +73,7 @@ class SGNTwigCrudTools
     private static function getBundleName($name)
     {
         return ($p1 = strpos($ns = $name, '\\')) === false ? $ns :
-            substr($ns, 0, ($p2 = strpos($ns, '\\', $p1 + 1)) === false ? strlen($ns) : $p2);
+            substr($ns, 0, ($p2 = strpos($ns, 'Bundle\\', $p1 + 1)) === false ? strlen($ns) : $p2+6);
     }
     /**
      * getBundleShortName description]
