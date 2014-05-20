@@ -20,14 +20,19 @@ class SGNTwigCrudTools
         foreach ($metadatas as $metadata) {
             $bundleShortName = SGNTwigCrudTools::getBundleShortName($metadata->getName());
             if ( $bundleShortName <> $bundle  && $bundle <> '*') continue;
-            $tab_entity               = array();
-            $tab_entity['project']    = SGNTwigCrudTools::getProjectName($bundle);
-            $tab_entity['name']       = SGNTwigCrudTools::getName( $metadata->getName());
-            $tab_entity['identifier'] = $metadata->getIdentifier();
-           // $tab_entity['label']      = SGNTwigCrudTools::getEntityTrans($tab_entity, 'label');
-            $tab_entity['link']       = SGNTwigCrudTools::getEntityLink($me,$tab_entity['name'], $bundle);
-            $tab_entities[strtolower($tab_entity['name'])] = $tab_entity;
 
+            $project_name = SGNTwigCrudTools::getProjectName($bundle);
+            $entity_name  = SGNTwigCrudTools::getName( $metadata->getName());
+            if (empty($select_entity) || in_array($project_name.".".$entity_name, $select_entity))
+            {
+                $tab_entity               = array();
+                $tab_entity['project']    = $project_name;
+                $tab_entity['name']       = $entity_name;
+                $tab_entity['identifier'] = $metadata->getIdentifier();
+               // $tab_entity['label']      = SGNTwigCrudTools::getEntityTrans($tab_entity, 'label');
+                $tab_entity['link']       = SGNTwigCrudTools::getEntityLink($me,$tab_entity['name'], $bundle);
+                $tab_entities[strtolower($tab_entity['name'])] = $tab_entity;
+            }
         }
 
         ksort($tab_entities);

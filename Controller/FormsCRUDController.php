@@ -97,7 +97,7 @@ class FormsCRUDController extends Controller
                 $bestof_entity[] = substr($ta,  strpos($ta, '.')+1);
             }
         }
-        $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this,$bundle );
+        $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this, $bundle, $this->container->getParameter('sgn_forms.select_entity'));
         
         // Pour jQgrid
         $metadata            = $em->getClassMetadata($entity);
