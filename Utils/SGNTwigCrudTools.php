@@ -12,7 +12,7 @@ class SGNTwigCrudTools
      * getMenuTabEntities
      *
      */
-    public static function getMenuTabEntities($me, $bundle)
+    public static function getMenuTabEntities($me, $bundle, $select_entity = array())
     {
         $em = $me->getDoctrine()->getManager();
         $metadatas = $em->getMetadataFactory()->getAllMetadata();
