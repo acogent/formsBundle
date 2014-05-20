@@ -6,8 +6,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 
 class SGNTwigCrudTools
 {
-
-
     /**
      * getMenuTabEntities
      *
