@@ -66,3 +66,36 @@
 </div>
 {% endspaceless %}
 {% endblock %}
+
+{# Surcharge pour l’affichage en table #}
+
+{% block form_label %}
+{% spaceless %}
+    {% if in_choice_list is defined and in_choice_list and widget is defined %}
+        {% if not compound %}
+            {% set label_attr = label_attr|merge({for: id}) %}
+        {% endif %}
+        {% if required %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' required')|trim}) %}
+        {% endif %}
+        {% if label is empty %}
+            {% set label = name|humanize %}
+        {% endif %}
+
+        {% if multiple is defined and multiple %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' checkbox')|trim}) %}
+        {% elseif multiple is defined and not multiple %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' radio')|trim}) %}
+        {% endif %}
+        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>
+            {{ widget|raw }}
+            <span>
+                {{ label|trans({}, translation_domain) }}
+            </span>
+        </label>
+    {% else %}
+        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' col-sm-12 control-label')|trim}) %}
+        {{ parent() }}
+    {% endif %}
+{% endspaceless %}
+{% endblock form_label %}
