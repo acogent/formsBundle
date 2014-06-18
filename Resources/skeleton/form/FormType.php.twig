@@ -97,6 +97,15 @@ class {{ form_class }} extends AbstractType
             }
         );
 
+        $builders->addEventListener(FormEvents::PRE_SUBMIT, function(FormEvent $event) {
+            $newObj = $event->getData();
+
+            if (...) {
+                // Vous pouvez faire des traitements, puis modifier l'objet.
+                $event->setData($newObj);
+            }
+        });
+
         // Ici, monChamp est un champ de votre formulaire
         $builder->get('monChamp')->addEventListener(
             FormEvents::POST_SUBMIT, 
@@ -105,19 +114,11 @@ class {{ form_class }} extends AbstractType
                 ∕∕ Vous pouvez appeler une fonction qui modifie le formulaire.
             }
         );
-*/
-/*
-        $builders->addEventListener(FormEvents::PRE_SUBMIT, function(FormEvent $event) {
-            $newObj = $event->getData();
 
-            if (...) {
-                // vous pouvez faire des traitements, puis modifier l'objet 
-                $event->setData($newObj);
-            }
-        });
-
-
-
+        // Pour empêcher le ValidationListener d'être appelé dans le cas de formulaire modifié dynamique via Ajax :
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function($event) {
+            $event->stopPropagation();
+        }, 900); // priorité plus grande que le ValidationListener
 
 */
 
