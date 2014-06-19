@@ -1,6 +1,6 @@
 {# Surcharge des champs de formulaire pour bootstrap 3 #}
 
-{% extends "SGNFormsBundle::forms.bootstrap3.html.twig" %}
+{% extends FORMS_BOOTSTRAP3|default("SGNFormsBundle::forms.bootstrap3.html.twig") %}
 {# {% form_theme form 'SGNFormsBundle::forms.table.bootstrap3.html.twig' %} #}
 {# {% extends "form_div_layout.html.twig" %} #}
 
