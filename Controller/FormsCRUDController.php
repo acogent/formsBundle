@@ -696,14 +696,22 @@ class FormsCRUDController extends Controller
         if (!$obj) {
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
         }
+        
         foreach ($MetaData->fieldNames as $value) {
-            $fields[$value] = $obj->{'get'.ucfirst($value)}();
+            if ($MetaData->fieldMappings[$value]['type'] == 'date'  )
+            {
+                if (! $obj->{'get'.ucfirst($value)}() ) $fields[$value]  = '';
+                else $fields[$value]  = $obj->{'get'.ucfirst($value)}()->format('Y-m-d');
+            }
+            else{
+                $fields[$value] = $obj->{'get'.ucfirst($value)}();
+            } 
         }
-
         return  array(
             'obj' => $fields
         );
     }
+
 
      /**
      *
