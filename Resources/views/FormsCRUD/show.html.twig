@@ -212,7 +212,7 @@ $(document).ready(function() {
 
         {% for collection, url in collectionNames %}
             myUrl = "{{ url }}";
-            myUrl = myUrl.replace( '0', sel_id);
+            myUrl = myUrl.replace('%23', sel_id); // %23 = #
             $.ajax({
                 type   : "GET",
                 url    : myUrl,
@@ -224,7 +224,7 @@ $(document).ready(function() {
         {% endfor %}
 
         myUrl = "{{ url_edit }}";
-        myUrl = myUrl.replace( '0', sel_id);
+        myUrl = myUrl.replace('%23', sel_id); // %23 = #
         $.ajax({
             type   : "GET",
             url    : myUrl,
@@ -235,7 +235,7 @@ $(document).ready(function() {
         });
 
         myUrl = "{{ url_showone }}";
-        myUrl = myUrl.replace( '0', sel_id);
+        myUrl = myUrl.replace('%23', sel_id); // %23 = #
         $.ajax({
             type   : "GET",
             url    : myUrl,

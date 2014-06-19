@@ -189,9 +189,9 @@ class FormsCRUDController extends Controller
                 'limit'           => $limit,
                 'rowsList'        => $rowsList,
                 'url_new'         => $this->generateUrl('sgn_forms_formscrud_new', array('bundle'=>$bundle, 'table'=>$table), true),
-                'url_showone'     => $this->generateUrl('sgn_forms_formscrud_showone', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
-                'url_edit'        => $this->generateUrl('sgn_forms_formscrud_edit', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0), true),
-                'url_delete'      => $this->generateUrl('sgn_forms_formscrud_delete', array('bundle'=>$bundle, 'table'=>$table, 'id'=>0)),
+                'url_showone'     => $this->generateUrl('sgn_forms_formscrud_showone', array('bundle'=>$bundle, 'table'=>$table, 'id'=>'#'), true),
+                'url_edit'        => $this->generateUrl('sgn_forms_formscrud_edit', array('bundle'=>$bundle, 'table'=>$table, 'id'=>'#'), true),
+                'url_delete'      => $this->generateUrl('sgn_forms_formscrud_delete', array('bundle'=>$bundle, 'table'=>$table, 'id'=>'#')),
                 'params'          => $params
                 );
 
@@ -1022,8 +1022,9 @@ class FormsCRUDController extends Controller
                     array(
                         'bundle'     =>  $project ,
                         'format'     => 'html' ,
-                        'table'      =>  $entity  ,
-                        'collection' =>  $champ ),
+                        'table'      =>  $entity ,
+                        'collection' =>  $champ ,
+                        'id'         => '#' ) ,
                     true
                     );
                 $collectionNames[$champ] = $url;
@@ -1037,7 +1038,8 @@ class FormsCRUDController extends Controller
                     'bundle'     =>  $project ,
                     'format'     => 'html' ,
                     'table'      =>  $entity  ,
-                    'collection' =>  "Audit" ),
+                    'collection' =>  "Audit" ,
+                    'id'         => '#' ),
                 true
                 );
             $collectionNames["Audit"] = $url;
