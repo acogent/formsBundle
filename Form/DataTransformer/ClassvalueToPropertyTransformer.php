@@ -34,6 +34,8 @@ class ClassvalueToPropertyTransformer implements DataTransformerInterface
                        ->getRepository($this->class)
                        ->findOneBy(array($this->value => $val_value));
 
+        if (NULL == $entity) return NULL;
+
         $propertyAccessor = PropertyAccess::getPropertyAccessor();
         return $propertyAccessor->getValue($entity, $this->property);
 
@@ -52,11 +54,10 @@ class ClassvalueToPropertyTransformer implements DataTransformerInterface
                        ->getRepository($this->class)
                        ->findOneBy(array($this->property => $prop_value));
 
-        if ( $entity == NULL ) return $prop_value;
+        if (NULL == $entity) return $prop_value;
 
         $propertyAccessor = PropertyAccess::getPropertyAccessor();
         return $propertyAccessor->getValue($entity, $this->value);
-
     }
 
 }
