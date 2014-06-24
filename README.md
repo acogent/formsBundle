@@ -318,7 +318,7 @@ sgn_forms:
 Dans l’exemple précédent, FormsBundle se procure les formulaires des entités du bundle BDGSDatabaseBundle en tant que services. Ceci impose que la méthode getName du formulaire renvoie le nom de l’entité en bas de casse suivi de « type » séparés par un underscore. Ce même nom doit être utilisé par l‘alias du service :
 
 ```
-// Acme/MonBundle/Form/NiveRnType.php :
+// BDGS/DatabaseBundle/Form/NiveRnType.php :
 
 class NiveRnType extends AbstractType
 {
@@ -333,12 +333,12 @@ class NiveRnType extends AbstractType
     }
 }
 
-# Acme/MonBundle/Resources/config/services.yml :
+# BDGS/DatabaseBundle/Resources/config/services.yml :
 
 services:
     # ...
-    bdg_database_model.form.type.nivern:
-        class: BDG\DatabaseModelBundle\Form\NiveRnType
+    bdgs_database.form.type.nivern:
+        class: BDGS/DatabaseBundle/Form/NiveRnType
         tags:
             - { name: form.type, alias: nivern_type }
 ```
