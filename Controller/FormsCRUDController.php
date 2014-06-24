@@ -600,36 +600,47 @@ class FormsCRUDController extends Controller
      *
      * @Template()
      */
-
     public function newAction($bundle, $table, Request $request, $ajax = '')
     {
         $classBundleName  = Validators::validateBundleName($bundle);
         $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
         $classDir         = $classBundleValid->getNamespace();
-        $formDir          = $classDir;
+
+        $class = $classDir.'\Entity\\'.$table;
+        $type  = "";
+
         if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
         {
-            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
-            $formBundleName  = Validators::validateBundleName($formBundle);
-            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
-            $formDir         = $formBundleValid->getNamespace();
+            $formBundle = $this->container->getParameter('sgn_forms.forms.'.$bundle);
+            if ($formBundle != "@service")
+            {
+                $formBundleName  = Validators::validateBundleName($formBundle);
+                $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
+                $formDir         = $formBundleValid->getNamespace();
+                $type            = $formDir.'\Form\\'.$table.'Type';
+            }
+        }else{
+            $type = $classDir.'\Form\\'.$table.'Type';
         }
-        
-        $class = $classDir.'\Entity\\'.$table;
-        $type  = $formDir.'\Form\\'.$table.'Type';
 
-        $obj   = new $class();
-        $form  = $this->createForm(new $type(), $obj, array(
-            'action' => $this->generateUrl(
-                'sgn_forms_formscrud_new', 
-                array('bundle' => $bundle, 'table' => $table)
+        $obj  = new $class();
+
+        $form = $this->createForm(
+            $type != "" ? new $type() : strtolower($table)."_type", 
+            $obj, 
+            array(
+                'action' => $this->generateUrl(
+                    'sgn_forms_formscrud_new', 
+                    array('bundle' => $bundle, 'table' => $table)
             ),
         ));
 
         $form->handleRequest($request);
 
-        if ($ajax == '' && $form->isValid()) {
-            $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+        if ($ajax == '' && $form->isValid())
+        {
+            $em    = $this->getDoctrine()
+                          ->getManager($this->container->getParameter('sgn_forms.orm'));
             $em->persist($obj);
             $em->flush();
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement ajouté.');
@@ -637,7 +648,7 @@ class FormsCRUDController extends Controller
                 array('bundle' => $bundle, 'table' => $table)));
         }
 
-        return  array(
+        return array(
                 'form' => $form->createView(),
             );
     }
@@ -649,47 +660,58 @@ class FormsCRUDController extends Controller
      *
      * @Template()
      */
-
-    public function editAction($bundle, $table , $id, Request $request, $ajax = '')
+    public function editAction($bundle, $table, $id, Request $request, $ajax = '')
     {
         $classBundleName  = Validators::validateBundleName($bundle);
         $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
         $classDir         = $classBundleValid->getNamespace();
-        $formDir          = $classDir;
+
+        $class = $classDir.'\Entity\\'.$table;
+        $type  = "";
+
         if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
         {
-            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
-            $formBundleName  = Validators::validateBundleName($formBundle);
-            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
-            $formDir         = $formBundleValid->getNamespace();
+            $formBundle = $this->container->getParameter('sgn_forms.forms.'.$bundle);
+            if ($formBundle != "@service")
+            {
+                $formBundleName  = Validators::validateBundleName($formBundle);
+                $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
+                $formDir         = $formBundleValid->getNamespace();
+                $type            = $formDir.'\Form\\'.$table.'Type';
+            }
+        }else{
+            $type = $classDir.'\Form\\'.$table.'Type';
         }
-        
-        $class = $classDir.'\Entity\\'.$table;
-        $type  = $formDir.'\Form\\'.$table.'Type';
 
-        $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
-        $obj   = $em->getRepository($bundle.':'.$table)
-                ->findOneById($id );
-        if (!$obj) {
+        $em   = $this->getDoctrine()
+                     ->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj  = $em->getRepository($bundle.':'.$table)
+                   ->findOneById($id);
+        if (!$obj)
+        {
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
         }
 
-        $form  = $this->createForm(new $type(), $obj, array(
-            'action' => $this->generateUrl(
-                'sgn_forms_formscrud_edit', 
-                array('bundle' => $bundle, 'table' => $table, 'id' => $id)
+        $form = $this->createForm(
+            $type != "" ? new $type() : strtolower($table)."_type", 
+            $obj, 
+            array(
+                'action' => $this->generateUrl(
+                    'sgn_forms_formscrud_edit', 
+                    array('bundle' => $bundle, 'table' => $table, 'id' => $id)
             ),
         ));
 
         $form->handleRequest($request);
         
-        if ( $ajax == '' && $form->isValid() ) {
+        if ($ajax == '' && $form->isValid())
+        {
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
             $em->flush();
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
-        return  array(
+        return array(
             'form' => $form->createView(),
         );
     }
@@ -700,26 +722,11 @@ class FormsCRUDController extends Controller
      *
      * @Template()
      */
-
-    public function showoneAction( $bundle, $table , $id,  Request $request )
+    public function showoneAction($bundle, $table, $id,  Request $request)
     {
-        $classBundleName  = Validators::validateBundleName($bundle);
-        $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
-        $classDir         = $classBundleValid->getNamespace();
-        $formDir          = $classDir;
-        if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
-        {
-            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
-            $formBundleName  = Validators::validateBundleName($formBundle);
-            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
-            $formDir         = $formBundleValid->getNamespace();
-        }
-        
-        $class = $classDir.'\Entity\\'.$table;
-        $type  = $formDir.'\Form\\'.$table.'Type';
-
-        $em          = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
-        $obj         = $em->getRepository($bundle.':'.$table)  ->findOneById($id );
+        $em       = $this->getDoctrine()
+                         ->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj      = $em->getRepository($bundle.':'.$table)->findOneById($id);
         $MetaData = $em->getClassMetadata($bundle.':'.$table);
         if (!$obj) {
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
@@ -735,13 +742,12 @@ class FormsCRUDController extends Controller
                 $fields[$value] = $obj->{'get'.ucfirst($value)}();
             } 
         }
-        return  array(
+        return array(
             'obj' => $fields
         );
     }
 
-
-     /**
+    /**
      *
      * @Route("/{bundle}/{table}/delete/{id}/")
      * 
@@ -752,34 +758,46 @@ class FormsCRUDController extends Controller
         $classBundleName  = Validators::validateBundleName($bundle);
         $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
         $classDir         = $classBundleValid->getNamespace();
-        $formDir          = $classDir;
+
+        $type  = "";
+
         if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
         {
-            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
-            $formBundleName  = Validators::validateBundleName($formBundle);
-            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
-            $formDir         = $formBundleValid->getNamespace();
+            $formBundle = $this->container->getParameter('sgn_forms.forms.'.$bundle);
+            if ($formBundle != "@service")
+            {
+                $formBundleName  = Validators::validateBundleName($formBundle);
+                $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
+                $formDir         = $formBundleValid->getNamespace();
+                $type            = $formDir.'\Form\\'.$table.'Type';
+            }
+        }else{
+            $type = $classDir.'\Form\\'.$table.'Type';
         }
-        
-        $class = $classDir.'\Entity\\'.$table;
-        $type  = $formDir.'\Form\\'.$table.'Type';
-        
-        $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
-        $obj   = $em->getRepository($bundle.':'.$table)
-                ->findOneById($id );
 
-        $form  = $this->createForm(new $type(), $obj, array(
-            'action' => $this->generateUrl(
-                'sgn_forms_formscrud_delete', 
-                array('bundle' => $bundle, 'table' => $table, 'id' => $id)
+        $em   = $this->getDoctrine()
+                     ->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj  = $em->getRepository($bundle.':'.$table)
+                   ->findOneById($id );
+
+        $form = $this->createForm(
+            $type != "" ? new $type() : strtolower($table)."_type", 
+            $obj, 
+            array(
+                'action' => $this->generateUrl(
+                    'sgn_forms_formscrud_delete', 
+                    array('bundle' => $bundle, 'table' => $table, 'id' => $id)
             ),
         ));
 
         $form->handleRequest($request);
 
-        if ($form->isValid()) {
-            $em = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
-            $entity = $em->getRepository('IFIDatabaseBundle:Alti')->find($id);
+        if ($form->isValid())
+        {
+            $em    = $this->getDoctrine()
+                          ->getManager($this->container->getParameter('sgn_forms.orm'));
+            $entity = $em->getRepository('IFIDatabaseBundle:Alti')
+                         ->find($id);
 
             if (!$entity) {
                 throw $this->createNotFoundException('Unable to find entity.');
@@ -792,7 +810,7 @@ class FormsCRUDController extends Controller
                 array('bundle' => $bundle, 'table' => $table)));
         }
 
-        return  array(
+        return array(
                 'form' => $form->createView(),
             );
     }

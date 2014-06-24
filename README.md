@@ -284,7 +284,7 @@ $ app/console sgn:generate:forms BDGSDatabaseBundle
 
 ```
 
-Vous pouvez également utiliser des formulaires déclarés dans un bundle différent de celui de vos entités (voir point suivant).
+Vous pouvez également utiliser des formulaires déclarés dans un bundle différent de celui de vos entités ou des formulaires déclarés en service (voir points suivants).
 
 5. Utiliser des formulaires situés dans un bundle différent de celui des entités
 
@@ -300,3 +300,46 @@ sgn_forms:
 ```
 
 Le paramètre sgn_forms.forms est facultatif. Par défaut, le contrôleur utilisera les formulaires contenus dans le bundle des entités.
+
+5. Utiliser des formulaires déclarés en service
+
+À la place de déclarer un bundle dans le config.yml, signalez _@service_ :
+
+
+```
+sgn_forms:
+    bundles: ['BDGSDatabaseBundle', 'SITELOGDatabaseBundle']
+    forms:
+        BDGSDatabaseBundle:    @service
+        SITELOGDatabaseBundle: SITELOGDatabaseModelBundle
+
+```
+
+Dans l’exemple précédent, FormsBundle se procure les formulaires des entités du bundle BDGSDatabaseBundle en tant que services. Ceci impose que la méthode getName du formulaire renvoie le nom de l’entité en bas de casse suivi de « type » séparés par un underscore. Ce même nom doit être utilisé par l‘alias du service :
+
+```
+// Acme/MonBundle/Form/NiveRnType.php :
+
+class NiveRnType extends AbstractType
+{
+    // ...
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return 'nivern_type';
+    }
+}
+
+# Acme/MonBundle/Resources/config/services.yml :
+
+services:
+    # ...
+    bdg_database_model.form.type.nivern:
+        class: BDG\DatabaseModelBundle\Form\NiveRnType
+        tags:
+            - { name: form.type, alias: nivern_type }
+```
+
