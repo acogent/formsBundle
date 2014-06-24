@@ -249,6 +249,7 @@ new Components\jqGridBundle\ComponentsjqGridBundle(),
 new Components\Select2Bundle\ComponentsSelect2Bundle(),
 new SGN\FormsBundle\SGNFormsBundle(),
 ```
+
 2. config/config.yml
 
 ```
@@ -273,4 +274,29 @@ sgn_forms_crud:
         _locale: en|fr
 
 ```
+
 4. Générer les formulaires pour les Bundles configurés
+
+Appelez dans la console Symfony2 la commande suivante pour générer les formulaires des entités du bundle BDGSDatabaseBundle :
+
+```
+$ app/console sgn:generate:forms BDGSDatabaseBundle
+
+```
+
+Vous pouvez également utiliser des formulaires déclarés dans un bundle différent de celui de vos entités (voir point suivant).
+
+5. Utiliser des formulaires situés dans un bundle différent de celui des entités
+
+Pour chaque bundle du projet, déclarez le bundle contenant les formulaires dans le config.yml :
+
+```
+sgn_forms:
+    bundles: ['BDGSDatabaseBundle', 'SITELOGDatabaseBundle']
+    forms:
+        BDGSDatabaseBundle:    BDGSDatabaseModelBundle
+        SITELOGDatabaseBundle: SITELOGDatabaseModelBundle
+
+```
+
+Le paramètre sgn_forms.forms est facultatif. Par défaut, le contrôleur utilisera les formulaires contenus dans le bundle des entités.

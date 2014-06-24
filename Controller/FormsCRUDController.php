@@ -603,12 +603,20 @@ class FormsCRUDController extends Controller
 
     public function newAction($bundle, $table, Request $request, $ajax = '')
     {
-        $bundlename  = Validators::validateBundleName($bundle);
-        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
-        $dir         = $BundleValid->getNamespace();
+        $classBundleName  = Validators::validateBundleName($bundle);
+        $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
+        $classDir         = $classBundleValid->getNamespace();
+        $formDir          = $classDir;
+        if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
+        {
+            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
+            $formBundleName  = Validators::validateBundleName($formBundle);
+            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
+            $formDir         = $formBundleValid->getNamespace();
+        }
         
-        $class = $dir.'\Entity\\'.$table;
-        $type  = $dir.'\Form\\'.$table.'Type';
+        $class = $classDir.'\Entity\\'.$table;
+        $type  = $formDir.'\Form\\'.$table.'Type';
 
         $obj   = new $class();
         $form  = $this->createForm(new $type(), $obj, array(
@@ -644,11 +652,21 @@ class FormsCRUDController extends Controller
 
     public function editAction($bundle, $table , $id, Request $request, $ajax = '')
     {
-        $bundlename  = Validators::validateBundleName($bundle);
-        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
-        $dir         = $BundleValid->getNamespace();
-        $class = $dir.'\Entity\\'.$table;
-        $type  = $dir.'\Form\\'.$table.'Type';
+        $classBundleName  = Validators::validateBundleName($bundle);
+        $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
+        $classDir         = $classBundleValid->getNamespace();
+        $formDir          = $classDir;
+        if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
+        {
+            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
+            $formBundleName  = Validators::validateBundleName($formBundle);
+            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
+            $formDir         = $formBundleValid->getNamespace();
+        }
+        
+        $class = $classDir.'\Entity\\'.$table;
+        $type  = $formDir.'\Form\\'.$table.'Type';
+
         $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         $obj   = $em->getRepository($bundle.':'.$table)
                 ->findOneById($id );
@@ -685,11 +703,21 @@ class FormsCRUDController extends Controller
 
     public function showoneAction( $bundle, $table , $id,  Request $request )
     {
-        $bundlename  = Validators::validateBundleName($bundle);
-        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
-        $dir         = $BundleValid->getNamespace();
-        $class       = $dir.'\Entity\\'.$table;
-        $type        = $dir.'\Form\\'.$table.'Type';
+        $classBundleName  = Validators::validateBundleName($bundle);
+        $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
+        $classDir         = $classBundleValid->getNamespace();
+        $formDir          = $classDir;
+        if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
+        {
+            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
+            $formBundleName  = Validators::validateBundleName($formBundle);
+            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
+            $formDir         = $formBundleValid->getNamespace();
+        }
+        
+        $class = $classDir.'\Entity\\'.$table;
+        $type  = $formDir.'\Form\\'.$table.'Type';
+
         $em          = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         $obj         = $em->getRepository($bundle.':'.$table)  ->findOneById($id );
         $MetaData = $em->getClassMetadata($bundle.':'.$table);
@@ -721,12 +749,21 @@ class FormsCRUDController extends Controller
      */
     public function deleteAction($bundle, $table , $id ,  Request $request)
     {
-        $bundlename  = Validators::validateBundleName($bundle);
-        $BundleValid = $this->get('Kernel')->getBundle($bundlename);
-        $dir         = $BundleValid->getNamespace();
-
-        $class = $dir.'\Entity\\'.$table;
-        $type  = $dir.'\Form\\'.$table.'Type';
+        $classBundleName  = Validators::validateBundleName($bundle);
+        $classBundleValid = $this->get('Kernel')->getBundle($classBundleName);
+        $classDir         = $classBundleValid->getNamespace();
+        $formDir          = $classDir;
+        if ($this->container->hasParameter('sgn_forms.forms.'.$bundle))
+        {
+            $formBundle      = $this->container->getParameter('sgn_forms.forms.'.$bundle);
+            $formBundleName  = Validators::validateBundleName($formBundle);
+            $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
+            $formDir         = $formBundleValid->getNamespace();
+        }
+        
+        $class = $classDir.'\Entity\\'.$table;
+        $type  = $formDir.'\Form\\'.$table.'Type';
+        
         $em    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         $obj   = $em->getRepository($bundle.':'.$table)
                 ->findOneById($id );
