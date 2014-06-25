@@ -41,13 +41,14 @@ class FormsCrudExtension extends \Twig_Extension
     public function getFilters()
     {
         return array(
-            'json_decode' => new Twig_Filter_Method($this, 'jsonDecodeFilter'),
-            // 'dump_php' => new Twig_Filter_Method($this, 'dumpFilter'),
-            'DD2DMS'      => new Twig_Filter_Method($this, 'DD2DMSFilter'),
-            'GPSWeek'     => new Twig_Filter_Method($this, 'GPSWeekFilter'),
-            'DayOfYear'   => new Twig_Filter_Method($this, 'DayOfYearFilter'),
-            'DayOfWeek'   => new Twig_Filter_Method($this, 'DayOfWeekFilter'),
-            'YearOfDate'  => new Twig_Filter_Method($this, 'YearOfDateFilter'),
+            'json_decode'     => new Twig_Filter_Method($this, 'jsonDecodeFilter'),
+            // 'dump_php'     => new Twig_Filter_Method($this, 'dumpFilter'),
+            'DD2DMS'          => new Twig_Filter_Method($this, 'DD2DMSFilter'),
+            'GPSWeek'         => new Twig_Filter_Method($this, 'GPSWeekFilter'),
+            'DayOfYear'       => new Twig_Filter_Method($this, 'DayOfYearFilter'),
+            'DayOfWeek'       => new Twig_Filter_Method($this, 'DayOfWeekFilter'),
+            'YearOfDate'      => new Twig_Filter_Method($this, 'YearOfDateFilter'),
+            'jsonToHTMLTable' => new Twig_Filter_Method($this, 'jsonToHTMLTableFilter'),
         );
     }
 
@@ -75,6 +76,23 @@ class FormsCrudExtension extends \Twig_Extension
 *
 *
 *****************************************************/
+
+    /**
+     * Renvoie en table HTML un json très simple
+     * 
+     * @param json $json
+     * @return html
+     */
+    public function jsonToHTMLTableFilter($json)
+    {
+        $html = "<table class = 'table_json'>";
+        $tab = json_decode($json);
+        foreach ($tab as $key => $val)
+        {
+           $html .= "<tr><td>$key</td><td>$val</td></tr>";
+        }
+        return $html.'</table>';
+    }
 
    /**
      * Renvoie le jour GPS
