@@ -38,7 +38,7 @@ class AjaxAutocompleteJSONController extends Controller
         if (strpos($property, ".") !== FALSE)
         {
             $prop_query = $property; // utilisé dans les requêtes
-            $property   = explode(".", $property)[1] // property débarrassé de son préfixe
+            $property   = explode(".", $property)[1]; // property débarrassé de son préfixe
         } else {
             $prop_query = "e.".$property; // utilisé dans les requêtes
         }
