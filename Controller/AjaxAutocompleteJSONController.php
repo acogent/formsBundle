@@ -34,6 +34,17 @@ class AjaxAutocompleteJSONController extends Controller
         $case_insensitive = $entity_inf['case_insensitive'];
         $query            = $entity_inf['query'];
 
+        // Cas des “property” spéciaux, avec un préfixe :
+        if (strpos($property, ".") !== FALSE)
+        {
+            $prop_query = $property; // utilisé dans les requêtes
+            $foo        = explode(".", $property);
+            $property   = $foo[1]; // property débarrassé de son préfixe
+            // $property   = explode(".", $property)[1]; // property débarrassé de son préfixe
+        } else {
+            $prop_query = "e.".$property; // utilisé dans les requêtes
+        }
+
         if ( ($show == "property_value" || $show == "value_property") && $target != "both" )
         {
             throw new \Exception('Inconsistency between values of parameters "target" and "show".');
@@ -88,7 +99,7 @@ class AjaxAutocompleteJSONController extends Controller
             switch ( $target )
             {
                 case "property":
-                    $target1 = "e.".$property;
+                    $target1 = $prop_query;
                     $target2 = NULL;
                     break;
                 case "value":
@@ -96,7 +107,7 @@ class AjaxAutocompleteJSONController extends Controller
                     $target2 = NULL;
                     break;
                 case "both":
-                    $target1 = "e.".$property;
+                    $target1 = $prop_query;
                     $target2 = "e.".$value;
                     break;
                 default:
@@ -151,7 +162,7 @@ class AjaxAutocompleteJSONController extends Controller
                                     FROM '.$class.' e 
                                     WHERE '.$filter.' AND '.
                                     $where_clause.' '.
-                                    'ORDER BY e.'.$property)
+                                    'ORDER BY '.$prop_query)
                               ->setParameter('like', $like)
                               ->setMaxResults($maxRows)
                               ->getScalarResult();
@@ -159,7 +170,7 @@ class AjaxAutocompleteJSONController extends Controller
                 $results = $em->createQuery($query.'
                                     AND '.$filter.' AND '.
                                     $where_clause.' '.
-                                    'ORDER BY e.'.$property)
+                                    'ORDER BY '.$prop_query)
                               ->setParameter('like', $like)
                               ->setMaxResults($maxRows)
                               ->getScalarResult();

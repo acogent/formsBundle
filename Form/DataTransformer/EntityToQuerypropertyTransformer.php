@@ -32,7 +32,7 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
 
     public function transform($entity)
     {
-        if ( NULL === $entity )
+        if (NULL === $entity)
         {
             return NULL;
         }
@@ -47,11 +47,13 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
             $val_value = $propertyAccessor->getValue($entity, $this->value);
 
             $result = $this->em
-               ->createQuery($this->query." AND e.".$this->value." = :val_value")
-               ->setParameter('val_value', $val_value)
-               ->getOneOrNullResult();
+                           ->createQuery($this->query." AND e.".$this->value." = :val_value")
+                           ->setParameter('val_value', $val_value)
+                           ->getOneOrNullResult();
+            
+            $property = strpos($this->property, ".") !== FALSE ? explode(".", $this->property)[1] : $this->property;
 
-            return $result[$this->property];
+            return $result[$property];
         }
         return current($this->unitOfWork->getEntityIdentifier($entity));
     }
@@ -65,10 +67,12 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
             return NULL;
         }
 
+        $prop_query = strpos($this->property, ".") !== FALSE ? $this->property : "e.".$this->property;
+
         $result = $this->em
-               ->createQuery($this->query." AND e.".$this->property." = :prop_value")
-               ->setParameter('prop_value', $prop_value)
-               ->getOneOrNullResult();
+                       ->createQuery($this->query." AND ".$prop_query." = :prop_value")
+                       ->setParameter('prop_value', $prop_value)
+                      ->getOneOrNullResult();
 
         $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $result[$this->value]));
 
