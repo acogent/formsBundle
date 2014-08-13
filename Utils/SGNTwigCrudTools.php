@@ -21,7 +21,9 @@ class SGNTwigCrudTools
 
             $project_name = SGNTwigCrudTools::getProjectName($bundle);
             $entity_name  = SGNTwigCrudTools::getName( $metadata->getName());
-            if (empty($select_entity) || in_array($project_name.".".$entity_name, $select_entity))
+            if (empty($select_entity) 
+                || $select_entity[0] == '*'
+                || in_array($project_name.".".$entity_name, $select_entity))
             {
                 $tab_entity               = array();
                 $tab_entity['project']    = $project_name;
