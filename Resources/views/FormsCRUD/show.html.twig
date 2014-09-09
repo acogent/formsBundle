@@ -310,21 +310,29 @@ jQuery(window).bind('resize', function() {
 
 }).trigger('resize');
 
-    function ajaxFormRequest(form)
+    function ajaxFormRequest(form, ajax)
     {
-        var edit_index = form.action.indexOf("/edit/");
+        var formName = form.action.indexOf("/edit/") > 0 ? '#editEntity' : '#newEntity';
+
+        // On empêche le comportement par défaut du navigateur, c-à-d de soumettre le formulaire :
+        $(formName).submit(function(e)
+        {
+            e.preventDefault();
+        });
 
         $.ajax({
-            type:    "POST",
-            url:     form.action + 'ajax',
-            data:    $(form).serialize()
+            type: "POST",
+            url:  form.action + ajax,
+            data: $(form).serialize()
         })
             .done(function(result){
-                if ( edit_index > 0 )
+                if (result.indexOf('<form') == 0)
                 {
-                    jQuery('#editEntity').html(result);
-                }else{
-                    jQuery('#newEntity').html(result);
+                    // Le formulaire modifié dynamiquement ou avec des erreurs de validation :
+                    jQuery(formName).html(result);
+                } else {
+                    // L’objet a été modifié ou inséré, on redirige :
+                    window.location.replace(result);
                 }
             })
     }

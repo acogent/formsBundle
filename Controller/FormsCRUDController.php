@@ -17,7 +17,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class FormsCRUDController extends Controller
 {
-
     /**
      *
      * @Route("/{bundle}/{table}/{format}/show/{params}/", requirements= { "params"=".+"})
@@ -637,13 +636,21 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
 
-        if ($ajax == '' && $form->isValid())
+        // $ajax == 'dynamic' => le formulaire est modifié dynamiquement.
+        if ($ajax != 'dynamic' && $form->isValid())
         {
-            $em    = $this->getDoctrine()
-                          ->getManager($this->container->getParameter('sgn_forms.orm'));
+            $em = $this->getDoctrine()
+                       ->getManager($this->container->getParameter('sgn_forms.orm'));
             $em->persist($obj);
             $em->flush();
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement ajouté.');
+            if ($ajax != '')
+            {
+                // Si on valide le formulaire par Ajax, la redirection se fait en JQuery.
+                return new Response($this->generateUrl('sgn_forms_formscrud_show',
+                    array('bundle' => $bundle, 'table' => $table)));
+            }
+
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
@@ -683,10 +690,10 @@ class FormsCRUDController extends Controller
             $type = $classDir.'\Form\\'.$table.'Type';
         }
 
-        $em   = $this->getDoctrine()
-                     ->getManager($this->container->getParameter('sgn_forms.orm'));
-        $obj  = $em->getRepository($bundle.':'.$table)
-                   ->findOneById($id);
+        $em  = $this->getDoctrine()
+                    ->getManager($this->container->getParameter('sgn_forms.orm'));
+        $obj = $em->getRepository($bundle.':'.$table)
+                  ->findOneById($id);
         if (!$obj)
         {
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
@@ -704,13 +711,22 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
         
-        if ($ajax == '' && $form->isValid())
+        // $ajax == 'dynamic' => le formulaire est modifié dynamiquement.
+        if ($ajax != 'dynamic' && $form->isValid())
         {
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
             $em->flush();
+            if ($ajax != '')
+            {
+                // Si on valide le formulaire par Ajax, la redirection se fait en JQuery.
+                return new Response($this->generateUrl('sgn_forms_formscrud_show',
+                    array('bundle' => $bundle, 'table' => $table)));
+            }
+            
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
+
         return array(
             'form' => $form->createView(),
         );

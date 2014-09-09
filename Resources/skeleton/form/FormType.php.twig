@@ -22,11 +22,10 @@ class {{ form_class }} extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        // $onChange = "ajaxFormRequest(this.form);";
-        // Si vous souhaitez personnaliser votre formulaire selon des données soumises, décommentez la ligne ci-dessus. À utiliser de la sorte : ->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label', 'entity_alias'=>'geocids', 'attr' => array('onchange' => $onChange)))
+        // Si vous souhaitez personnaliser votre formulaire selon des données soumises, décommentez la fonction onChangeField de la classe. À utiliser de la sorte : ->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label', 'entity_alias'=>'geocids', 'attr' => array('onchange' => $this->onChangeField())))
 
         $builder
-
+                // ->add('ajax', 'hidden', array('mapped' => FALSE)) // champ à activer si vous voulez modifier dynamiquement le formulaire
         {%- for field in fields %}
 {% if 'date' in field %}
                 ->add('{{ field }}', 'date', array('input'  => 'datetime', 'widget' => 'single_text', 'label' => '{{ entity_class|lower }}.{{ field }}.label'))
@@ -43,9 +42,7 @@ class {{ form_class }} extends AbstractType
              // Si vous voulez une gestion de liste de choix avec Ajax, supprimez la liste ci-dessus et décommentez celle ci-dessous. N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
              // ->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
              {%- endfor %}
-                
          {% endif %}
-
         ;
 
          {% if fieldsOneToMany|length > 0 %}
@@ -66,21 +63,23 @@ class {{ form_class }} extends AbstractType
                 
          {% endif %}
 
-
+         // Si vous avez des règles de validation personnelles, utilisez l’Ajax pour soumettre le formulaire : décommentez les deux lignes ci-dessous et la fonction onClickSubmitForm de la classe.
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $event) {
             $obj  = $event->getData();
             $form = $event->getForm();
-            if ($obj->getId()) {
+            if ($obj->getId())
+            {
                 $form
                 ->add('submit', 'submit', array(
                    'label' => 'Modifier',
+                   // 'attr'  => array('onclick' => $this->onClickSubmitForm())
                    ))
                 ;
-            }
-            else{
+            } else {
                  $form
                  ->add('submit', 'submit', array(
                    'label' => 'Ajouter',
+                   // 'attr'  => array('onclick' => $this->onClickSubmitForm())
                  ))
                 ;
             }
@@ -111,7 +110,12 @@ class {{ form_class }} extends AbstractType
             FormEvents::POST_SUBMIT, 
             function(FormEvent $event){
                 $form = $event->getForm(); // ici : FormInterface de monChamp
-                ∕∕ Vous pouvez appeler une fonction qui modifie le formulaire.
+                // Dans le cas d’un formulaire modifié dynamiquement :
+              //  if ($form->getParent()->get('ajax')->getData() == 'true')
+              //  {
+              //      ∕∕ Vous pouvez appeler une fonction qui modifie le formulaire.
+              //  }
+                ∕∕ Ici, vous pouvez appeler une fonction qui modifie le formulaire.
             }
         );
 
@@ -142,6 +146,33 @@ class {{ form_class }} extends AbstractType
     public function getName()
     {
         return '{{ form_type_name }}';
+    }
+
+    /**
+     * Cette méthode renvoie la requête JQuery à associer à l’événement onChange d’un champ du formulaire, dans le cas de modification dynamique.
+     *
+     * @return string jquery
+     */
+    private function onChangeField()
+    {
+        $jquery = "$('#".$this->getName()."_ajax').val('true'); ";
+        $jquery.= "ajaxFormRequest(this.form, 'dynamic');";
+
+        return $jquery;
+    }
+
+    /**
+     * Cette méthode renvoie la requête JQuery à associer à l’événement onClick d’un bouton Submit du formulaire, dans le cas d’une validation par Ajax.
+     *
+     * @return string jquery
+     */
+    private function onClickSubmitForm()
+    {
+        // Si vous modifiez dynamiquement le formulaire, décommentez cette ligne :
+        // $jquery = "$('#".$this->getName()."_ajax').val('false'); ";
+        $jquery.= "ajaxFormRequest(this.form, 'validate');";
+
+        return $jquery;
     }
 {% endblock class_body %}
 }
