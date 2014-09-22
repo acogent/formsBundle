@@ -67,7 +67,7 @@ class {{ form_class }} extends AbstractType
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $event) {
             $obj  = $event->getData();
             $form = $event->getForm();
-            if ($obj->getId())
+            if (isset ($obj)  && $obj->getId())
             {
                 $form
                 ->add('submit', 'submit', array(
