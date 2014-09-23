@@ -34,7 +34,10 @@ class {{ form_class }} extends AbstractType
 {% endif %}
         {%- endfor %}
                 // ->add('ajax', 'hidden', array('mapped' => FALSE)) // champ à activer si vous voulez modifier dynamiquement le formulaire
-         {% if fieldsManyToOne|length > 0 %}
+        
+        {% if fieldsManyToOne|length > 0 %}
+       
+
        // Champs ManyToOne
              {%- for field in fieldsManyToOne %}
 
@@ -43,13 +46,17 @@ class {{ form_class }} extends AbstractType
              // ->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
              {%- endfor %}
          {% endif %}
+        
+
         ;
 
-         {% if fieldsOneToMany|length > 0 %}
+        
+
+        {% if fieldsOneToMany|length > 0 %}
        // Champs OneToMany
              {%- for field in fieldsOneToMany %}
 
-/* 
+        /* 
         $builder->add('{{ field }}', 'collection', array(
             'type' => new {{ field }}Type(),
             'prototype' => true,
@@ -58,7 +65,7 @@ class {{ form_class }} extends AbstractType
             'by_reference' => false,
             'cascade_validation' => true,
             ));
-*/
+        */
              {%- endfor %}
                 
          {% endif %}
@@ -86,7 +93,7 @@ class {{ form_class }} extends AbstractType
         });
 
         // Si vous souhaitez personnaliser votre formulaire selon des données soumises, utilisez des listeners du type :
-/*
+        /*
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA, 
             function(FormEvent $event){
@@ -124,7 +131,7 @@ class {{ form_class }} extends AbstractType
             $event->stopPropagation();
         }, 900); // priorité plus grande que le ValidationListener
 
-*/
+        */
 
     }
 
