@@ -25,7 +25,7 @@ class {{ form_class }} extends AbstractType
         // Si vous souhaitez personnaliser votre formulaire selon des données soumises, décommentez la fonction onChangeField de la classe. À utiliser de la sorte : ->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label', 'entity_alias'=>'geocids', 'attr' => array('onchange' => $this->onChangeField())))
 
         $builder
-                // ->add('ajax', 'hidden', array('mapped' => FALSE)) // champ à activer si vous voulez modifier dynamiquement le formulaire
+                
         {%- for field in fields %}
 {% if 'date' in field %}
                 ->add('{{ field }}', 'date', array('input'  => 'datetime', 'widget' => 'single_text', 'label' => '{{ entity_class|lower }}.{{ field }}.label'))
@@ -33,7 +33,7 @@ class {{ form_class }} extends AbstractType
                 ->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'))
 {% endif %}
         {%- endfor %}
-        
+                // ->add('ajax', 'hidden', array('mapped' => FALSE)) // champ à activer si vous voulez modifier dynamiquement le formulaire
          {% if fieldsManyToOne|length > 0 %}
        // Champs ManyToOne
              {%- for field in fieldsManyToOne %}
