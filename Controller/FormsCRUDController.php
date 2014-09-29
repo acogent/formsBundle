@@ -812,8 +812,8 @@ class FormsCRUDController extends Controller
         {
             $em    = $this->getDoctrine()
                           ->getManager($this->container->getParameter('sgn_forms.orm'));
-            $entity = $em->getRepository('IFIDatabaseBundle:Alti')
-                         ->find($id);
+            $entity = $em->getRepository($bundle.':'.$table)
+                  ->findOneById($id);
 
             if (!$entity) {
                 throw $this->createNotFoundException('Unable to find entity.');
