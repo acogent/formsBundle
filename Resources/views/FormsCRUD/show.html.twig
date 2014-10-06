@@ -200,12 +200,7 @@ $(document).ready(function() {
     });
 
     function relatedGridsReload(sel_id) {
-        // jQuery("#myTabContent").show();
-        // jQuery("#related-grids").show();
-        // if($('#myTab li.active a').attr('href') == "#new") {
-        //     $('#myTab a[href="#related-grids"]').tab('show');
-        // }
-
+       
         jQuery('#editEntity').html(wait);
         jQuery('#showEntity').html(wait);
         jQuery('#deletEntity').html(wait);
@@ -213,37 +208,48 @@ $(document).ready(function() {
         {% for collection, url in collectionNames %}
             myUrl = "{{ url }}";
             myUrl = myUrl.replace('%23', sel_id); // %23 = #
-            $.ajax({
-                type   : "GET",
-                url    : myUrl,
-                cache  : false,
-                success: function(data){
+            $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+                .done(function(data) {
                     jQuery('#related-grid-{{collection}}').append(data);
-                }
-            });
+                })
+                .fail(function(e, data) {
+                    alert( "error "+myUrl );
+                    console.log (e);
+                })
+                .always(function() {
+                    // alert( "complete" );
+                });
+
         {% endfor %}
 
         myUrl = "{{ url_edit }}";
         myUrl = myUrl.replace('%23', sel_id); // %23 = #
-        $.ajax({
-            type   : "GET",
-            url    : myUrl,
-            cache  : false,
-            success: function(data){
-                jQuery('#editEntity').html(data);
-            }
-        });
+        $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+            .done(function(data) {
+                jQuery('#editEntity').html( data );
+            })
+            .fail(function(e, data) {
+                alert( "error "+myUrl );
+                console.log (e);
+            })
+            .always(function() {
+                // alert( "complete" );
+            });
 
         myUrl = "{{ url_showone }}";
         myUrl = myUrl.replace('%23', sel_id); // %23 = #
-        $.ajax({
-            type   : "GET",
-            url    : myUrl,
-            cache  : false,
-            success: function(data){
-                jQuery('#showEntity').html(data);
-            }
-        });
+        $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+            .done(function(data) {
+                jQuery('#showEntity').html( data );
+            })
+            .fail(function(e, data) {
+                alert( "error "+myUrl );
+                console.log (e);
+            })
+            .always(function() {
+                // alert( "complete" );
+            });
+
  
         if (sel_id != last_loaded ) {
             {% for collection, url in collectionNames %}

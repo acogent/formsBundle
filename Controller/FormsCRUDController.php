@@ -209,6 +209,7 @@ class FormsCRUDController extends Controller
                 'url_new'         => null,
                 'url_showone'     => null,
                 'url_edit'        => null,
+                'url_delete'      => null,
                 'params'          => $params
                 );
         }
