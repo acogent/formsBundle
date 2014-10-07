@@ -123,7 +123,7 @@
             })) }}
         </div>
     <div class = "tab-pane" id="delete" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
-        <div id="deletEntity">
+        <div id="deleteEntity">
             Vous devez effectuer une selection pour pouvoir la supprimer.
         </div>
     </div>
@@ -249,7 +249,20 @@ $(document).ready(function() {
             .always(function() {
                 // alert( "complete" );
             });
-
+        myUrl = "{{ url_delete }}";
+        myUrl = myUrl.replace('%23', sel_id); // %23 = #
+        $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+            .done(function(data) {
+                console.log (data);
+                jQuery('#deleteEntity').html( data );
+            })
+            .fail(function(e, data) {
+                alert( "error "+myUrl );
+                console.log (e);
+            })
+            .always(function() {
+                // alert( "complete" );
+            });
  
         if (sel_id != last_loaded ) {
             {% for collection, url in collectionNames %}
