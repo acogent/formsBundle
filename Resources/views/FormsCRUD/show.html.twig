@@ -28,11 +28,11 @@
         padding: 15px !important;
         width: 520px !important;
     }
-    #grid_container table>tbody>tr>td[role="gridcell"] {
+    #grid_container2 table>tbody>tr>td[role="gridcell"] {
         padding: 0px;
         padding-left: 8px;
     }
-    #grid_container input {
+    #grid_container2 input {
         height: 25px;
         background-color: #F9F9F9;
     }
@@ -64,7 +64,7 @@
 {# {{ dump(app.request.query) }} #}
 <div class="row">
     {% if  entities  is defined and entities|length > 0  %}
-        <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
+        <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right; margin-right:15px">
             <option></option>
             {% for entit in entities %}
                 <option value="{{ entit.link }}" >{{ entit.name}}</a></option>
@@ -72,13 +72,16 @@
         </select>
       {% endif %}
 
-<h3>{{ project }} - {{ entity }}</h3>
+
 {% set id = null%}
-
-
-<div id="grid_container">
-    <table  class="table table-striped" id="list-grid"></table>
-    <div id="grid-nav"></div>
+<div class="panel panel-primary" id="grid_container2">
+    <div class="panel-heading">
+        <h3 class="panel-title" >{{ project }} - {{ entity }}</h3>
+    </div>
+    <div id="result_panel" class="panel-body">
+        <table  class="table table-striped" id="list-grid"></table>
+        <div id="grid-nav"></div>
+    </div>
 </div>
 <br>
 
@@ -198,9 +201,9 @@ $(document).ready(function() {
         //     }    
         // },
     });
-
+    var width = $('#grid_container2').width()-30;
     function relatedGridsReload(sel_id) {
-       
+        
         jQuery('#editEntity').html(wait);
         jQuery('#showEntity').html(wait);
         jQuery('#deletEntity').html(wait);
@@ -210,7 +213,9 @@ $(document).ready(function() {
             myUrl = myUrl.replace('%23', sel_id); // %23 = #
             $.ajax( { url: myUrl , dataType : "html" , cache  : false})
                 .done(function(data) {
-                    jQuery('#related-grid-{{collection}}').append(data);
+                    $('#related-grid-{{collection}}').append(data);
+                    $("#list-grid-{{ collection }}").jqGrid('setGridWidth', width);
+                    //$('#list-grid-{{ entity }}').jqGrid('setGridWidth', 600);
                 })
                 .fail(function(e, data) {
                     // alert( "error "+myUrl );
@@ -229,7 +234,7 @@ $(document).ready(function() {
                 jQuery('#editEntity').html( data );
             })
             .fail(function(e, data) {
-                alert( "error "+myUrl );
+                // alert( "error "+myUrl );
                 console.log (e);
             })
             .always(function() {
@@ -253,7 +258,6 @@ $(document).ready(function() {
         myUrl = myUrl.replace('%23', sel_id); // %23 = #
         $.ajax( { url: myUrl , dataType : "html" , cache  : false})
             .done(function(data) {
-                console.log (data);
                 jQuery('#deleteEntity').html( data );
             })
             .fail(function(e, data) {
@@ -313,10 +317,10 @@ $(document).ready(function() {
 
 jQuery(window).bind('resize', function() {
     // Get width of parent container
-    var width = jQuery("#grid_container").width();
+    var width = jQuery("#grid_container2").width();
     if (width == null || width < 1){
         // For IE, revert to offsetWidth if necessary
-        width = jQuery("#grid_container").attr('offsetWidth');
+        width = jQuery("#grid_container2").attr('offsetWidth');
     }
     width = width - 2; // Fudge factor to prevent horizontal scrollbars
     if (width > 0 &&
