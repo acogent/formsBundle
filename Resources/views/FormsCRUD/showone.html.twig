@@ -1,8 +1,8 @@
 
 {% if obj %}
 <table class="table table-striped table-bordered">
-{% for key, value in obj %} 
-    <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+{% for key, value in obj %}
+    <tr><td>{{ key }}</td><td>{{ value|raw }}</td></tr>
 {% endfor %}
 </table>
 {% endif %}
