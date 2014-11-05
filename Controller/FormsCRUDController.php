@@ -19,7 +19,7 @@ class FormsCRUDController extends Controller
 {
     /**
      *
-     * @Route("/{bundle}/{table}/{format}/show/{params}/", requirements= { "params"=".+"})
+     * @Route("/{bundle}/{table}/{format}/show/{params}", requirements= { "params"=".+"})
      * @Route("/{bundle}/{table}/{format}/show/" )
      * @Route("/{bundle}/{table}" )
      * @Route("/{bundle}/" )
@@ -97,7 +97,7 @@ class FormsCRUDController extends Controller
             }
         }
         $tab_entities = SGNTwigCrudTools::getMenuTabEntities($this, $bundle, $this->container->getParameter('sgn_forms.select_entity'));
-        
+
         // Pour jQgrid
         $metadata            = $em->getClassMetadata($entity);
       //  var_dump($metadata ); exit();
@@ -151,12 +151,12 @@ class FormsCRUDController extends Controller
         $builder = $this->getWhereFromParams($params, $builder);
         $query   = $builder ->getQuery();
         $query->setMaxResults( $limit );
-        
+
         if (true === $this->get('security.context')->isGranted('ROLE_ADMIN')) {
             $request = $this->getRequest();
             $request->getSession()->getFlashBag()->add('notice', $query->getSQL());
         }
-       
+
        // $sql     = $query->getSql(); var_dump($sql);
         $result  = $query->getResult();
 
@@ -170,7 +170,7 @@ class FormsCRUDController extends Controller
             $count    = $query->getSingleScalarResult();
 
             if ($count  < $limit) $limit = $count;
-            
+
             $columnNames     = $this->getColumnNames($result[0]);
             //$collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
             $collectionNames = $this->getCollectionNames($colNames,$bundle,$table);
@@ -240,7 +240,7 @@ class FormsCRUDController extends Controller
         $sourceid    = isset($filters['sourceId']) ? $filters['sourceId'] : null;
         $search      = isset($filters['_search']) ? $filters['_search'] : 'false';
         $searchField = isset($filters['searchField']) ? $filters['searchField'] : 'false';
-       
+
 
         if(!$sidx) $sidx = 1;
 
@@ -252,7 +252,7 @@ class FormsCRUDController extends Controller
                             ->createQueryBuilder('a')
                             ->select('count(a)');
             $builder    = $this->getWhereFromFilters($filters, $builder);
-            
+
             $query = $builder->getQuery();
             $count = $builder->getQuery() ->getSingleScalarResult();
 
@@ -269,13 +269,13 @@ class FormsCRUDController extends Controller
             $builder = $em->getRepository($entity)
                             ->createQueryBuilder('a')
                             ->select('a');
-            
+
             $builder= $this->getWhereFromFilters($filters, $builder, true);
-            
+
             $query = $builder->getQuery();
             $query->setFirstResult( $start );
             $query->setMaxResults( $limit );
-            
+
             $data =  $query->getResult();
 
             $result = array();
@@ -417,11 +417,11 @@ class FormsCRUDController extends Controller
         {
             $builder->orderBy ('a.'.$filters['sidx'], $filters['sord']);
         }
-        
+
         foreach($filters as $champ=>$val)
         {
             if (!in_array($champ, $array_exclude))
-            {   
+            {
                 if (strpos("&".$val, "%") || strpos($val, "?"))
                 {
                     $builder->andWhere("a.$champ like '$val'");
@@ -452,7 +452,7 @@ class FormsCRUDController extends Controller
 
                 else{
                     $builder->andWhere("a.$champ = '$val'");
-                }  
+                }
             }
         }
 
@@ -626,11 +626,11 @@ class FormsCRUDController extends Controller
         $obj  = new $class();
 
         $form = $this->createForm(
-            $type != "" ? new $type() : strtolower($table)."_type", 
-            $obj, 
+            $type != "" ? new $type() : strtolower($table)."_type",
+            $obj,
             array(
                 'action' => $this->generateUrl(
-                    'sgn_forms_formscrud_new', 
+                    'sgn_forms_formscrud_new',
                     array('bundle' => $bundle, 'table' => $table)
             ),
         ));
@@ -701,17 +701,17 @@ class FormsCRUDController extends Controller
         }
 
         $form = $this->createForm(
-            $type != "" ? new $type() : strtolower($table)."_type", 
-            $obj, 
+            $type != "" ? new $type() : strtolower($table)."_type",
+            $obj,
             array(
                 'action' => $this->generateUrl(
-                    'sgn_forms_formscrud_edit', 
+                    'sgn_forms_formscrud_edit',
                     array('bundle' => $bundle, 'table' => $table, 'id' => $id)
             ),
         ));
 
         $form->handleRequest($request);
-        
+
         // $ajax == 'dynamic' => le formulaire est modifié dynamiquement.
         if ($ajax != 'dynamic' && $form->isValid())
         {
@@ -723,7 +723,7 @@ class FormsCRUDController extends Controller
                 return new Response($this->generateUrl('sgn_forms_formscrud_show',
                     array('bundle' => $bundle, 'table' => $table)));
             }
-            
+
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
@@ -748,7 +748,7 @@ class FormsCRUDController extends Controller
         if (!$obj) {
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
         }
-        
+
         foreach ($MetaData->fieldNames as $value) {
             if ($MetaData->fieldMappings[$value]['type'] == 'date'  )
             {
@@ -757,7 +757,7 @@ class FormsCRUDController extends Controller
             }
             else{
                 $fields[$value] = $obj->{'get'.ucfirst($value)}();
-            } 
+            }
         }
         return array(
             'obj' => $fields
@@ -767,7 +767,7 @@ class FormsCRUDController extends Controller
     /**
      *
      * @Route("/{bundle}/{table}/delete/{id}/")
-     * 
+     *
      * @Template()
      */
     public function deleteAction($bundle, $table , $id ,  Request $request)
@@ -798,11 +798,11 @@ class FormsCRUDController extends Controller
                    ->findOneById($id );
 
         $form = $this->createForm(
-            $type != "" ? new $type() : strtolower($table)."_type", 
-            $obj, 
+            $type != "" ? new $type() : strtolower($table)."_type",
+            $obj,
             array(
                 'action' => $this->generateUrl(
-                    'sgn_forms_formscrud_delete', 
+                    'sgn_forms_formscrud_delete',
                     array('bundle' => $bundle, 'table' => $table, 'id' => $id)
             ),
         ));
@@ -932,7 +932,7 @@ class FormsCRUDController extends Controller
     {
 
         $auditManager = $this->container->get("simplethings_entityaudit.manager");
-        
+
         $bundlename  = Validators::validateBundleName($bundle);
         $BundleValid = $this->get('Kernel')->getBundle($bundlename);
         $dir         = $BundleValid->getNamespace();
