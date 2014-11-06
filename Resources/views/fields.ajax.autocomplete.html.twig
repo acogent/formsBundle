@@ -6,7 +6,11 @@
         }
     </style>
     <script>
-        defer(function() 
+        // permet de palier au chargment de scripts jQuery avant jQuery... grrrr
+        function defer(method) {if (window.$)method();else setTimeout(function() { defer(method) }, 50);}
+    </script>
+    <script>
+        defer(function()
         {
             $("#{{ form.vars.id }}").css( "padding", "0px" );
             var filter = "1 = 1";
@@ -38,7 +42,7 @@
                     // using its formatResult renderer - that way the movie name is shown preselected
                     var id=$(element).val();
                     if (id!=="") {
-                        $.ajax("{{ path("sgn_ajaxautocomplete",{"init": 1}) }}", 
+                        $.ajax("{{ path("sgn_ajaxautocomplete",{"init": 1}) }}",
                         {
                             data: {
                                 letters:      id, // search term
