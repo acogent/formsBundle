@@ -16,7 +16,7 @@ TODO
 
 ## Installation
 
-Mettre à jour le fichier composer.json de votre projet avec les éléments suivants : 
+Mettre à jour le fichier composer.json de votre projet avec les éléments suivants :
 
 ```json
     "require": {
@@ -31,7 +31,7 @@ Mettre à jour le fichier composer.json de votre projet avec les éléments suiv
     ]
 ```
 
-Puis mettre à jour vos dépendances avec composer : 
+Puis mettre à jour vos dépendances avec composer :
 
 ```bash
     composer update
@@ -82,7 +82,7 @@ sgn_forms:
 - role     : permet de dire qui peut faire de l’ajax par défaut IS_AUTHENTICATED_ANONYMOUSLY. Cela permet d’interdire les modifs par anonymous
 - property : le nom du champ qui sera affiché
 - value    : le nom du champ dont on renvoie une valeur (si “id”, l‘entité est renvoyée)
-- search   : la façon dont est faite la recherche, par défaut begins_with. Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value' 
+- search   : la façon dont est faite la recherche, par défaut begins_with. Valeurs possibles : contains = LIKE '%value%' begins_with = LIKE 'value%' ends_with = LIKE '%value'
 - target   : le ou les attribut(s) sur le(s)quel(s) porte la recherche, par défaut property. Est utile si value est différent de l’id de l’entité. Valeurs possibles : property, value, both
 - show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses). NB : les valeurs property_value et value_property imposent que target soit à “both”.
 
@@ -92,7 +92,7 @@ Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_
     - { resource: sgn_forms.yml }
 ```
 
-Cas particuliers : 
+Cas particuliers :
 - Par défaut, la recherche porte sur l’entité (class) via son id et son attribut (property). Il est possible d’utiliser une valeur différente, grâce au paramètre value. Dans ce cas, veillez à choisir un attribut unique de type texte (string).
 
 ```
@@ -117,6 +117,7 @@ sgn_forms:
 ```
 - Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search et target sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées. Par contre, role et show fonctionnent de la même manière :
 
+Déprécié, utilser plutôt la méthode suivante !!
 ```
 sgn_forms:
     autocomplete_entities:
@@ -125,7 +126,7 @@ sgn_forms:
             class:    BDGDatabaseBundle:AuxCanex
             role:     ROLE_USER
             property: __toString
-            value:    id 
+            value:    id
             search:   contains
             target:   both
             show:     property
@@ -136,6 +137,96 @@ sgn_forms:
 
 ```
 NB : Cette méthode est particulièrement coûteuse en temps. À utiliser avec parcimonie.
+
+- Liste de choix à partir d'un SQL. Dans des situations particulières, on peut avoir besoin de compléter les informations affichées par la liste de choix. Ces informations peuvent même ne pas se trouver dans l'entité. Il faudra donc :
+    - créer un champ dans son entité avec getter et eventuellement setter non associé à Doctrine
+    - créer une fonction dans son repository qui contiendra le SQL necessaire
+    - remplir sgn_forms
+
+Exemple complet BDGS : une station appartient à un site. Elle est identifée par son acronyme, mais biensûr il y a des doublons ! Il faut donc afficher une information supplémentaire, dans notre cas le nom de la ville dans laquelle se trouve la station. Cette information est contenue dans le site. Il faut donc faire une requete particulière. On utilisera DQL pour simplifier la démarche.
+
+Entité :
+```
+//Station.php
+...
+/**
+ * Station
+ *
+ * @ORM\Table("station")
+ * @ORM\Entity(repositoryClass="BDGS\DatabaseBundle\Entity\StationRepository")
+ * @ORM\HasLifecycleCallbacks()
+ */
+class Station extends StationModel
+{
+    /**
+    * Le nom qui sera utilisé dans les select des formulaires
+    */
+    protected $stationSelect;
+    /**
+     * Get stationSelect
+     *
+     * @return text
+     */
+    public function getStationSelect()
+    {
+        return $this->stationSelect;
+    }
+
+    /**
+     * @ORM\PostLoad
+     */
+    public function postLoad()
+    {
+        $this->stationSelect = $this->getAcronyme();
+        $ville = "XXX";
+        if ($this->Site != NULL && $this->Site->getVille() != "") $ville= $this->Site->getVille();
+        $this->stationSelect .= " (".$ville.")";
+    }
+    ...
+
+```
+L'utilisation de @ORM\PostLoad permet de générer la valeur du champ lorsque l'entité est charchée (ne pas oublier la déclaration de  * @ORM\HasLifecycleCallbacks() dans l'entete de la classe).
+
+
+Repository :
+```
+//StationRepository.php
+    /**
+     * Get getSelectSQL
+     *
+     * @return text
+     */
+    public function getStationSQL()
+    {
+        $sql ="SELECT e.id, TRIM (concat( concat( e.acronyme, ' (' ), concat(coalesce(e.acronyme,'XXX'), ')' )  ) ) as value
+        FROM   BDGSDatabaseBundle:Station e  WHERE LOWER(e.acronyme) LIKE LOWER(:like) ORDER BY e.acronyme";
+        return $sql;
+    }
+/* Noter l'utilisation de CONCAT et de COALESCE (qui permet de remplacer les valeurs null par un texte, la concaténation d'un texte et d'une valeur null renvoyant malheureusement null) */
+```
+
+sgn_forms :
+```
+stations_select:
+    class    : BDGSDatabaseBundle:Station
+    property: getStationSQL
+    search:   contains
+
+```
+Dans le formulaire :
+
+```
+    $builder
+        // Champs ManyToOne
+        // ->add('Station', null, array('label' => 'Station'))
+        // Si vous voulez une gestion de liste de choix avec Ajax, supprimez la liste ci-dessus et décommentez celle ci-dessous. N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
+            ->add('Station', 'sgn_ajax_autocomplete',    array('label' => 'Station','entity_alias'=>'stations_select' ))
+        ;
+```
+
+Au niveau des noms, la règle suivante doit être suivie : le nom du champ doit être le nom de l'entité suivi de Select et le nom de la méthode du repository doit être get+le nom de l'entité + SQL
+
+
 
 - Enfin, vous pouvez fournir la requête DQL qui sera à l’origine de la liste Ajax. Cette méthode est contraignante et demande des connaissances en DQL. Il faut préciser le nom complet des entités (Bundle:Entité). Il faut obligatoirement nommer l’entité sur laquelle porte la requête “e”. Il faut nécessairement une clause WHERE.
 
@@ -168,7 +259,7 @@ Dans routing.yml, ajouter :
 sgn_forms:
     resource: '@SGNFormsBundle/Resources/config/routing.xml'
 
-``` 
+```
 
 4. Dans le formulaire :
 
@@ -183,10 +274,10 @@ class PointRefType extends AbstractType
                    ->add('Site', 'sgn_ajax_autocomplete', array('entity_alias'=>'sites'));
         ...
     }
- }          
-``` 
+ }
+```
 
-Où : 
+Où :
 - sgn_ajax_autocomplete est le type du champ
 - entity_alias contient la valeur que vous avez déclaré dans sgn_forms.yml
 
@@ -202,7 +293,7 @@ Mais, vous pouvez le changer. Il suffit de déclarer les champs dans le fichier 
 ```
 sgn_forms:
     ....
-    entities_fields: 
+    entities_fields:
         'BDGSDatabaseBundle:PointRef': 'id , nomFR'
         'SITELOGDatabaseBundle:Sitelog': 'id, Domes'
 
@@ -235,7 +326,7 @@ twig:
 où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exmple, à vous de mettre votre template.
 
 
-### Le générateur de formulaire et interface générique de consultation des entités 
+### Le générateur de formulaire et interface générique de consultation des entités
 
 
 1. AppKernel.php
@@ -342,4 +433,3 @@ services:
         tags:
             - { name: form.type, alias: nivern_type }
 ```
-

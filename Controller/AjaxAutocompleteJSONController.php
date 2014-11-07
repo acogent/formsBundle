@@ -52,6 +52,7 @@ class AjaxAutocompleteJSONController extends Controller
 
         $res = array();
 
+        // fonction __toString à éviter !!
         if ( $property == "__toString" )
         {
             $entities = $em->getRepository($class)->findAll();
@@ -86,117 +87,159 @@ class AjaxAutocompleteJSONController extends Controller
                     $showtextup = strtoupper($showtextup);
                 }
 
-                if ( strpos($toString,   $letters) === FALSE 
-                  && strpos($id,         $letters) === FALSE 
+                if ( strpos($toString,   $letters) === FALSE
+                  && strpos($id,         $letters) === FALSE
                   && strpos($showtextup, $letters) === FALSE
                 ) continue;
 
                 $res[] = array("id" => $id, "text" => $showtext);
-            }
-
-        }else{
-
-            switch ( $target )
-            {
-                case "property":
-                    $target1 = $prop_query;
-                    $target2 = NULL;
-                    break;
-                case "value":
-                    $target1 = "e.".$value;
-                    $target2 = NULL;
-                    break;
-                case "both":
-                    $target1 = $prop_query;
-                    $target2 = "e.".$value;
-                    break;
-                default:
-                    throw new \Exception('Unexpected value of parameter "target".');
-            }
-
-            switch ( $entity_inf['search'] )
-            {
-                case "begins_with":
-                    $like = $letters . '%';
-                    break;
-                case "ends_with":
-                    $like = '%' . $letters;
-                    break;
-                case "contains":
-                    $like = '%' . $letters . '%';
-                    break;
-                default:
-                    throw new \Exception('Unexpected value of parameter "search".');
-            }
-
-            $where_clause_lhs2 = '';
-            $where_clause_rhs2 = '';
-            if ( $case_insensitive )
-            {
-                $where_clause_lhs1 = 'LOWER('.$target1.')';
-                $where_clause_rhs1 = 'LIKE LOWER(:like)';
-                if ( $target2 != NULL )
+                if ( $init == '1' )
                 {
-                    $where_clause_lhs2 = 'LOWER('.$target2.')';
-                    $where_clause_rhs2 = 'LIKE LOWER(:like)';
+                    if ( empty($res) )
+                    {
+                        $res = array("id" => NULL, "text" => "(not found)");
+                    }else{
+                        $res = $res[0];
+                    }
                 }
-            } else {
-                $where_clause_lhs1 = $target1;
-                $where_clause_rhs1 = 'LIKE :like';
-                if ( $target2 != NULL )
-                {
-                    $where_clause_lhs2 = $target2;
-                    $where_clause_rhs2 = 'LIKE :like';
-                }
-            }
-            $where_clause = $where_clause_lhs1.' '.$where_clause_rhs1;
-            if ( $where_clause_lhs2 != '' && $where_clause_rhs2 != '' )
-            {
-                $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
+                return new Response(json_encode($res));
             }
 
-            if ( $query == "class" )
+        }
+
+
+        switch ( $target )
+        {
+            case "property":
+                $target1 = $prop_query;
+                $target2 = NULL;
+                break;
+            case "value":
+                $target1 = "e.".$value;
+                $target2 = NULL;
+                break;
+            case "both":
+                $target1 = $prop_query;
+                $target2 = "e.".$value;
+                break;
+            default:
+                throw new \Exception('Unexpected value of parameter "target".');
+        }
+
+        switch ( $entity_inf['search'] )
+        {
+            case "begins_with":
+                $like = $letters . '%';
+                break;
+            case "ends_with":
+                $like = '%' . $letters;
+                break;
+            case "contains":
+                $like = '%' . $letters . '%';
+                break;
+            default:
+                throw new \Exception('Unexpected value of parameter "search".');
+        }
+
+        $where_clause_lhs2 = '';
+        $where_clause_rhs2 = '';
+        if ( $case_insensitive )
+        {
+            $where_clause_lhs1 = 'LOWER('.$target1.')';
+            $where_clause_rhs1 = 'LIKE LOWER(:like)';
+            if ( $target2 != NULL )
             {
-                $results = $em->createQuery(
-                                    'SELECT e.'.$property.', e.'.$value.'
-                                    FROM '.$class.' e 
-                                    WHERE '.$filter.' AND '.
-                                    $where_clause.' '.
-                                    'ORDER BY '.$prop_query)
-                              ->setParameter('like', $like)
-                              ->setMaxResults($maxRows)
-                              ->getScalarResult();
-            }else{
-                $results = $em->createQuery($query.'
-                                    AND '.$filter.' AND '.
-                                    $where_clause.' '.
-                                    'ORDER BY '.$prop_query)
-                              ->setParameter('like', $like)
-                              ->setMaxResults($maxRows)
-                              ->getScalarResult();
+                $where_clause_lhs2 = 'LOWER('.$target2.')';
+                $where_clause_rhs2 = 'LIKE LOWER(:like)';
             }
+        } else {
+            $where_clause_lhs1 = $target1;
+            $where_clause_rhs1 = 'LIKE :like';
+            if ( $target2 != NULL )
+            {
+                $where_clause_lhs2 = $target2;
+                $where_clause_rhs2 = 'LIKE :like';
+            }
+        }
+
+        $where_clause = $where_clause_lhs1.' '.$where_clause_rhs1;
+        if ( $where_clause_lhs2 != '' && $where_clause_rhs2 != '' )
+        {
+            $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
+        }
+
+        // Alternative à __toString !! : création d'un champ pas en base des getet set + une fonction dans repository
+        if ( substr($property,0,3)   == "get"){
+            $property = str_replace ('Select','SQL', $property);
+            $sql = $em->getRepository($class)->$property();
+
+            // $query  = $em->createQuery($sql )
+            //               ->setParameter('like', $like)
+            //               ->setMaxResults($maxRows)
+            //               ;
+            // print $query->getSql(); print $like;
+
+            $results = $em->createQuery($sql )
+                          ->setParameter('like', $like)
+                          ->setMaxResults($maxRows)
+                          ->getScalarResult();
 
             foreach ($results as $r)
             {
-                switch ( $show )
-                {
-                    case "property":
-                        $showtext = $r[$property];
-                        break;
-                    case "value":
-                        $showtext = $r[$value];
-                        break;
-                    case "property_value":
-                        $showtext = $r[$property]." (".$r[$value].")";
-                        break;
-                    case "value_property":
-                        $showtext = $r[$value]." (".$r[$property].")";
-                        break;
-                    default:
-                        throw new \Exception('Unexpected value of parameter "show".');
-                }
-                $res[] = array("id" => $r[$value], "text" => $showtext);
+                $res[] = array("id" => $r['id'], "text" => $r['value']);
             }
+            if ( $init == '1' )
+            {
+                if ( empty($res) )
+                {
+                    $res = array("id" => NULL, "text" => "(not found)");
+                }else{
+                    $res = $res[0];
+                }
+            }
+            return new Response(json_encode($res));
+        }
+        if ( $query == "class")
+        {
+            $results = $em->createQuery(
+                                'SELECT e.'.$property.', e.'.$value.'
+                                FROM '.$class.' e
+                                WHERE '.$filter.' AND '.
+                                $where_clause.' '.
+                                'ORDER BY '.$prop_query)
+                          ->setParameter('like', $like)
+                          ->setMaxResults($maxRows)
+                          ->getScalarResult();
+        } else{
+            $results = $em->createQuery($query.'
+                                AND '.$filter.' AND '.
+                                $where_clause.' '.
+                                'ORDER BY '.$prop_query)
+                          ->setParameter('like', $like)
+                          ->setMaxResults($maxRows)
+                          ->getScalarResult();
+        }
+
+        foreach ($results as $r)
+        {
+            switch ( $show )
+            {
+                case "property":
+                    $showtext = $r[$property];
+                    break;
+                case "value":
+                    $showtext = $r[$value];
+                    break;
+                case "property_value":
+                    $showtext = $r[$property]." (".$r[$value].")";
+                    break;
+                case "value_property":
+                    $showtext = $r[$value]." (".$r[$property].")";
+                    break;
+                default:
+                    throw new \Exception('Unexpected value of parameter "show".');
+            }
+            $res[] = array("id" => $r[$value], "text" => $showtext);
         }
 
         if ( $init == '1' )
