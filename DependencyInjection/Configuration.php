@@ -21,7 +21,7 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('sgn_forms');
         $rootNode
             ->children()
-                ->scalarNode('orm')->defaultValue('default')->end() 
+                ->scalarNode('orm')->defaultValue('default')->end()
                 ->arrayNode('bestof_entity')
                     ->prototype('scalar')->end()
                     ->defaultValue(array('*'))
@@ -59,7 +59,7 @@ class Configuration implements ConfigurationInterface
 
 
                 ->scalarNode('twig_style')->defaultValue("{{ asset('bundles/sgnforms/css/style.css') }}")->end()
-           
+
 
                 ->arrayNode('autocomplete_entities')
                     ->useAttributeAsKey('id')
@@ -70,6 +70,10 @@ class Configuration implements ConfigurationInterface
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode('property')
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('method')
+                                ->defaultValue(NULL)
                                 ->cannotBeEmpty()
                             ->end()
                             ->scalarNode('value')

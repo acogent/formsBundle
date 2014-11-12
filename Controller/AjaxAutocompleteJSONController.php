@@ -28,6 +28,7 @@ class AjaxAutocompleteJSONController extends Controller
 
         $class            = $entity_inf['class'];
         $property         = $entity_inf['property'];
+        $method         = $entity_inf['method'];
         $value            = $entity_inf['value'];
         $target           = $entity_inf['target'];
         $show             = $entity_inf['show'];
@@ -169,15 +170,14 @@ class AjaxAutocompleteJSONController extends Controller
         }
 
         // Alternative à __toString !! : création d'un champ pas en base des getet set + une fonction dans repository
-        if ( substr($property,0,3)   == "get"){
-            $property = str_replace ('Select','SQL', $property);
-            $sql = $em->getRepository($class)->$property();
-
-            // $query  = $em->createQuery($sql )
-            //               ->setParameter('like', $like)
-            //               ->setMaxResults($maxRows)
-            //               ;
-            // print $query->getSql(); print $like;
+        if ( isset($method)){
+            $sql = $em->getRepository($class)->$method();
+            // var_dump($sql);
+            $query  = $em->createQuery($sql )
+                          ->setParameter('like', $like)
+                          ->setMaxResults($maxRows)
+                          ;
+            // print_r( $query->getSql() ) ; print_r ($like); exit();
 
             $results = $em->createQuery($sql )
                           ->setParameter('like', $like)
