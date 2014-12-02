@@ -925,9 +925,7 @@ class FormsCRUDController extends Controller
 
     private function getAudit($bundle, $table, $id)
     {
-
         $auditManager = $this->container->get("simplethings_entityaudit.manager");
-
         $bundlename  = Validators::validateBundleName($bundle);
         $BundleValid = $this->get('Kernel')->getBundle($bundlename);
         $dir         = $BundleValid->getNamespace();
@@ -942,11 +940,12 @@ class FormsCRUDController extends Controller
 
             $entity = $bundle.':'.$table;
             $class = $em->getClassMetadata($entity);
+
+            $champ_id_bd = isset( $class->fieldMappings['id']['columnName']) ? $class->fieldMappings['id']['columnName'] : 'id' ;
             $tableName =  $class->table['name'] . '_audit';
 
-            $query = "SELECT * FROM " . $tableName . " e WHERE e.id = " . $id . " ORDER BY e.rev DESC";
+            $query = "SELECT * FROM " . $tableName . " e WHERE e.".$champ_id_bd." = " . $id . " ORDER BY e.rev DESC";
             $result = $em->getConnection()->fetchAll($query);
-            //var_dump($result);
         }
         return $result;
     }
