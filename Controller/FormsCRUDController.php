@@ -797,15 +797,10 @@ class FormsCRUDController extends Controller
         $obj  = $em->getRepository($bundle.':'.$table)
                    ->findOneById($id );
 
-        $form = $this->createForm(
-            $type != "" ? new $type() : strtolower($table)."_type",
-            $obj,
-            array(
-                'action' => $this->generateUrl(
-                    'sgn_forms_formscrud_delete',
-                    array('bundle' => $bundle, 'table' => $table, 'id' => $id)
-            ),
-        ));
+        $form = $this->createFormBuilder($obj)
+                ->setAction ($this->generateUrl( 'sgn_forms_formscrud_delete',  array('bundle' => $bundle, 'table' => $table, 'id' => $id)))
+                ->getForm();
+
 
         $form->handleRequest($request);
 
