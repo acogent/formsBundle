@@ -1,17 +1,24 @@
 # SGN FormsBundle
 
+
+# Changelog
+
+## 2.3.0
+- Ajout d'une commande : sgn:generate:tests  de génération des tests fonctionnels sur les formulaires
+- Ajout d'une commande : sgn:generate:fixtures de génération de fixtures sur les entités
+
+Voir l'aide en ligne de la console
+
+## 2.2.1
+- Modification du formulaire delete
+
 Ce Bundle est une boîte à outil “Formulaire” (FormType) de Symfony2.
 Vous n’êtes pas obligé de tout utiliser.
 Il permet aujourd’hui de :
 
 1. générer des listes AJAX pour les relations Many2One, ce qui allège énormément la page chargée
 2. fournir un template “bootstrap 3” des champs de formulaires
-
-
-TODO
 3. Création d’une interface générique pour les entités d’un bundle
-
-
 
 
 ## Installation

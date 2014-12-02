@@ -1,0 +1,98 @@
+<?php
+
+namespace SGN\FormsBundle\Command;
+
+
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Doctrine\Bundle\DoctrineBundle\Mapping\MetadataFactory;
+use SGN\FormsBundle\Generator\SGNTestGenerator;
+
+
+
+/**
+ * Generates the CRUD for all entities of DatabaseBundle
+ */
+class generateTestsCommand extends ContainerAwareCommand
+{
+    /**
+     * Configuration
+     */
+    protected function configure()
+    {
+        $this->setName('sgn:generate:tests')
+             ->setDescription("Generer les tests fonctionnels des entites d'un bundle")
+             ->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des tests fonctionnels ?')
+             ;
+    }
+
+    /**
+     * Executes a GenerateCrudCommand for all the entities of DatabaseBundle
+     * @param  InputInterface  $input
+     * @param  OutputInterface $output
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        $command      = $this->getApplication()->find('sgn:generate:tests');
+        $bundleName   = $input->getArgument('bundle');
+        $database_dir = $this->getContainer()->get('kernel')->getBundle($bundleName)->getPath();
+        $entities     = array();
+        $pathEntities = $database_dir.'/Entity';
+
+        if (is_dir($pathEntities)) {
+            if ($dh = opendir($pathEntities)) {
+                while (($file = readdir($dh)) !== false) {
+                    if (is_file($pathEntities.'/'.$file)
+                        && strpos($file, 'Repository') === false
+                        && strpos($file, 'Listener') === false
+                        && strpos($file, "~") === false) {
+                        $entities[] = basename($file, '.php');
+                    }
+                }
+                closedir($dh);
+            }
+        }
+
+        $bundle        = $this->getContainer()->get('kernel')->getBundle($bundleName);
+        $database_dir =$bundle->getPath();
+        foreach ($entities as $entity) {
+            $path = $database_dir."/Tests/Controller/".$entity."ControllerTest.php";
+            if (!file_exists($path))
+            {
+                $entityClass   = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$entity;
+                $metadata      = $this->getEntityMetadata($entityClass);
+                $this->generateTest($bundle, $entity, $metadata);
+                $output->writeln('Generating the test code: <info>'.$path.'</info>');
+            }
+            else{
+                $output->writeln('File exists : <error>'.$path.'</error>');
+            }
+        }
+        $output->writeln('Toutes les entités ont été traitées.');
+    }
+
+    protected function getEntityMetadata($entity)
+    {
+        $factory = new MetadataFactory($this->getContainer()->get('doctrine'));
+
+        $meta = $factory->getClassMetadata($entity)->getMetadata();
+        return $meta;
+    }
+
+    /**
+     * Tries to generate tests if they don't exist yet and if we need write operations on entities.
+     */
+    protected function generateTest($bundle, $entity, $metadata)
+    {
+        $generator = new SGNTestGenerator($this->getContainer()->get('filesystem'));
+        $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
+        $skeletonDirs[] = __DIR__.'/../Resources';
+
+        $generator->setSkeletonDirs($skeletonDirs);
+        $generator->generate($bundle, $entity, $metadata[0]);
+    }
+
+}
