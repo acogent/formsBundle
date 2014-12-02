@@ -3,6 +3,9 @@
 
 # Changelog
 
+## 2.3.1
+Prise en compte des identifiants ayant un autre nom en base de données
+
 ## 2.3.0
 - Ajout d'une commande : sgn:generate:tests  de génération des tests fonctionnels sur les formulaires
 - Ajout d'une commande : sgn:generate:fixtures de génération de fixtures sur les entités
