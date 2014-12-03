@@ -59,7 +59,7 @@ class generateFixturesCommand extends ContainerAwareCommand
         $bundle        = $this->getContainer()->get('kernel')->getBundle($bundleName);
         $database_dir =$bundle->getPath();
         foreach ($entities as $entity) {
-            $path = $database_dir."/Fixtures/Entity/Load".$entity."Data.php";
+            $path = $database_dir."/Tests/Fixtures/Entity/Load".$entity."Data.php";
             if (!file_exists($path))
             {
                 $entityClass   = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$entity;

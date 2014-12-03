@@ -88,16 +88,16 @@
  {% if  collectionNames  is defined %}
   
   <div class="btn-group">    
-    <button role="button" class="btn btn-primary btn-md" onclick="showHide('related-grids');" ><span class="glyphicon glyphicon-list-alt"></span> {% trans %}Related datas{% endtrans %}</button>
-    <button role="button" class="btn btn-primary btn-md" onclick="showHide('show');"><span class="glyphicon glyphicon-eye-open"> </span> {% trans %}Show{% endtrans %}</a>
-    <button role="button" class="btn btn-warning btn-md" onclick="showHide('edit');"><span class="glyphicon glyphicon-edit"></span> {% trans %}Edit{% endtrans %}</button>
-    <button role="button" class="btn btn-warning btn-md" onclick="showHide('new');"><span class="glyphicon glyphicon-plus"></span> {% trans %}New{% endtrans %}</button>
-    <button role="button" class="btn btn-danger btn-md"  onclick="showHide('delete');"> <span class="glyphicon glyphicon-remove"></span> {% trans %}Delete{% endtrans %}</button>
+    <button id= 'btn-annexe' role="button" class="btn btn-primary btn-md" onclick="showHide('related-grids');" ><span class="glyphicon glyphicon-list-alt"></span> {% trans %}Related datas{% endtrans %}</button>
+    <button id= 'btn-show' role="button" class="btn btn-primary btn-md" onclick="showHide('show');"><span class="glyphicon glyphicon-eye-open"> </span> {% trans %}Show{% endtrans %}</a>
+    <button id= 'btn-edit' role="button" class="btn btn-warning btn-md" onclick="showHide('edit');"><span class="glyphicon glyphicon-edit"></span> {% trans %}Edit{% endtrans %}</button>
+    <button id= 'btn-create' role="button" class="btn btn-warning btn-md" onclick="showHide('new');"><span class="glyphicon glyphicon-plus"></span> {% trans %}New{% endtrans %}</button>
+    <button id= 'btn-delete' role="button" class="btn btn-danger  btn-md" onclick="showHide('delete');"> <span class="glyphicon glyphicon-remove"></span> {% trans %}Delete{% endtrans %}</button>
  </div>
 
 <div id="myTabContent" class="tab-content" >
     <div class = "tab-pane" id="related-grids" >
-        <h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
+        <h2>{{ entity|trans }} : <span class='selectedEntityId'></span></h2>
         {% for collection , url  in collectionNames %}
             <div class="panel panel-primary">
                 <div class="panel-heading">

@@ -2,9 +2,7 @@
 
 namespace BDG\DatabaseBundle\Tests\Controller;
 
-
-use Liip\FunctionalTestBundle\Test\WebTestCase as WebTestCase;
-
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 //http://jobeet.thuau.fr/testez-vos-formulaires
 class ModelControllerTest extends WebTestCase
@@ -39,23 +37,24 @@ class ModelControllerTest extends WebTestCase
 
     public function testloadData()
     {
-        $fixtures = array( $this->namespace.'\Tests\Fixtures\Entity\Load'.$this->entity.'Data');
-        $this->loadFixtures($fixtures);
+        // $fixtures = array( $this->namespace.'\Tests\Fixtures\Entity\Load'.$this->entity.'Data');
+        // $this->loadFixtures($fixtures);
+    }
+
+    public function testAuditScenario()
+    {
+        $crawler = $this->client->request('GET', $this->showHTML );
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET ".$this->showHTML);
+        $this->assertTrue($crawler->filter('h3:contains("Audit")')->count() > 0);
     }
 
     public function testNewScenario($form, $crawler)
     {
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET $this->url_new");
-        
         $this->client->submit($form);
-        
         $this->assertTrue($this->client->getResponse()->isRedirect($this->showHTML));
-        
-        unset($crawler);
-        unset($form);
 
         $this->initId();
-
     }
 
     private function initId()
@@ -69,53 +68,33 @@ class ModelControllerTest extends WebTestCase
     {
         $crawler = $this->client->request('GET', $this->url_edit.self::$id.'/');
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET ".$this->url_edit.self::$id.'/');
-        
         $form = $crawler->selectButton('Modifier')->form(array( ));
-
         $this->client->submit($form);
-
         $this->assertTrue($this->client->getResponse()->isRedirect($this->showHTML));
-
-        unset($crawler);
-        unset($form);
-        gc_collect_cycles();
     }
     public function testShowHtmlScenario()
     {
         $crawler = $this->client->request('GET', $this->showHTML );
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET ".$this->showHTML);
-
-        unset($crawler);
-        gc_collect_cycles();
     }
     public function testShowJsonScenario()
     {
         $crawler = $this->client->request('GET', $this->showJSON );
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET ".$this->showJSON);
-
-        unset($crawler);
-        gc_collect_cycles();
     }
     public function testShowOneScenario()
     {
         $crawler = $this->client->request('GET', $this->showOne.self::$id.'/' );
-        
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET ". $this->showOne.self::$id.'/');
-        unset($crawler);
-        gc_collect_cycles();
     }
     public function testDeleteScenario()
     {
         $crawler = $this->client->request('GET', $this->url_delete.self::$id.'/');
-
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET ".$this->url_delete.self::$id.'/');
-        
         $form = $crawler->selectButton('Modifier')->form(array());
-        
         $this->client->submit($form);
-
         $this->assertTrue($this->client->getResponse()->isRedirect($this->showHTML));
-
+        
         unset($crawler);
         unset($form);
         gc_collect_cycles();
