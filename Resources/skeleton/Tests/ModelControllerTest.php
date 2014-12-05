@@ -10,9 +10,9 @@ class ModelControllerTest extends WebTestCase
     static public $id  ;
 
     public function setUp()
-    {          
+    {
         $this->sqlMax = 'SELECT max(e.id) from '.$this->bundle.':'.$this->entity.' e';
-        
+
         $this->showHTML = "/admin/crud/$this->bundle/$this->entity/html/show";
         $this->showOne = "/admin/crud/$this->bundle/$this->entity/showone/";
         $this->showJSON = "/admin/crud/$this->bundle/$this->entity/json/show";
@@ -20,7 +20,7 @@ class ModelControllerTest extends WebTestCase
         $this->url_new = '/admin/crud/'.$this->bundle.'/'.$this->entity.'/new/';
         $this->url_edit = '/admin/crud/'.$this->bundle.'/'.$this->entity.'/edit/';
         $this->url_delete = '/admin/crud/'.$this->bundle.'/'.$this->entity.'/delete/';
-        
+
         $this->PHP_AUTH_USER = 'A_MODIF_USER';
         $this->PHP_AUTH_PW = 'A_MODIF_PW';
 
@@ -61,7 +61,7 @@ class ModelControllerTest extends WebTestCase
     {
         $em = $this->kernel->getContainer()->get('doctrine.orm.entity_manager');
         $query = $em->createQuery($this->sqlMax);
-        
+
         self::$id = $query->getSingleScalarResult() > 0 ? $query->getSingleScalarResult() : 1;
     }
     public function testUpdateScenario()
@@ -91,10 +91,10 @@ class ModelControllerTest extends WebTestCase
     {
         $crawler = $this->client->request('GET', $this->url_delete.self::$id.'/');
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode(), "Unexpected HTTP status code for GET ".$this->url_delete.self::$id.'/');
-        $form = $crawler->selectButton('Modifier')->form(array());
+        $form = $crawler->selectButton('Supprimer')->form(array());
         $this->client->submit($form);
         $this->assertTrue($this->client->getResponse()->isRedirect($this->showHTML));
-        
+
         unset($crawler);
         unset($form);
         gc_collect_cycles();
