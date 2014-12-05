@@ -67,8 +67,6 @@ class SGNTestGenerator extends SGNGenerator
             throw new \RuntimeException(sprintf('Unable to generate the %s test class as it already exists under the %s file', $this->className, $this->classPath));
         }
 
-        copy( __DIR__.'/../Resources/skeleton/Tests/InterfaceControllerTest.php', $dirPath.'/InterfaceControllerTest.php');
-        copy( __DIR__.'/../Resources/skeleton/Tests/ModelControllerTest.php', $dirPath.'/ModelControllerTest.php');
 
         $parts = explode('\\', $entity);
         array_pop($parts);
@@ -126,7 +124,7 @@ class SGNTestGenerator extends SGNGenerator
         }
         return $fields;
     }
-   
+
    /**
      * Returns an array of fields. Fields can be both column fields and
      * association fields.

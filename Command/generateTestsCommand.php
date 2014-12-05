@@ -56,8 +56,12 @@ class generateTestsCommand extends ContainerAwareCommand
             }
         }
 
-        $bundle        = $this->getContainer()->get('kernel')->getBundle($bundleName);
-        $database_dir =$bundle->getPath();
+        $bundle       = $this->getContainer()->get('kernel')->getBundle($bundleName);
+        $database_dir = $bundle->getPath();
+        $dirPath      = $bundle->getPath().'/Tests/Controller';
+        copy( __DIR__.'/../Resources/skeleton/Tests/InterfaceControllerTest.php', $dirPath.'/InterfaceControllerTest.php.dist');
+        copy( __DIR__.'/../Resources/skeleton/Tests/ModelControllerTest.php', $dirPath.'/ModelControllerTest.php.dist');
+
         foreach ($entities as $entity) {
             $path = $database_dir."/Tests/Controller/".$entity."ControllerTest.php";
             if (!file_exists($path))
