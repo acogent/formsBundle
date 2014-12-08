@@ -86,8 +86,8 @@
 <br>
 
  {% if  collectionNames  is defined %}
-  
-  <div class="btn-group">    
+
+  <div class="btn-group">
     <button id= 'btn-annexe' role="button" class="btn btn-primary btn-md" onclick="showHide('related-grids');" ><span class="glyphicon glyphicon-list-alt"></span> {% trans %}Related datas{% endtrans %}</button>
     <button id= 'btn-show' role="button" class="btn btn-primary btn-md" onclick="showHide('show');"><span class="glyphicon glyphicon-eye-open"> </span> {% trans %}Show{% endtrans %}</a>
     <button id= 'btn-edit' role="button" class="btn btn-warning btn-md" onclick="showHide('edit');"><span class="glyphicon glyphicon-edit"></span> {% trans %}Edit{% endtrans %}</button>
@@ -125,6 +125,7 @@
                 'bundle': project, 'table': entity, 'ajax':''
             })) }}
         </div>
+     </div>
     <div class = "tab-pane" id="delete" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
         <div id="deleteEntity">
             Vous devez effectuer une selection pour pouvoir la supprimer.
@@ -148,7 +149,7 @@
         jQuery("#new").hide();
         jQuery("#delete").hide();
         jQuery("#related-grids").hide();
-       
+
         jQuery("#"+id).show();
     }
     var last_selected = null;
@@ -191,19 +192,19 @@ $(document).ready(function() {
         //     var ids = jQuery("#list-grid").jqGrid('getDataIDs');
         //     for(var i=0;i < ids.length;i++){
         //         var cl = ids[i];
-        //         edit    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-edit'></span></a>"; 
-        //         restore = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-open'></span></a>"; 
-        //         del     = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-remove'></span></a>"; 
-        //         show    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-eye-open'></span></a>"; 
-        //         related = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-list-alt'></span></a>"; 
-        //         save    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-save'></span></a>"; 
+        //         edit    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-edit'></span></a>";
+        //         restore = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-open'></span></a>";
+        //         del     = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-remove'></span></a>";
+        //         show    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-eye-open'></span></a>";
+        //         related = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-list-alt'></span></a>";
+        //         save    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-save'></span></a>";
         //         jQuery("#list-grid").jqGrid('setRowData',ids[i],{act:related+show+edit+save+restore+del});
-        //     }    
+        //     }
         // },
     });
     var width = $('#grid_container2').width()-30;
     function relatedGridsReload(sel_id) {
-        
+
         jQuery('#editEntity').html(wait);
         jQuery('#showEntity').html(wait);
         jQuery('#deletEntity').html(wait);
@@ -267,7 +268,7 @@ $(document).ready(function() {
             .always(function() {
                 // alert( "complete" );
             });
- 
+
         if (sel_id != last_loaded ) {
             {% for collection, url in collectionNames %}
                 jQuery("#list-grid-{{ collection }}" ).clearGridData();
@@ -280,7 +281,7 @@ $(document).ready(function() {
         last_selected = sel_id;
     }
 
-    function getSelectedEntityId() 
+    function getSelectedEntityId()
     {
 
         var sel_id = jQuery("#list-grid").getGridParam('selrow');
@@ -290,7 +291,7 @@ $(document).ready(function() {
         return id;
     }
 
-    function hideResearch() 
+    function hideResearch()
     {
         if (jQuery("#searchmodfbox_list-grid")) {
             jQuery("#searchmodfbox_list-grid a.ui-jqdialog-titlebar-close").click();
