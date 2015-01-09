@@ -2,7 +2,8 @@
 
 
 # Changelog
-
+## 2.4
+Ajout de la possibilité de ne pas afficher certains champs dans la grille
 ## 2.3.1
 Prise en compte des identifiants ayant un autre nom en base de données
 
@@ -260,6 +261,17 @@ sgn_forms:
 
 ```
 L'entrée "entities_fields" est obligatoire. Listez ensuite les entités avec leur bundle et la liste des champs ordonnés séparé par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés.
+### Masquage de colonnes pour jQgrid
+
+Vous pouvez personnaliser l'affichage des colonnes dans jQgrid et décider d'en masquer.
+
+```
+sgn_forms:
+    ....
+    entities_fields_hidden:
+        'BDGDatabaseBundle:NivfRn': 'remPortage, geom' 
+
+```
 
 ### Le template bootstrap3
 

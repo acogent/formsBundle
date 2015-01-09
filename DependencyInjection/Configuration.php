@@ -57,6 +57,17 @@ class Configuration implements ConfigurationInterface
                     ->prototype('scalar')->end()
                 ->end()
 
+                ->arrayNode('entities_fields_hidden')
+                    ->beforeNormalization()
+                        ->ifString()
+                            ->then(function ($value) {
+                                return array($value);
+                            })
+                    ->end()
+                    ->useAttributeAsKey('name')
+                    ->prototype('scalar')->end()
+                ->end()
+
 
                 ->scalarNode('twig_style')->defaultValue("{{ asset('bundles/sgnforms/css/style.css') }}")->end()
 

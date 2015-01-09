@@ -34,6 +34,7 @@ class SGNFormsExtension extends Extension
             $container->setParameter(sprintf('sgn_forms.forms.%s', $value), $name["bundle"]);
         }
         $container->setParameter('sgn_forms.entities_fields', $config['entities_fields']);
+        $container->setParameter('sgn_forms.entities_fields_hidden', $config['entities_fields_hidden']);
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
 

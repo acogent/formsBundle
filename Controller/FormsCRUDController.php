@@ -146,6 +146,18 @@ class FormsCRUDController extends Controller
         {
             $AllFields =  $s_fields;
         }
+        $table_fields_hidden = $this->container->getParameter('sgn_forms.entities_fields_hidden');
+        if (array_key_exists($entity,$table_fields_hidden))
+        {
+            $selects  = explode(',', $table_fields_hidden[$entity]);
+            foreach($selects as $sel )
+            {
+                if(array_search('s.'.trim($sel),$AllFields) ){
+                    unset($AllFields[array_search('s.'.trim($sel),$AllFields)]);
+                }
+            }
+            $AllFields = array_values($AllFields);
+        }
         $select = implode (' , ',$AllFields );
         $builder = $em->getRepository($entity) ->createQueryBuilder('s') ->select($select);
         $builder = $this->getWhereFromParams($params, $builder);
