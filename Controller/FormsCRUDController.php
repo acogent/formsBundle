@@ -816,7 +816,7 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
 
-        if ($form->isValid())
+        //if ($form->isValid())
         {
             $em    = $this->getDoctrine()
                           ->getManager($this->container->getParameter('sgn_forms.orm'));
