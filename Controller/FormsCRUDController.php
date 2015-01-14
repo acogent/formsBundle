@@ -816,12 +816,8 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
 
-<<<<<<< HEAD
         // Valider un objet qui va etre détruit ;-) On maintient à cause des relations OneToMany & co
         if ($form->isValid())
-=======
-        //if ($form->isValid())
->>>>>>> 62ed69c9b786be332ea740b1539c25868e54b77a
         {
             $em    = $this->getDoctrine()
                           ->getManager($this->container->getParameter('sgn_forms.orm'));
