@@ -816,6 +816,7 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
 
+        // Valider un objet qui va etre détruit ;-) On maintient à cause des relations OneToMany & co
         if ($form->isValid())
         {
             $em    = $this->getDoctrine()

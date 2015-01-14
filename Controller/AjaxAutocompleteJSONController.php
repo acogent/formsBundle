@@ -18,22 +18,24 @@ class AjaxAutocompleteJSONController extends Controller
         $entities     = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
         $entity_alias = $request->get('entity_alias');
         $filter       = $request->get('filter');
-        $entity_inf   = $entities[$entity_alias];
-        if ( FALSE === $this->get('security.context')->isGranted($entity_inf['role']) )
+        $entity_info  = $entities[$entity_alias];
+
+        if ( FALSE === $this->get('security.context')->isGranted($entity_info['role']) )
         {
             throw new AccessDeniedException();
         }
         $letters      = $request->get('letters');
         $maxRows      = $request->get('page_limit');
 
-        $class            = $entity_inf['class'];
-        $property         = $entity_inf['property'];
-        $method         = $entity_inf['method'];
-        $value            = $entity_inf['value'];
-        $target           = $entity_inf['target'];
-        $show             = $entity_inf['show'];
-        $case_insensitive = $entity_inf['case_insensitive'];
-        $query            = $entity_inf['query'];
+        $class            = $entity_info['class'];
+        $property         = $entity_info['property'];
+        $method           = $entity_info['method'];
+        $value            = $entity_info['value'];
+        $target           = $entity_info['target'];
+        $show             = $entity_info['show'];
+        $case_insensitive = $entity_info['case_insensitive'];
+        $query            = $entity_info['query'];
+
 
         // Cas des “property” spéciaux, avec un préfixe :
         if (strpos($property, ".") !== FALSE)
@@ -127,7 +129,7 @@ class AjaxAutocompleteJSONController extends Controller
                 throw new \Exception('Unexpected value of parameter "target".');
         }
 
-        switch ( $entity_inf['search'] )
+        switch ( $entity_info['search'] )
         {
             case "begins_with":
                 $like = $letters . '%';
@@ -169,30 +171,35 @@ class AjaxAutocompleteJSONController extends Controller
             $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
         }
 
+
+
         // Alternative à __toString !! : création d'un champ pas en base des getet set + une fonction dans repository
         if ( isset($method)){
             $sql = $em->getRepository($class)->$method();
-            // var_dump($sql);
             $query  = $em->createQuery($sql )
                           ->setParameter('like', $like)
-                          ->setMaxResults($maxRows)
-                          ;
-            // print_r( $query->getSql() ) ; print_r ($like); exit();
+                          ->setMaxResults($maxRows);
 
-            $results = $em->createQuery($sql )
-                          ->setParameter('like', $like)
-                          ->setMaxResults($maxRows)
-                          ->getScalarResult();
+            // var_dump("entity_alias $entity_alias");
+            // var_dump("filter $filter");
+            // var_dump($entity_info);
+            // var_dump("like $like");
+            // var_dump("where_clause $where_clause");
 
+
+            // var_dump( $query->getSql() ) ;
+
+
+            $results = $query->getScalarResult();
             foreach ($results as $r)
             {
-                $res[] = array("id" => $r['id'], "text" => $r['value']);
+                $res[] = array('id' => $r['id'], "text" => $r['value']);
             }
             if ( $init == '1' )
             {
                 if ( empty($res) )
                 {
-                    $res = array("id" => NULL, "text" => "(not found)");
+                    $res = array('id' => NULL, "text" => "(not found)");
                 }else{
                     $res = $res[0];
                 }
@@ -201,24 +208,27 @@ class AjaxAutocompleteJSONController extends Controller
         }
         if ( $query == "class")
         {
-            $results = $em->createQuery(
+            $query = $em->createQuery(
                                 'SELECT e.'.$property.', e.'.$value.'
                                 FROM '.$class.' e
                                 WHERE '.$filter.' AND '.
                                 $where_clause.' '.
                                 'ORDER BY '.$prop_query)
                           ->setParameter('like', $like)
-                          ->setMaxResults($maxRows)
-                          ->getScalarResult();
+                          ->setMaxResults($maxRows) ;
+            // print_r( $query->getSql() ) ; exit();
+            $results = $query->getScalarResult();
         } else{
-            $results = $em->createQuery($query.'
+            $query = $em->createQuery($query.'
                                 AND '.$filter.' AND '.
                                 $where_clause.' '.
                                 'ORDER BY '.$prop_query)
                           ->setParameter('like', $like)
-                          ->setMaxResults($maxRows)
-                          ->getScalarResult();
+                          ->setMaxResults($maxRows);
+            // print_r( $query->getSql() ) ; exit();
+            $results = $query->getScalarResult();
         }
+
 
         foreach ($results as $r)
         {
