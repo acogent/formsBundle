@@ -1,4 +1,4 @@
-{% extends ADMIN_LAYOUT %}
+{% extends LAYOUT_workflow %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -343,7 +343,7 @@ jQuery(window).bind('resize', function() {
         {
             e.preventDefault();
         });
-
+        console.log (form.action + ajax);
         $.ajax({
             type: "POST",
             url:  form.action + ajax,

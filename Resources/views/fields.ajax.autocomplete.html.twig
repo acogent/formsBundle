@@ -17,7 +17,7 @@
             if ( $("#{{ form.vars.id }}").attr('filter') ) filter = $("#{{ form.vars.id }}").attr('filter');
             $("#{{ form.vars.id }}").select2({
                 placeholder: "Search for {{ entity_alias }}",
-                minimumInputLength: 3,
+                minimumInputLength: {{ minLength }},
                 ajax: {
                     url: "{{ path("sgn_ajaxautocomplete") }}",
                     dataType: 'json',

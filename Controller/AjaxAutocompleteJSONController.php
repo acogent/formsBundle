@@ -35,6 +35,7 @@ class AjaxAutocompleteJSONController extends Controller
         $show             = $entity_info['show'];
         $case_insensitive = $entity_info['case_insensitive'];
         $query            = $entity_info['query'];
+        $minLength        = $entity_info['minLength'];
 
 
         // Cas des “property” spéciaux, avec un préfixe :

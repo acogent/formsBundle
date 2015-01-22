@@ -79,7 +79,7 @@ class FormsCRUDController extends Controller
     private function getFormatHtml($em, $bundle, $table, $params)
     {
         $request = $this->getRequest();
-        $request->getSession()->getFlashBag()->add('info', "Les joker possibles, pour les champs texte, sont % et _. Pour les champs numériques, vous pouvez utiliser > et <. Pour une recherche plus compliquée, utilisez l'outil de recherche dédié");
+        // $request->getSession()->getFlashBag()->add('info', "Les joker possibles, pour les champs texte, sont % et _. Pour les champs numériques, vous pouvez utiliser > et <. Pour une recherche plus compliquée, utilisez l'outil de recherche dédié");
         $data   = null;
         $entity = $bundle.":".$table;
 

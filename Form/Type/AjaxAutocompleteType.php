@@ -58,16 +58,17 @@ class AjaxAutocompleteType extends AbstractType
             throw new LogicException('There are no entity alias "' . $options['entity_alias'] . '" in your config file');
         }
 
-        $options['class']    = $entities[$options['entity_alias']]['class'];
-        $options['property'] = $entities[$options['entity_alias']]['property'];
-        $options['value']    = $entities[$options['entity_alias']]['value'];
-        $options['entity']   = $entities[$options['entity_alias']]['entity'];
-        $options['query']    = $entities[$options['entity_alias']]['query'];
+        $options['class']     = $entities[$options['entity_alias']]['class'];
+        $options['property']  = $entities[$options['entity_alias']]['property'];
+        $options['value']     = $entities[$options['entity_alias']]['value'];
+        $options['entity']    = $entities[$options['entity_alias']]['entity'];
+        $options['query']     = $entities[$options['entity_alias']]['query'];
+        $options['minLength'] = $entities[$options['entity_alias']]['minLength'];
 
-        if ( $options['class'] != "query" 
+        if ( $options['class'] != "query"
           && $options['query'] == "class"
           && $options['value'] == 'id'
-          && $options['entity'] 
+          && $options['entity']
           && $options['property'] != "__toString" )
         {
             $builder->addViewTransformer(new EntityToPropertyTransformer(
@@ -78,7 +79,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
-        if ( $options['class'] != "query" 
+        if ( $options['class'] != "query"
           && $options['property'] == "__toString" )
         {
             $builder->addViewTransformer(new EntityToTostringTransformer(
@@ -88,7 +89,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
-        if ( $options['class'] != "query" 
+        if ( $options['class'] != "query"
          && !$options['entity'] )
         {
             $builder->addViewTransformer(new ClassvalueToPropertyTransformer(
@@ -99,7 +100,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
-        if ( $options['query'] != "class" 
+        if ( $options['query'] != "class"
           && $options['class'] == "query" )
         {
             $builder->addViewTransformer(new QueryvalueToPropertyTransformer(
@@ -110,7 +111,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
-        if ( $options['query'] != "class" 
+        if ( $options['query'] != "class"
           && $options['class'] != "query" )
         {
             $builder->addViewTransformer(new EntityToQuerypropertyTransformer(
@@ -123,11 +124,13 @@ class AjaxAutocompleteType extends AbstractType
         }
 
         $builder->setAttribute('entity_alias', $options['entity_alias']);
+        $builder->setAttribute('minLength', $options['minLength']);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
         $view->vars['entity_alias'] = $form->getConfig()->getAttribute('entity_alias');
+        $view->vars['minLength'] = $form->getConfig()->getAttribute('minLength');
     }
 
 }

@@ -2,6 +2,23 @@
 
 
 # Changelog
+
+## 2.5
+Ajout de l'option minLength donnant la possibilité de choisir le nombre de caractères mini à saisir dans les listes de choix. La valeur par défaut est 3.
+Exemple :
+```json
+sgn_forms:
+    autocomplete_entities:
+        auxrnactions_select:
+            class    : BDGDatabaseBundle:AuxRnAction
+            property : codVal
+            value    : codVal
+            search   : begins_with
+            entity   : false
+            method   : getFormListeSQL
+            minLength: 1
+```
+
 ## 2.4
 Ajout de la possibilité de ne pas afficher certains champs dans la grille
 ## 2.3.1
