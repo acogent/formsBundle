@@ -667,6 +667,19 @@ class FormsCRUDController extends Controller
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
+        // Pb des formulaires avec file et ajax, on est obligé de bricoler !!!!
+        // @todo : voir si on ne peux pas faire mieux !!
+        if ($request->isXmlHttpRequest()) {
+            $errors = $form->get('file')->getErrors();
+            $request->getSession()->getFlashBag()->add('info', 'Fichier ajouté.');
+            $response = new Response();
+            $output = array('success' => false, 'errors' => $errors[0]->getMessage());
+            $response->headers->set('Content-Type', 'application/json');
+            $response->setContent(json_encode($output));
+
+            return $response;
+        }
+
 
         return array(
                 'form' => $form->createView(),
@@ -728,6 +741,7 @@ class FormsCRUDController extends Controller
         if ($ajax != 'dynamic' && $form->isValid())
         {
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
+
             $em->flush();
             if ($ajax != '')
             {
