@@ -634,9 +634,7 @@ class FormsCRUDController extends Controller
         }else{
             $type = $classDir.'\Form\\'.$table.'Type';
         }
-
         $obj  = new $class();
-
         $form = $this->createForm(
             $type != "" ? new $type() : strtolower($table)."_type",
             $obj,
@@ -667,6 +665,10 @@ class FormsCRUDController extends Controller
             return $this->redirect($this->generateUrl('sgn_forms_formscrud_show',
                 array('bundle' => $bundle, 'table' => $table)));
         }
+        else if ($ajax == 'validate' && !$form->isValid())
+        {
+            return array( 'form' => $form->createView(), );
+        }
         // Pb des formulaires avec file et ajax, on est obligé de bricoler !!!!
         // @todo : voir si on ne peux pas faire mieux !!
         if ($request->isXmlHttpRequest()) {
@@ -680,10 +682,7 @@ class FormsCRUDController extends Controller
             return $response;
         }
 
-
-        return array(
-                'form' => $form->createView(),
-            );
+        return array( 'form' => $form->createView(), );
     }
 
     /**
@@ -741,7 +740,6 @@ class FormsCRUDController extends Controller
         if ($ajax != 'dynamic' && $form->isValid())
         {
             $request->getSession()->getFlashBag()->add('info', 'Enregistrement modifé.');
-
             $em->flush();
             if ($ajax != '')
             {
