@@ -343,7 +343,6 @@ jQuery(window).bind('resize', function() {
         {
             e.preventDefault();
         });
-        console.log (form.action + ajax);
         $.ajax({
             type: "POST",
             url:  form.action + ajax,
@@ -359,6 +358,11 @@ jQuery(window).bind('resize', function() {
                     window.location.replace(result);
                 }
             })
+            .fail(function(result) {
+                console.log (form.action + ajax);
+                // alert( "error" );
+                // jQuery(formName).html(result);
+             })
     }
 
 </script>
