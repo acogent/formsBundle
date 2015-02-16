@@ -3,7 +3,7 @@
 
 # Changelog
 
-## 2.5.1
+## 2.5.3
 Correction bug de layout.
 Il faut maintenant  déclarer dans config.yml :
 
