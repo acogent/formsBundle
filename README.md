@@ -3,9 +3,20 @@
 
 # Changelog
 
+## 2.5.1
+Correction bug de layout.
+Il faut maintenant  déclarer dans config.yml :
+
+```json
+twig:
+    globals:
+        FORMS_LAYOUT:       'BDGWebsiteBundle::admin_layout.html.twig'
+```
+
 ## 2.5
 Ajout de l'option minLength donnant la possibilité de choisir le nombre de caractères mini à saisir dans les listes de choix. La valeur par défaut est 3.
 Exemple :
+
 ```json
 sgn_forms:
     autocomplete_entities:
@@ -216,7 +227,6 @@ sgn_forms:
         niverns:
             property: rnNom
             query:    'SELECT r.id, e.rnNom FROM CANEXIntranetDatabaseBundle:NiveRnNom e JOIN e.niveRn r WHERE e.rnNomDate = (SELECT MAX(o.rnNomDate) FROM CANEXIntranetDatabaseBundle:NiveRnNom o WHERE o.niveRn = r.id)'
-
 ```
 
 
@@ -237,7 +247,6 @@ Dans routing.yml, ajouter :
 ```
 sgn_forms:
     resource: '@SGNFormsBundle/Resources/config/routing.xml'
-
 ```
 
 4. Dans le formulaire :
@@ -277,6 +286,7 @@ sgn_forms:
         'SITELOGDatabaseBundle:Sitelog': 'id, Domes'
 
 ```
+
 L'entrée "entities_fields" est obligatoire. Listez ensuite les entités avec leur bundle et la liste des champs ordonnés séparé par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés.
 ### Masquage de colonnes pour jQgrid
 
@@ -286,7 +296,7 @@ Vous pouvez personnaliser l'affichage des colonnes dans jQgrid et décider d'en 
 sgn_forms:
     ....
     entities_fields_hidden:
-        'BDGDatabaseBundle:NivfRn': 'remPortage, geom' 
+        'BDGDatabaseBundle:NivfRn': 'remPortage, geom'
 
 ```
 
@@ -311,9 +321,10 @@ Déclarer un template d'aministration :
 twig:
     ...
     globals:
-        ADMIN_LAYOUT: 'BDGSWebsiteBundle::admin_layout.html.twig'
+        FORMS_LAYOUT: 'BDGSWebsiteBundle::admin_layout.html.twig'
 ```
-où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exmple, à vous de mettre votre template.
+
+où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exemple, à vous de mettre votre template.
 
 
 ### Le générateur de formulaire et interface générique de consultation des entités
