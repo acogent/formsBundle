@@ -3,6 +3,24 @@
 
 # Changelog
 
+## 2.5.4
+Ajout pour autocomplete_entities la possibilité de 'search' avec equals :
+
+```json
+sgn_forms:
+    autocomplete_entities:
+        coordprecisions_select:
+            class    : BDGDatabaseBundle:AuxCoordPrecision
+            property : id
+            value    : id
+            search   : equals
+            entity   : false
+            method   : getFormListeSQL
+            minLength: 1
+```
+Peut être utile lorsque l'on filtre sur un identifiant
+
+
 ## 2.5.3
 Correction bug de layout.
 Il faut maintenant  déclarer dans config.yml :

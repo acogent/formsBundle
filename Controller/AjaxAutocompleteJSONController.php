@@ -141,6 +141,9 @@ class AjaxAutocompleteJSONController extends Controller
             case "contains":
                 $like = '%' . $letters . '%';
                 break;
+            case "equals":
+                $like = $letters;
+                break;
             default:
                 throw new \Exception('Unexpected value of parameter "search".');
         }
