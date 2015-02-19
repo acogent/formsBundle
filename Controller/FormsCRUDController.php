@@ -779,6 +779,11 @@ class FormsCRUDController extends Controller
                 if (! $obj->{'get'.ucfirst($value)}() ) $fields[$value]  = '';
                 else $fields[$value]  = $obj->{'get'.ucfirst($value)}()->format('Y-m-d');
             }
+            elseif ($MetaData->fieldMappings[$value]['type'] == 'datetime'  )
+            {
+                if (! $obj->{'get'.ucfirst($value)}() ) $fields[$value]  = '';
+                else $fields[$value]  = $obj->{'get'.ucfirst($value)}()->format('Y-m-d H:i:s');
+            }
             else{
                 $fields[$value] = $obj->{'get'.ucfirst($value)}();
             }
