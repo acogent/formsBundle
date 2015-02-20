@@ -1013,21 +1013,27 @@ class FormsCRUDController extends Controller
                     }
                 }
                 else{
-                     $enr = $em->getRepository($bundle.':'.$table)
-                    ->findOneById($id );
+                    //  $enr = $em->getRepository($bundle.':'.$table)
+                    // ->findOneById($id );
 
-                    $method_name = 'get' . $collection ;
-                    if (method_exists($enr, $method_name)) $datas = $enr->$method_name();
-                    if(count($datas) > 0 )
-                    {
-                        foreach ($datas as $data)
-                        {
-                            $result[] = Serializor::toArray($data);
-                        }
-                        $columnNames     = $this->getColumnNames($result[0]);
-                        $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
-                        $columnModel     = $this->getColumnModel($result[0]);
-                    }
+                    // $method_name = 'get' . $collection ;
+                    // if (method_exists($enr, $method_name)) $datas = $enr->$method_name();
+                    // if(count($datas) > 0 )
+                    // {
+                        // foreach ($datas as $data)
+                        // {
+                        //     $result[] = Serializor::toArray($data);
+                        // }
+                        // $columnNames     = $this->getColumnNames($result[0]);
+                        // $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
+                        // $columnModel     = $this->getColumnModel($result[0]);
+                    // }
+
+                    $class = $em->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($collection);
+
+                    $columnNames     = $this->getColumnNames(array(), $em, $class);
+                    $collectionNames = $this->getCollectionNames(array(), $bundle,$table);
+                    $columnModel     = $this->getColumnModel(array(), $em, $class);
                 }
             }
         }
@@ -1180,17 +1186,29 @@ class FormsCRUDController extends Controller
         if ($em && $entity)
         {
             $metadata = $em->getClassMetadata($entity);
-            foreach($data as $champ=>$val)
+            // foreach($data as $champ=>$val)
+            // {
+            //     if(!is_array($val ) )
+            //     {
+            //         if ($metadata->getTypeOfField( $champ) === NULL)
+            //         {
+            //             $columnModel .="{ name: '".$champ."' , index: '".$champ."' , search: false },";
+            //         }
+            //         else{
+            //             $columnModel .="{ name: '".$champ."' , index: '".$champ."', search: true },";
+            //         }
+            //     }
+            // }
+
+            foreach ($metadata->getFieldNames() as $champ)
             {
-                if(!is_array($val ) )
+                $columnModel .="{ name: '".$champ."' , index: '".$champ."', search: true },";
+            }
+            foreach ($metadata->getAssociationNames() as $champ)
+            {
+                if ($metadata->isSingleValuedAssociation($champ))
                 {
-                    if ($metadata->getTypeOfField( $champ) === NULL)
-                    {
-                        $columnModel .="{ name: '".$champ."' , index: '".$champ."' , search: false },";
-                    }
-                    else{
-                        $columnModel .="{ name: '".$champ."' , index: '".$champ."', search: true },";
-                    }
+                    $columnModel .="{ name: '".$champ."' , index: '".$champ."' , search: false },";
                 }
             }
         }
