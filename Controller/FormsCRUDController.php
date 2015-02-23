@@ -183,7 +183,7 @@ class FormsCRUDController extends Controller
 
             if ($count  < $limit) $limit = $count;
 
-            $columnNames     = $this->getColumnNames($result[0]);
+            //$columnNames     = $this->getColumnNames($result[0]);
             //$collectionNames = $this->getCollectionNames($result[0],$bundle,$table);
             $collectionNames = $this->getCollectionNames($colNames,$bundle,$table);
             $columnModel     = $this->getColumnModel($result[0], $em, $entity);
@@ -191,7 +191,7 @@ class FormsCRUDController extends Controller
             return array(
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
-                'columnNames'     => $columnNames,
+                //'columnNames'     => $columnNames,
                 'collectionNames' => $collectionNames,
                 'entity'          => $table,
                 'count'           => $count,
@@ -210,7 +210,7 @@ class FormsCRUDController extends Controller
              return array(
                 'project'         => $bundle,
                 'columnModel'     => "[]",
-                'columnNames'     => "",
+                //'columnNames'     => "",
                 'collectionNames' => null,
                 'entity'          => $table,
                 'count'           => 0,
@@ -872,7 +872,7 @@ class FormsCRUDController extends Controller
         $page    = isset($filters['page']) ? $filters['page'] : 0;
 
         $columnModel     = "[]";
-        $columnNames     = "";
+        //$columnNames     = "";
         $collectionNames = null;
         $result          = array();
         $datas = array();
@@ -893,7 +893,7 @@ class FormsCRUDController extends Controller
                         if ($index ==  count($datas) ) break;
                         $result[] = $datas[$index];
                     }
-                    $columnNames     = $this->getColumnNames($result[0]);
+                    //$columnNames     = $this->getColumnNames($result[0]);
                     $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
                     $columnModel     = $this->getColumnModel($result[0]);
                 }
@@ -910,7 +910,7 @@ class FormsCRUDController extends Controller
                         if ($index == count($datas) ) break;
                         $result[] = Serializor::toArray( $datas[$index]);
                     }
-                    $columnNames     = $this->getColumnNames($result[0]);
+                    //$columnNames     = $this->getColumnNames($result[0]);
                     $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
                     $columnModel     = $this->getColumnModel($result[0]);
                 }
@@ -943,7 +943,7 @@ class FormsCRUDController extends Controller
         return array(
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
-                'columnNames'     => $columnNames,
+                //'columnNames'     => $columnNames,
                 'table'           => $table,
                 'collectionNames' => $collectionNames,
                 'entity'          => $collection,
@@ -990,7 +990,7 @@ class FormsCRUDController extends Controller
     {
         $request    = $this->getRequest();
         $columnModel     = "[]";
-        $columnNames     = "";
+        //$columnNames     = "";
         $collectionNames = null;
         $datas = array();
         if($request->isXmlHttpRequest())
@@ -1007,34 +1007,24 @@ class FormsCRUDController extends Controller
                         {
                             $result[] = $data;
                         }
-                        $columnNames     = $this->getColumnNames($result[0]);
+                        //$columnNames     = $this->getColumnNames($result[0]);
                         $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
                         $columnModel     = $this->getColumnModel($result[0]);
                     }
                 }
                 else{
-                     $enr = $em->getRepository($bundle.':'.$table)
-                    ->findOneById($id );
+                    $class = $em->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($collection);
 
-                    $method_name = 'get' . $collection ;
-                    if (method_exists($enr, $method_name)) $datas = $enr->$method_name();
-                    if(count($datas) > 0 )
-                    {
-                        foreach ($datas as $data)
-                        {
-                            $result[] = Serializor::toArray($data);
-                        }
-                        $columnNames     = $this->getColumnNames($result[0]);
-                        $collectionNames = $this->getCollectionNames($result[0], $bundle,$table);
-                        $columnModel     = $this->getColumnModel($result[0]);
-                    }
+                    //$columnNames     = $this->getColumnNames(array(), $em, $class);
+                    $collectionNames = $this->getCollectionNames(array(), $bundle,$table);
+                    $columnModel     = $this->getColumnModel(array(), $em, $class);
                 }
             }
         }
         return array(
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
-                'columnNames'     => $columnNames,
+                //'columnNames'     => $columnNames,
                 'table'           => $table,
                 'collectionNames' => $collectionNames,
                 'entity'          => $collection,
@@ -1180,17 +1170,15 @@ class FormsCRUDController extends Controller
         if ($em && $entity)
         {
             $metadata = $em->getClassMetadata($entity);
-            foreach($data as $champ=>$val)
+            foreach ($metadata->getFieldNames() as $champ)
             {
-                if(!is_array($val ) )
+                $columnModel .="{ name: '".$champ."' , index: '".$champ."', search: true },";
+            }
+            foreach ($metadata->getAssociationNames() as $champ)
+            {
+                if ($metadata->isSingleValuedAssociation($champ))
                 {
-                    if ($metadata->getTypeOfField( $champ) === NULL)
-                    {
-                        $columnModel .="{ name: '".$champ."' , index: '".$champ."' , search: false },";
-                    }
-                    else{
-                        $columnModel .="{ name: '".$champ."' , index: '".$champ."', search: true },";
-                    }
+                    $columnModel .="{ name: '".$champ."' , index: '".$champ."' , search: false },";
                 }
             }
         }
