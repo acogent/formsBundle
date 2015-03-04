@@ -24,7 +24,7 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
 
     public function testNewScenario()
     {
-        $crawler = $this->client->request('GET', $this->url_new);
+        $crawler = $this->client->request('GET', $this->urlNew);
         $form = $crawler->selectButton('Ajouter')->form(array(
 {%- for field in fields %}
 
