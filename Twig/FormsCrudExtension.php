@@ -8,39 +8,45 @@ use Symfony\Component\HttpKernel\HttpKernel;
 use \Twig_Function_Method;
 use \Twig_Filter_Method;
 
-
 class FormsCrudExtension extends \Twig_Extension
 {
     private $container;
+
 
     public function __construct($container)
     {
         $this->container = $container;
     }
-    
+
+
     public function getName()
     {
         return 'forms_crud_twig_extension';
     }
 
+
     public function getGlobals()
     {
-        return array(
+        return array
+        (
             'sgn_forms_crud_twig_style'    =>  $this->container->getParameter('sgn_forms.twig_style'),
             'sgn_forms_crud_bestof_entity' =>  $this->container->getParameter('sgn_forms.bestof_entity'),
             'sgn_forms_crud_orm'           =>  $this->container->getParameter('sgn_forms.orm'),
             'sgn_forms_bundles'            =>  $this->container->getParameter('sgn_forms.bundles')
         );
+
     }
+
 
     /**
      * Retourne la liste des Filtres de template à ajouter à Twig.
-     * 
+     *
      * @return array
      */
     public function getFilters()
     {
-        return array(
+        return array
+        (
             'json_decode'     => new Twig_Filter_Method($this, 'jsonDecodeFilter'),
             // 'dump_php'     => new Twig_Filter_Method($this, 'dumpFilter'),
             'DD2DMS'          => new Twig_Filter_Method($this, 'DD2DMSFilter'),
@@ -50,24 +56,19 @@ class FormsCrudExtension extends \Twig_Extension
             'YearOfDate'      => new Twig_Filter_Method($this, 'YearOfDateFilter'),
             'jsonToHTMLTable' => new Twig_Filter_Method($this, 'jsonToHTMLTableFilter'),
         );
+
     }
+
 
     /**
      * Retourne la liste des Fonctions de template à ajouter à Twig.
      *
      * @return array
      */
-    public function getFunctions() {
- 
-        return array(
-            'current_uri' => new \Twig_Function_Method( $this, 'getCurrentURIFunction' ),
-        );
+    public function getFunctions()
+    {
+        return array('current_uri' => new \Twig_Function_Method($this, 'getCurrentURIFunction'));
     }
-
-
-
-
-
 
 
 /*****************************************************
@@ -77,77 +78,85 @@ class FormsCrudExtension extends \Twig_Extension
 *
 *****************************************************/
 
+
     /**
      * Renvoie en table HTML un json très simple
-     * 
+     *
      * @param json $json
      * @return html
      */
     public function jsonToHTMLTableFilter($json)
     {
         $html = "<table class = 'table_json'>";
-        $tab = json_decode($json);
-        foreach ($tab as $key => $val)
-        {
-           $html .= "<tr><td>$key</td><td>$val</td></tr>";
+        $tab  = json_decode($json);
+        foreach ($tab as $key => $val) {
+            $html .= '<tr><td>'.$key.'</td><td>'.$val.'</td></tr>';
         }
+
         return $html.'</table>';
     }
 
+
    /**
      * Renvoie le jour GPS
-     * 
+     *
      * @param  string $DateTime
      * @return string
      */
     public function GPSWeekFilter($str)
     {
-        $DateTime         = new \DateTime($str);
-        $OriginalDateTime = new \DateTime('1980-01-09');
-        $interval         = $OriginalDateTime->diff($DateTime);
-        $days             = (double)$interval->format('%a');
-        $weeks            = (integer)(($days/7)+0.5);
-        return $weeks ;
+        $dateTime         = new \DateTime($str);
+        $originalDateTime = new \DateTime('1980-01-09');
+        $interval         = $originalDateTime->diff($dateTime);
+        $days  = (double) $interval->format('%a');
+        $weeks = (integer) (($days / 7) + 0.5);
+
+        return $weeks;
     }
+
 
     /**
      * Renvoie le jour de la semaine
-     * 
+     *
      * @param  string $DateTime
      * @return string
      */
     public function DayOfWeekFilter($str)
     {
-        $DateTime  = new \DateTime($str);
-        $DayOfWeek = $DateTime->format('w')." (" . $DateTime->format('l') .')';
-        return $DayOfWeek;
+        $dateTime  = new \DateTime($str);
+        $dayOfWeek = $dateTime->format('w').' ('.$dateTime->format('l').')';
+
+        return $dayOfWeek;
     }
 
 
     /**
      * Renvoie le numéro du jour dans l'année
-     * 
+     *
      * @param  string $DateTime
      * @return string
      */
     public function DayOfYearFilter($str)
     {
-        $DateTime         = new \DateTime($str);
-        $DayOfyear = $DateTime->format('z') . " (" .$DateTime->format('Y').")" ;
-        return $DayOfyear;
+        $dateTime  = new \DateTime($str);
+        $dayOfyear = $dateTime->format('z').' ('.$dateTime->format('Y').')';
+
+        return $dayOfyear;
     }
+
 
     /**
      * Renvoie l'année de la date
-     * 
+     *
      * @param  string $DateTime
      * @return string
      */
     public function YearOfDateFilter($str)
     {
-        $DateTime         = new \DateTime($str);
-        $Year = $DateTime->format('Y');
-        return $Year;
+        $dateTime = new \DateTime($str);
+        $year     = $dateTime->format('Y');
+
+        return $year;
     }
 
 
@@ -159,8 +168,10 @@ class FormsCrudExtension extends \Twig_Extension
     public function jsonDecodeFilter($string)
     {
         $object = json_decode($string, true);
+
         return $object;
     }
+
 
     /**
      * Convert coord DD to DMS
@@ -170,17 +181,19 @@ class FormsCrudExtension extends \Twig_Extension
      */
     public function DD2DMSFilter($coord1)
     {
-        $vars   = explode(".",$coord1);
+        $vars   = explode('.', $coord1);
         $deg    = $vars[0];
-        $tempma = "0.".$vars[1];
+        $tempma = '0.'.$vars[1];
 
-        $tempma = $tempma * 3600;
+        $tempma = ($tempma * 3600);
         $min    = floor($tempma / 60);
-        $sec    = round( $tempma - ($min*60) , 5);
+        $sec    = round(($tempma - ($min * 60)), 5);
 
-        $str = $deg." ° ".$min." ' ".$sec. ' "';
-        return $str ;
+        $str = $deg.' °  '.$min." ' ".$sec.' "';
+
+        return $str;
     }
+
 
 /*****************************************************
 *
@@ -188,13 +201,17 @@ class FormsCrudExtension extends \Twig_Extension
 *
 *
 *****************************************************/
+
+
     /**
      * Retourne l'URI courante.
      *
      * @return string $_SERVER['REQUEST_URI']
      */
-    public function getCurrentURIFunction() {
- 
+    public function getCurrentURIFunction()
+    {
         return $_SERVER['REQUEST_URI'];
     }
+
+
 }

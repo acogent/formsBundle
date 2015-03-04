@@ -21,7 +21,7 @@ $(document).ready(function() {
         jsonReader : {
           repeatitems: false
         },
-        // colNames    : {# {{ columnNames|json_encode()|raw }} #},
+        colNames    : {{ columnNames|json_encode()|raw }},
         colModel    : {{ columnModel|raw   }} ,
         rowNum      : {{ limit }},
         rowList     : {{ rowsList }},
