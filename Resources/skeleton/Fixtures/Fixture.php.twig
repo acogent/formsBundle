@@ -18,11 +18,11 @@ class {{ fixture_class }} extends AbstractFixture implements OrderedFixtureInter
 
     public function load(ObjectManager $manager)
     {
-        ${{ entity_class }}_1 = new {{ entity_class }}();
+        ${{ entity_class|lower }}1 = new {{ entity_class }}();
 
 {%- for field in fields %}
 
-        ${{ entity_class }}_1->set{{field[:1]|capitalize}}{{field[1:]}}(null);
+        ${{ entity_class|lower }}1->set{{field[:1]|capitalize}}{{field[1:]}}(null);
 
 {%- endfor %}
 
@@ -30,14 +30,14 @@ class {{ fixture_class }} extends AbstractFixture implements OrderedFixtureInter
     // Les références doivent être d'abord créées dans un fichier chargé en premier
 {%- for field in fieldsManyToOne %}
 
-        // ${{ entity_class }}_1->set{{field[:1]|capitalize}}{{field[1:]}}($this->getReference('{{field|lower}}_NULL'));
+        // ${{ entity_class|lower }}1->set{{field[:1]|capitalize}}{{field[1:]}}($this->getReference('{{field|lower}}_NULL'));
 
 {%- endfor %}
 
-        $manager->persist(${{ entity_class }}_1);
+        $manager->persist(${{ entity_class|lower }}_1);
         $manager->flush();
 
-        // $this->addReference('{{ entity_class }}_1', ${{ entity_class }}_1);
+        // $this->addReference('{{ entity_class|lower }}1', ${{ entity_class }}_1);
     }
 
 
