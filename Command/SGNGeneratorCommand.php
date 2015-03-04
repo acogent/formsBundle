@@ -21,16 +21,21 @@ use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
  */
 abstract class SGNGeneratorCommand extends ContainerAwareCommand
 {
+
     private $generator;
 
     // only useful for unit tests
+
+
     public function setGenerator(Generator $generator)
     {
         $this->generator = $generator;
 
     }
 
-    protected abstract function createGenerator();
+
+    abstract protected function createGenerator();
+
 
     protected function getGenerator(BundleInterface $bundle = null)
     {
@@ -42,16 +47,17 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
         return $this->generator;
     }
 
+
     protected function getSkeletonDirs(BundleInterface $bundle = null)
     {
         $skeletonDirs = array();
 
-        if (isset($bundle) && is_dir($dir = $bundle->getPath().'/Resources/SensioGeneratorBundle/skeleton')) {
-            $skeletonDirs[] = $dir;
+        if (isset($bundle) === true && is_dir($bundle->getPath().'/Resources/SensioGeneratorBundle/skeleton') === true) {
+            $skeletonDirs[] = $bundle->getPath().'/Resources/SensioGeneratorBundle/skeleton';
         }
 
-        if (is_dir($dir = $this->getContainer()->get('kernel')->getRootdir().'/Resources/SensioGeneratorBundle/skeleton')) {
-            $skeletonDirs[] = $dir;
+        if (is_dir($this->getContainer()->get('kernel')->getRootdir().'/Resources/SensioGeneratorBundle/skeleton') === true) {
+            $skeletonDirs[] = $this->getContainer()->get('kernel')->getRootdir().'/Resources/SensioGeneratorBundle/skeleton';
         }
 
         $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
@@ -61,14 +67,17 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
         return $skeletonDirs;
     }
 
+
     protected function getDialogHelper()
     {
         $dialog = $this->getHelperSet()->get('dialog');
-        if (!$dialog || get_class($dialog) !== 'Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper') {
-            $this->getHelperSet()->set($dialog = new DialogHelper());
+        if ($dialog === false || get_class($dialog) !== 'Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper') {
+            $dialog = new DialogHelper();
+            $this->getHelperSet()->set($dialog);
         }
 
         return $dialog;
     }
+
 
 }

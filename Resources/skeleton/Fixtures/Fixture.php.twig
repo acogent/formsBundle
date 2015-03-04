@@ -10,10 +10,11 @@ use {{namespace}}\Entity\{{ entity_class }};
 {% endblock use_statements %}
 
 {% block class_definition %}
-class {{ fixture_class }}  extends AbstractFixture implements OrderedFixtureInterface
+class {{ fixture_class }} extends AbstractFixture implements OrderedFixtureInterface
 {% endblock class_definition %}
 {
 {% block class_body %}
+
 
     public function load(ObjectManager $manager)
     {
@@ -21,7 +22,7 @@ class {{ fixture_class }}  extends AbstractFixture implements OrderedFixtureInte
 
 {%- for field in fields %}
 
-        ${{ entity_class }}_1->set{{field[:1]|capitalize}}{{field[1:]}}(NULL);
+        ${{ entity_class }}_1->set{{field[:1]|capitalize}}{{field[1:]}}(null);
 
 {%- endfor %}
 
@@ -39,6 +40,7 @@ class {{ fixture_class }}  extends AbstractFixture implements OrderedFixtureInte
         // $this->addReference('{{ entity_class }}_1', ${{ entity_class }}_1);
     }
 
+
     /**
      * {@inheritDoc}
      */
@@ -46,6 +48,7 @@ class {{ fixture_class }}  extends AbstractFixture implements OrderedFixtureInte
     {
         return XX; // l'ordre dans lequel les fichiers sont chargés
     }
+
+
 {% endblock class_body %}
 }
-

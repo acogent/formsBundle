@@ -23,9 +23,13 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class SGNTestGenerator extends SGNGenerator
 {
+
     private $filesystem;
+
     private $className;
+
     private $classPath;
+
 
     /**
      * Constructor.
@@ -37,15 +41,18 @@ class SGNTestGenerator extends SGNGenerator
         $this->filesystem = $filesystem;
     }
 
+
     public function getClassName()
     {
         return $this->className;
     }
 
+
     public function getClassPath()
     {
         return $this->classPath;
     }
+
 
     /**
      * Generates the entity form class if it does not exist.
@@ -70,21 +77,26 @@ class SGNTestGenerator extends SGNGenerator
 
         $parts = explode('\\', $entity);
         array_pop($parts);
-        $namespace = $bundle->getNamespace();
-        $frm_namespace = strtolower( str_replace('\\', '_', $namespace));
-        $this->renderFile('Tests/Test.php.twig', $this->classPath, array(
-            'fields'           => $this->getFieldsFromMetadata($metadata),
-            'fieldsManyToOne'  => $this->getFieldsManyToOneFromMetadata($metadata),
-            'fieldsOneToMany'  => $this->getFieldsOneToManyFromMetadata($metadata),
-            'namespace'        => $bundle->getNamespace(),
-            'frm_namespace'    => $frm_namespace,
-            'entity_namespace' => implode('\\', $parts),
-            'entity_class'     => $entityClass,
-            'bundle'           => $bundle->getName(),
-            'test_class'       => $this->className,
+        $namespace     = $bundle->getNamespace();
+        $frm_namespace = strtolower(str_replace('\\', '_', $namespace));
+        $this->renderFile(
+            'Tests/Test.php.twig',
+            $this->classPath,
+            array(
+             'fields'           => $this->getFieldsFromMetadata($metadata),
+             'fieldsManyToOne'  => $this->getFieldsManyToOneFromMetadata($metadata),
+             'fieldsOneToMany'  => $this->getFieldsOneToManyFromMetadata($metadata),
+             'namespace'        => $bundle->getNamespace(),
+             'frm_namespace'    => $frm_namespace,
+             'entity_namespace' => implode('\\', $parts),
+             'entity_class'     => $entityClass,
+             'bundle'           => $bundle->getName(),
+             'test_class'       => $this->className,
             // 'form_type_name'   => strtolower(str_replace('\\', '_', $bundle->getNamespace()).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
-        ));
+            )
+        );
     }
+
 
     /**
      * Returns an array of fields. Fields can be both column fields and
@@ -101,8 +113,10 @@ class SGNTestGenerator extends SGNGenerator
         if (!$metadata->isIdentifierNatural()) {
             $fields = array_diff($fields, $metadata->identifier);
         }
+
         return $fields;
     }
+
 
    /**
      * Returns an array of fields. Fields can be both column fields and
@@ -113,17 +127,18 @@ class SGNTestGenerator extends SGNGenerator
      */
     private function getFieldsOneToManyFromMetadata(ClassMetadataInfo $metadata)
     {
-        $fields =  array();
+        $fields = array();
 
         foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::ONE_TO_MANY)
-            {
-                // $fields[] = substr($fieldName,0,strlen($fieldName)-1);
-                $fields[] =  $fieldName ;
+            if ($relation['type'] == ClassMetadataInfo::ONE_TO_MANY) {
+// $fields[] = substr($fieldName,0,strlen($fieldName)-1);
+                $fields[] = $fieldName;
             }
         }
+
         return $fields;
     }
+
 
    /**
      * Returns an array of fields. Fields can be both column fields and
@@ -134,14 +149,16 @@ class SGNTestGenerator extends SGNGenerator
      */
     private function getFieldsManyToOneFromMetadata(ClassMetadataInfo $metadata)
     {
-        $fields =  array();
+        $fields = array();
 
         foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::MANY_TO_ONE)
-            {
-                $fields[] =  $fieldName ;
+            if ($relation['type'] == ClassMetadataInfo::MANY_TO_ONE) {
+                $fields[] = $fieldName;
             }
         }
+
         return $fields;
     }
+
+
 }

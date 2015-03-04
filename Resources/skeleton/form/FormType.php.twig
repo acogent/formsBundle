@@ -22,80 +22,75 @@ class {{ form_class }} extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        // Si vous souhaitez personnaliser votre formulaire selon des données soumises, décommentez la fonction onChangeField de la classe. À utiliser de la sorte : ->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label', 'entity_alias'=>'geocids', 'attr' => array('onchange' => $this->onChangeField())))
+        /* Si vous souhaitez personnaliser votre formulaire selon des données soumises,
+            décommentez la fonction onChangeField de la classe. À utiliser de la sorte :
+            ->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label',
+            'entity_alias'=>'geocids', 'attr' => array('onchange' => $this->onChangeField())))*/
 
-        $builder
-                
+
         {%- for field in fields %}
 {% if 'date' in field %}
-                ->add('{{ field }}', 'date', array('input'  => 'datetime', 'widget' => 'single_text', 'label' => '{{ entity_class|lower }}.{{ field }}.label'))
+            $builder->add('{{ field }}', 'date', array('input'  => 'datetime', 'widget' => 'single_text', 'label' => '{{ entity_class|lower }}.{{ field }}.label'));
 {% else %}
-                ->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'))
+            $builder->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'));
 {% endif %}
         {%- endfor %}
-                // ->add('ajax', 'hidden', array('mapped' => FALSE)) // champ à activer si vous voulez modifier dynamiquement le formulaire
-        
+            // champ à activer si vous voulez modifier dynamiquement le formulaire
+            // $builder->add('ajax', 'hidden', array('mapped' => false));
+
         {% if fieldsManyToOne|length > 0 %}
-       
 
        // Champs ManyToOne
              {%- for field in fieldsManyToOne %}
 
-                ->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'))
-             // Si vous voulez une gestion de liste de choix avec Ajax, supprimez la liste ci-dessus et décommentez celle ci-dessous. N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
-             // ->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
+            $builder->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'));
+             // Si vous voulez une gestion de liste de choix avec Ajax,
+             //supprimez la liste ci-dessus et décommentez celle ci-dessous.
+             // N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
+             // $builder->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
              {%- endfor %}
          {% endif %}
-        
 
-        ;
-
-        
 
         {% if fieldsOneToMany|length > 0 %}
        // Champs OneToMany
              {%- for field in fieldsOneToMany %}
 
-        /* 
-        $builder->add('{{ field }}', 'collection', array(
+        /*
+        $builder->add(
+        '{{ field }}',
+        'collection',
+        array(
             'type' => new {{ field }}Type(),
             'prototype' => true,
             'allow_add' => true,
             'allow_delete' => true,
             'by_reference' => false,
             'cascade_validation' => true,
-            ));
+            )
+        );
         */
              {%- endfor %}
-                
+
          {% endif %}
 
          // Si vous avez des règles de validation personnelles, utilisez l’Ajax pour soumettre le formulaire : décommentez les deux lignes ci-dessous et la fonction onClickSubmitForm de la classe.
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $event) {
             $obj  = $event->getData();
             $form = $event->getForm();
-            if (isset ($obj)  && $obj->getId())
-            {
-                $form
-                ->add('submit', 'submit', array(
-                   'label' => 'Modifier',
-                   // 'attr'  => array('onclick' => $this->onClickSubmitForm())
-                   ))
-                ;
-            } else {
-                 $form
-                 ->add('submit', 'submit', array(
-                   'label' => 'Ajouter',
-                   // 'attr'  => array('onclick' => $this->onClickSubmitForm())
-                 ))
-                ;
+            if (isset ($obj) === true && $obj->getId() > 0) {
+                $form->add('submit', 'submit', array('label' => 'Modifier'/*, 'attr'  => array('onclick' => $this->onClickSubmitForm())*/));
+
+                return;
             }
+            $form->add('submit', 'submit', array('label' => 'Ajouter'/*, 'attr'  => array('onclick' => $this->onClickSubmitForm()) */));
         });
 
-        // Si vous souhaitez personnaliser votre formulaire selon des données soumises, utilisez des listeners du type :
+        // Si vous souhaitez personnaliser votre formulaire selon des données soumises,
+        // utilisez des listeners du type :
         /*
         $builder->addEventListener(
-            FormEvents::PRE_SET_DATA, 
+            FormEvents::PRE_SET_DATA,
             function(FormEvent $event){
                 $form = $event->getForm();
                 $obj = $event->getData(); // ici : {{ entity_class }}
@@ -114,7 +109,7 @@ class {{ form_class }} extends AbstractType
 
         // Ici, monChamp est un champ de votre formulaire
         $builder->get('monChamp')->addEventListener(
-            FormEvents::POST_SUBMIT, 
+            FormEvents::POST_SUBMIT,
             function(FormEvent $event){
                 $form = $event->getForm(); // ici : FormInterface de monChamp
                 // Dans le cas d’un formulaire modifié dynamiquement :
@@ -134,18 +129,29 @@ class {{ form_class }} extends AbstractType
         */
 
     }
-
     {% endif %}
+
 
     /**
      * @param OptionsResolverInterface $resolver
      */
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $resolver->setDefaults(array(
-            'data_class' => '{{ namespace }}\Entity{{ entity_namespace ? '\\' ~ entity_namespace : '' }}\{{ entity_class }}'
-        ));
+        $resolver->setDefaults(
+            array(
+             'data_class'         => 'BDG\DatabaseBundle\Entity\AuxCommune',
+             'translation_domain' => 'formLabelsAux',
+            )
+        );
+
+        $resolver->setDefaults(
+            array(
+             'data_class' => '{{ namespace }}\Entity{{ entity_namespace ? '\\' ~ entity_namespace : '' }}\{{ entity_class }}',
+             'translation_domain' => 'messages',
+            )
+        );
     }
+
 
     /**
      * @return string
@@ -154,6 +160,7 @@ class {{ form_class }} extends AbstractType
     {
         return '{{ form_type_name }}';
     }
+
 
     /**
      * Cette méthode renvoie la requête JQuery à associer à l’événement onChange d’un champ du formulaire, dans le cas de modification dynamique.
@@ -167,6 +174,7 @@ class {{ form_class }} extends AbstractType
 
         return $jquery;
     }
+
 
     /**
      * Cette méthode renvoie la requête JQuery à associer à l’événement onClick d’un bouton Submit du formulaire, dans le cas d’une validation par Ajax.

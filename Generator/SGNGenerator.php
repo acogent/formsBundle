@@ -18,7 +18,9 @@ namespace SGN\FormsBundle\Generator;
  */
 class SGNGenerator
 {
+
     private $skeletonDirs;
+
 
     /**
      * Sets an array of directories to look for templates.
@@ -30,28 +32,35 @@ class SGNGenerator
      */
     public function setSkeletonDirs($skeletonDirs)
     {
-
         $this->skeletonDirs = is_array($skeletonDirs) ? $skeletonDirs : array($skeletonDirs);
     }
 
+
     protected function render($template, $parameters)
     {
-        $twig = new \Twig_Environment(new \Twig_Loader_Filesystem($this->skeletonDirs), array(
-            'debug'            => true,
-            'cache'            => false,
-            'strict_variables' => true,
-            'autoescape'       => false,
-        ));
+        $loader = new \Twig_Loader_Filesystem($this->skeletonDirs);
+        $twig   = new \Twig_Environment(
+            $loader,
+            array(
+             'debug'            => true,
+             'cache'            => false,
+             'strict_variables' => true,
+             'autoescape'       => false,
+            )
+        );
 
-        return $twig->render($template, $parameters);
+            return $twig->render($template, $parameters);
     }
+
 
     protected function renderFile($template, $target, $parameters)
     {
-        if (!is_dir(dirname($target))) {
+        if (is_dir(dirname($target) === false)) {
             mkdir(dirname($target), 0777, true);
         }
 
         return file_put_contents($target, $this->render($template, $parameters));
     }
+
+
 }

@@ -8,18 +8,19 @@ use BDG\DatabaseBundle\Tests\Controller\ModelControllerTest;
 {% endblock use_statements %}
 
 {% block class_definition %}
+
 class {{ test_class }} extends ModelControllerTest  implements InterfaceControllerTest
 {% endblock class_definition %}
 {
 {% block class_body %}
+
+
     public function setUp(){
         $this->entity = "{{ entity_class }}";
         $this->bundle = "{{ bundle }}";
         parent::setUp();
     }
 
-    public function testloadData()   { parent::testloadData();  }
-    public function testAuditScenario() { parent::testAuditScenario();  }
 
     public function testNewScenario()
     {
@@ -27,7 +28,7 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
         $form = $crawler->selectButton('Ajouter')->form(array(
 {%- for field in fields %}
 
-            '{{ frm_namespace }}_{{ entity_class|lower }}[{{ field }}]' => NULL,
+            '{{ frm_namespace }}_{{ entity_class|lower }}[{{ field }}]' => null,
 
 {%- endfor %}
 
@@ -36,7 +37,7 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
 
 {%- for field in fieldsManyToOne %}
 
-                //  'bdg_databasebundle_{{ entity_class|lower }}[{{ field }}]' => NULL,
+                //  'bdg_databasebundle_{{ entity_class|lower }}[{{ field }}]' => null,
 
 {%- endfor %}
 
@@ -44,7 +45,7 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
 
 {%- for field in fieldsOneToMany %}
 
-               //  'bdg_databasebundle_{{ entity_class|lower }}[ {{ field }} ]' => NULL,
+               //  'bdg_databasebundle_{{ entity_class|lower }}[ {{ field }} ]' => null,
 
 {%- endfor %}
 
@@ -52,11 +53,14 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
         parent::testNewScenario($form, $crawler);
     }
 
+
     public function testUpdateScenario()   { parent::testUpdateScenario();  }
     public function testShowHtmlScenario() { parent::testShowHtmlScenario(); }
     public function testShowJsonScenario() { parent::testShowJsonScenario(); }
     public function testShowOneScenario()  { parent::testShowOneScenario(); }
     public function testDeleteScenario()   { parent::testDeleteScenario(); }
+    public function testloadData()         { parent::testloadData();  }
+    public function testAuditScenario()    { parent::testAuditScenario();  }
 
 {% endblock class_body %}
 }

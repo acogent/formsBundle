@@ -23,9 +23,13 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class SGNDoctrineFormGenerator extends SGNGenerator
 {
+
     private $filesystem;
+
     private $className;
+
     private $classPath;
+
 
     /**
      * Constructor.
@@ -37,15 +41,18 @@ class SGNDoctrineFormGenerator extends SGNGenerator
         $this->filesystem = $filesystem;
     }
 
+
     public function getClassName()
     {
         return $this->className;
     }
 
+
     public function getClassPath()
     {
         return $this->classPath;
     }
+
 
     /**
      * Generates the entity form class if it does not exist.
@@ -63,7 +70,7 @@ class SGNDoctrineFormGenerator extends SGNGenerator
         $dirPath         = $bundle->getPath().'/Form';
         $this->classPath = $dirPath.'/'.str_replace('\\', '/', $entity).'Type.php';
 
-        if (file_exists($this->classPath)) {
+        if (file_exists($this->classPath) === true) {
             throw new \RuntimeException(sprintf('Unable to generate the %s form class as it already exists under the %s file', $this->className, $this->classPath));
         }
 
@@ -73,18 +80,23 @@ class SGNDoctrineFormGenerator extends SGNGenerator
 
         $parts = explode('\\', $entity);
         array_pop($parts);
-        $this->renderFile('form/FormType.php.twig', $this->classPath, array(
-            'fields'           => $this->getFieldsFromMetadata($metadata),
-            'fieldsManyToOne'  => $this->getFieldsManyToOneFromMetadata($metadata),
-            'fieldsOneToMany'  => $this->getFieldsOneToManyFromMetadata($metadata),
-            'namespace'        => $bundle->getNamespace(),
-            'entity_namespace' => implode('\\', $parts),
-            'entity_class'     => $entityClass,
-            'bundle'           => $bundle->getName(),
-            'form_class'       => $this->className,
-            'form_type_name'   => strtolower(str_replace('\\', '_', $bundle->getNamespace()).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
-        ));
+        $this->renderFile(
+            'form/FormType.php.twig',
+            $this->classPath,
+            array(
+             'fields'           => $this->getFieldsFromMetadata($metadata),
+             'fieldsManyToOne'  => $this->getFieldsManyToOneFromMetadata($metadata),
+             'fieldsOneToMany'  => $this->getFieldsOneToManyFromMetadata($metadata),
+             'namespace'        => $bundle->getNamespace(),
+             'entity_namespace' => implode('\\', $parts),
+             'entity_class'     => $entityClass,
+             'bundle'           => $bundle->getName(),
+             'form_class'       => $this->className,
+             'form_type_name'   => strtolower(str_replace('\\', '_', $bundle->getNamespace()).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
+            )
+        );
     }
+
 
     /**
      * Returns an array of fields. Fields can be both column fields and
@@ -98,11 +110,13 @@ class SGNDoctrineFormGenerator extends SGNGenerator
         $fields = (array) $metadata->fieldNames;
 
         // Remove the primary key field if it's not managed manually
-        if (!$metadata->isIdentifierNatural()) {
+        if ($metadata->isIdentifierNatural() === false) {
             $fields = array_diff($fields, $metadata->identifier);
         }
+
         return $fields;
     }
+
 
    /**
      * Returns an array of fields. Fields can be both column fields and
@@ -113,18 +127,18 @@ class SGNDoctrineFormGenerator extends SGNGenerator
      */
     private function getFieldsOneToManyFromMetadata(ClassMetadataInfo $metadata)
     {
-        $fields =  array();
+        $fields = array();
 
         foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::ONE_TO_MANY)
-            {
-                // $fields[] = substr($fieldName,0,strlen($fieldName)-1);
-                $fields[] =  $fieldName ;
+            if ($relation['type'] === ClassMetadataInfo::ONE_TO_MANY) {
+                $fields[] = $fieldName;
             }
         }
+
         return $fields;
     }
-   
+
+
    /**
      * Returns an array of fields. Fields can be both column fields and
      * association fields.
@@ -134,14 +148,16 @@ class SGNDoctrineFormGenerator extends SGNGenerator
      */
     private function getFieldsManyToOneFromMetadata(ClassMetadataInfo $metadata)
     {
-        $fields =  array();
+        $fields = array();
 
         foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::MANY_TO_ONE)
-            {
-                $fields[] =  $fieldName ;
+            if ($relation['type'] === ClassMetadataInfo::MANY_TO_ONE) {
+                $fields[] = $fieldName;
             }
         }
+
         return $fields;
     }
+
+
 }
