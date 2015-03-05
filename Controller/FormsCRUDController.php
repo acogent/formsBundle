@@ -417,14 +417,20 @@ class FormsCRUDController extends Controller
         }
 
         foreach ($metaData->fieldNames as $value) {
-            $fields[$value] = $obj->{'get'.ucfirst($value)}();
+            $theValue = $obj->{'get'.ucfirst($value)}();
+            if ($theValue === null) {
+                $fields[$value] = '';
+                continue;
+            }
+            $fields[$value] = $theValue;
 
-            if ($metaData->fieldMappings[$value]['type'] === 'date') {
-                if (! $obj->{'get'.ucfirst($value)}() ) $fields[$value]  = '';
-                else $fields[$value]  = $obj->{'get'.ucfirst($value)}()->format('Y-m-d');
-            } elseif ($metaData->fieldMappings[$value]['type'] === 'datetime') {
-                if (! $obj->{'get'.ucfirst($value)}() ) $fields[$value]  = '';
-                else $fields[$value]  = $obj->{'get'.ucfirst($value)}()->format('Y-m-d H:i:s');
+            if ($metaData->fieldMappings[$value]['type'] === 'date' && is_object($theValue) === true) {
+                $fields[$value]  = $theValue->format('Y-m-d');
+                continue;
+            }
+            if ($metaData->fieldMappings[$value]['type'] === 'datetime' && is_object($theValue) === true) {
+                $fields[$value]  = $theValue->format('Y-m-d H:i:s');
+                continue;
             }
         }
 
