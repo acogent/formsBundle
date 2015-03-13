@@ -1,0 +1,129 @@
+<script>
+/**
+    Styles des labels des objets de la BDG
+    Affichage en fonction du zoom
+
+  */
+
+//http://openlayers.org/en/master/examples/vector-labels.html?q=style
+var myDom = {
+  TEXT: {
+    text: 'shorten', // normal, hide; shorten, wrap
+    align: 'start',   // end, left, right, start
+    baseline: 'top',  // alphabetic, bottom, hanging, ideographic, middle, top
+    rotation: '0',
+    font: 'Calibri,sans-serif', // Arial , Courier New , Quattrocento Sans , Verdana
+    weight: 'bold',  // bold, normal
+    size: '12px',
+    offsetX: '20',
+    offsetY: '0',
+    color: '#FFFF00',
+    outline: '#000000',
+    outlineWidth: '5',
+    maxresoNo: '38',  // 38400 , 19200 , 9600 , 4800 , 2400 , etc  -> 8
+    minresoNom: '4',
+  },
+   ICON: {
+    anchor: [0 , 0],
+    anchorXUnits: 'fraction',
+    anchorYUnits: 'pixels',
+    opacity: 1,
+    maxreso: '12' // 38400 , 19200 , 9600 , 4800 , 2400 , etc  -> 8
+  }
+};
+
+var getText = function(feature, resolution, dom) {
+
+    var maxResolution = dom.maxresoNo;
+    var minResolution = dom.minresoNom;
+
+    if (resolution > maxResolution || dom.text == 'hide' ) {
+        return '';
+    }
+
+    var text = feature.get('no');
+    if (text.indexOf('-') > 0) {
+        text = text.substring(text.indexOf('-') + 1).trim();
+    }
+
+    if (minResolution > resolution) {
+        return feature.get('nom');
+    }
+
+    return text;
+};
+
+var getFillColor = function(feature) {
+
+  var picto = feature.get('picto');
+  var color = '#00CC00';
+  if (picto.indexOf('rn') > 0) {
+    return '#FFFF00';
+  }
+
+  return color;
+};
+
+var createTextStyle = function(feature, resolution, dom) {
+
+  var font      = dom.weight + ' ' + dom.size + ' ' + dom.font;
+  var fillColor = getFillColor(feature);
+
+  return new ol.style.Text({
+    textAlign: dom.align,
+    textBaseline: dom.baseline,
+    font: font,
+    text: getText(feature, resolution, dom),
+    fill: new ol.style.Fill({color: fillColor}),
+    stroke: new ol.style.Stroke({color: dom.outline, width: dom.outlineWidth}),
+    offsetX:  parseInt(dom.offsetX, 10),
+    offsetY: parseInt(dom.offsetY, 10),
+    rotation: parseFloat(dom.rotation)
+  });
+};
+
+var createImageStyle = function(feature, resolution, dom) {
+
+    picto = feature.get('picto');
+    if (picto.indexOf('dead') > 0 && resolution > 38) {
+        return null;
+    }
+    if (picto.indexOf('canex') > 0 && resolution > 76) {
+        return null;
+    }
+    if (picto.indexOf('rn') > 0 && picto.indexOf('triplet') < 0 && resolution > 150) {
+        return null;
+    }
+    if (picto.indexOf('bad') > 0  && resolution > 150) {
+        return null;
+    }
+    if (picto.indexOf('rdf') > 0  && resolution > 150) {
+        return null;
+    }
+    if (picto.indexOf('rn') > 0  && resolution > 300) {
+        return null;
+    }
+    if (resolution < 9) {
+        picto = picto.replace ('15', '20');
+    }
+
+    return new  ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+        anchor: dom.anchor,
+        anchorXUnits: dom.anchorXUnits,
+        anchorYUnits: dom.anchorYUnits,
+        opacity: dom.opacity,
+        src: picto
+    }));
+};
+
+var createPointStyleFunction = function() {
+  return function(feature, resolution) {
+    var style = new ol.style.Style({
+        image: createImageStyle(feature, resolution, myDom.ICON),
+        text: createTextStyle(feature, resolution, myDom.TEXT)
+    });
+    return [style];
+  };
+};
+
+</script>

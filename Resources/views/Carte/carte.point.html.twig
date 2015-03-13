@@ -1,0 +1,17 @@
+<style>
+#myMap {width: 350px;}
+.map {width: 100%;height: 350px;}
+</style>
+<link href="{{ asset('bootstrap/css/bootstrap.css') }}" type="text/css" rel="stylesheet" />
+<div id="myMap">
+    <div id="map" class="map"></div>
+    <div id="popup"></div>
+</div>
+{% block javascripts %}
+{{ jQuery() }}
+<script src="http://openlayers.org/en/v3.3.0/build/ol.js" type="text/javascript"></script>
+<script src="{{ asset('bootstrap/js/bootstrap.js') }}" type="text/javascript"></script>
+{% include ('SGNFormsBundle:Carte:geodesy_territory_config.js.twig') %}
+{% include ('SGNFormsBundle:Carte:carte.point.style.js.twig') %}
+{% include ('SGNFormsBundle:Carte:carte.point.js.twig' )%}
+{% endblock %}

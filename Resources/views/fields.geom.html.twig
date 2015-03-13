@@ -1,0 +1,8 @@
+{% block sgn_point_carte_widget %}
+    {% spaceless %}
+    {{ block('form_widget') }}
+    <div style='width:50%;margin: auto;'>
+        {{ render(controller('SGNFormsBundle:Carte:cartePoint', { 'lon': lon, 'lat': lat, 'zoom' :14 })) }}
+    </div>
+    {% endspaceless %}
+{% endblock %}

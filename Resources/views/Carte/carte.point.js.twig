@@ -1,0 +1,172 @@
+<script>
+$(document).ready(function(){
+
+    var map ;
+    var view;
+
+/** Definition d'une nouvelle source  geoportail  */
+    ol.source.Geoportail = function(key, layer, options)
+    {
+        if (!options) options={};
+        var matrixIds   = new Array();
+        var resolutions = new Array();
+        var size        = ol.extent.getWidth(ol.proj.get('EPSG:3857').getExtent()) /256;
+        for (var z=0; z <= (options.maxZoom ? options.maxZoom:18) ; z++)
+        {
+            matrixIds[z]   = z ;
+            resolutions[z] = size / Math.pow(2, z)
+        }
+       var attr = [ ol.source.Geoportail.prototype.attribution ];
+       if (options.attributions) attr.push(options.attributions);
+
+       ol.source.WMTS.call (this,
+       {
+        url        : "http://wxs.ign.fr/" + key + "/wmts",
+        layer      : layer,
+        matrixSet  : "PM",
+        format     : options.format ? options.format:"image/jpeg",
+        projection : "EPSG:3857",
+        tileGrid   : new ol.tilegrid.WMTS
+        ({ origin: [-20037508, 20037508],
+            resolutions : resolutions,
+            matrixIds   : matrixIds
+        }),
+        style: options.style ? options.style:"normal",
+        attributions: attr
+       });
+    };
+
+    ol.inherits (ol.source.Geoportail, ol.source.WMTS);
+
+    // Attribution standard
+    ol.source.Geoportail.prototype.attribution = new ol.Attribution
+    ({  html: '<a href="http://www.geoportail.gouv.fr/">Géoportail</a>'
+        +'&copy; <a href="http://www.ign.fr/">IGN-France</a>'
+    });
+
+    /** layers ign  */
+    var apiKey = '11g4o1d83tjqdzh1y1ldeknf'; //cle du serveur de fiches FIXME : peut-etre faut il en demander une autre ?
+
+    var carte_ign = new ol.layer.Tile({ source: new ol.source.Geoportail(apiKey, "GEOGRAPHICALGRIDSYSTEMS.MAPS"),  minResolution: 1 , maxResolution: 2000 , visible:true} );
+    var ortho_ign = new ol.layer.Tile({ source: new ol.source.Geoportail(apiKey, "ORTHOIMAGERY.ORTHOPHOTOS"),  minResolution: 1, maxResolution: 2 , visible:true , opacity:0.7} );
+
+
+    var mapquest  = new ol.layer.Tile({ source: new ol.source.MapQuest({layer: 'sat'}), minResolution: 2000 , visible:true});
+    var osm       = new ol.layer.Tile({ source: new ol.source.OSM(),  minResolution: 1,  maxResolution: 2000 , visible:true});
+
+
+    /** layer BDG  */
+    // http://docs.geoserver.org/latest/en/user/services/wfs/reference.html
+    // http://stackoverflow.com/questions/22363192/cors-tomcat-geoserver
+    // On est sur 172.16.2.234 pour pouvoir faire du cross-domain avec tmcat7 (sur cadillac que tomcat6 et c'st le bordel !!!)
+    var sourceBdgeny_carte_picto = new ol.source.ServerVector({
+      format: new ol.format.GeoJSON(),
+      loader: function(extent, resolution, projection) {
+        var url_bdg_nivf_rn = 'http://172.16.2.234:8080/geoserver/wfs?service=wfs&'+
+        'version=2.0.0&request=GetFeature&'+
+        'typeName=cadillac:bdgeny_carte_picto&'+
+        'outputFormat=json&' +
+        'srsname=EPSG:3857&'+
+        'bbox=' + extent.join(',') + ',EPSG:3857';
+
+        $.ajax({
+          url      : url_bdg_nivf_rn,
+          dataType : 'json'
+        }).done(function(data) {
+            sourceBdgeny_carte_picto.addFeatures(sourceBdgeny_carte_picto.readFeatures(data));
+        });
+      },
+      strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
+        maxZoom: 17,
+        minZoom: 13
+      })),
+      projection: 'EPSG:3857'
+    });
+
+    var vectorBdgeny_carte_picto = new ol.layer.Vector({
+      source:sourceBdgeny_carte_picto,
+      style: createPointStyleFunction()
+    });
+
+
+    /** MAP  */
+    var myLon  = 13.0;
+    var myLat  = 32.16;
+    var myZoom = 2;
+
+    {% if (zoom is defined)   and (zoom is not null) %}
+        myZoom = {{ zoom }} ;
+    {% endif %}
+    {% if (lon is defined) and (lon is not null )%}
+         myLon = {{ lon | raw}}  ;
+    {% endif %}
+    {% if (lat is defined) and (lat is not null) %}
+        myLat = {{ lat | raw }}  ;
+    {% endif %}
+
+
+
+    var map = new ol.Map({
+        layers: [
+            new ol.layer.Group({ layers: [ mapquest , osm  ]  }),
+            new ol.layer.Group({ layers: [ carte_ign , ortho_ign, vectorBdgeny_carte_picto] })
+        ],
+        target   : document.getElementById('map'),
+        renderer : 'canvas',
+        view: new ol.View({
+            center : ol.proj.transform([myLon, myLat], 'EPSG:4326', 'EPSG:3857'),
+            zoom   : myZoom,
+            maxZoom: 17,
+            minZoom: 11
+        })
+    });
+
+/** change mouse cursor when over marker  */
+    $(map.getViewport()).on('mousemove', function(e) {
+        var pixel = map.getEventPixel(e.originalEvent);
+        var hit = map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+            return true;
+        });
+        if (hit) {
+            map.getTarget().style.cursor = 'pointer';
+        } else {
+            map.getTarget().style.cursor = '';
+        }
+    });
+
+/** popup, info-bulle  */
+    var element = document.getElementById('popup');
+
+    var popup = new ol.Overlay({
+        element: element,
+        positioning: 'bottom-center',
+        stopEvent: false
+    });
+    map.addOverlay(popup);
+
+    // display popup on click
+    map.on('click', function(evt) {
+        var feature = map.forEachFeatureAtPixel(evt.pixel,
+            function(feature, layer) {
+               return feature;
+            });
+        if (feature) {
+            $(element).popover('destroy');
+            var geometry = feature.getGeometry();
+            var coord = geometry.getCoordinates();
+            popup.setPosition(coord);
+            $(element).popover({
+                'placement': 'top',
+                'html': true,
+                'content': feature.get('nom')+ ' Diffusion '+feature.get('diffusion')
+            });
+            $(element).popover('show');
+        } else {
+            $(element).popover('destroy');
+        }
+    });
+
+
+}); // document ready
+
+</script>

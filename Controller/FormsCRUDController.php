@@ -20,6 +20,20 @@ use Symfony\Component\HttpFoundation\Response;
 class FormsCRUDController extends Controller
 {
 
+    /**
+     * @Route("/carte/point/{lon}/{lat}/{zoom}")
+     */
+    public function cartePointAction(Request $request , $lon , $lat, $zoom)
+    {
+        return $this->render(
+            'SGNFormsBundle::carte.point.html.twig',
+                array(
+                    'lon'  => $lon,
+                    'lat'  => $lat,
+                    'zoom' => $zoom,
+                )
+            );
+    }
 
     /**
      *
