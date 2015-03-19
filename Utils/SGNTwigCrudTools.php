@@ -22,14 +22,13 @@ class SGNTwigCrudTools
             $bundleShortName = self::getBundleShortName($metadata->getName());
             if ( $bundleShortName <> $bundle  && $bundle <> '*') continue;
 
-            $project_name = self::getProjectName($bundle);
             $entity_name  = self::getName( $metadata->getName());
             if (empty($select_entity) 
                 || $select_entity[0] == '*'
-                || in_array($project_name.".".$entity_name, $select_entity))
+                || in_array($bundle.".".$entity_name, $select_entity))
             {
                 $tab_entity               = array();
-                $tab_entity['project']    = $project_name;
+                $tab_entity['project']    = $bundle;
                 $tab_entity['name']       = $entity_name;
                 $tab_entity['identifier'] = $metadata->getIdentifier();
                 $tab_entity['link']       = self::getEntityLink($me,$tab_entity['name'], $bundle);
@@ -39,16 +38,6 @@ class SGNTwigCrudTools
 
         ksort($tab_entities);
         return $tab_entities;
-    }
-
-    /**
-     * getBundleName
-     * @param  string $name
-     * @return string
-     */
-    public static function getProjectName($bundle)
-    {
-        return $bundle;
     }
 
     /**
@@ -93,22 +82,11 @@ class SGNTwigCrudTools
     }
 
     /**
-     * getEntityTrans
-     * @param  array $tab_entity
-     * @param  string $type label or desc
-     * @return string
-     */
-    private static function getEntityTrans($tab_entity, $type)
-    {
-        return  strtolower($tab_entity['name'].'.'.$type);
-    }
-
-    /**
      * get the short name
      * @param  string $name
      * @return string
      */
-    private static function getName($name)
+    public static function getName($name)
     {
         $namespaceParts = explode('\\', $name);
         return end($namespaceParts);
