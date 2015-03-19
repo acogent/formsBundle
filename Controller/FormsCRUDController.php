@@ -89,6 +89,7 @@ class FormsCRUDController extends Controller
         $limits   = SGNTwigCrudTools::getLimitsFromParams($params);
         $limit    = $limits[0];
         $rowsList = $limits[1];
+        $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity);
         // pour les liens de droite
         $tables = $this->container->getParameter('sgn_forms.bestof_entity');
         foreach ($tables as $ta) {
@@ -101,16 +102,16 @@ class FormsCRUDController extends Controller
 
         // Pour jQgrid
         $metadata = $eManager->getClassMetadata($entity);
-        $fields   = array_keys($metadata->fieldMappings);
-        $associationMappings = $metadata->associationMappings;
+        $fields   = $metadata->getFieldNames();
+        $associations = $metadata->getAssociationNames();
 
         $keyAssoc = array();
         $colNames = array();
-        foreach ($associationMappings as $key => $assoc) {
-            if (isset ($assoc['joinColumns']) === true) {
-                $keyAssoc[] = $key;
+        foreach ($associations as $assoc) {
+            if ($metadata->isSingleValuedAssociation($assoc) === true) {
+                $keyAssoc[] = $assoc;
             } else {
-                $colNames[$key] = $assoc;
+                $colNames[] = $assoc;
             }
         }
 
@@ -173,7 +174,6 @@ class FormsCRUDController extends Controller
             }
 
             $collectionNames = $this->getCollectionNames($colNames, $bundle, $table);
-            $columnModel     = SGNTwigCrudTools::getColumnModel($result[0], $eManager, $entity);
             $urlShowOne      = $this->generateUrl('sgn_forms_formscrud_showone', array('bundle' => $bundle, 'table' => $table, 'id' => '#'), true);
             $urlEdit         = $this->generateUrl('sgn_forms_formscrud_edit', array('bundle' => $bundle, 'table' => $table, 'id' => '#'), true);
             $urlDelete       = $this->generateUrl('sgn_forms_formscrud_delete', array('bundle' => $bundle, 'table' => $table, 'id' => '#'));
@@ -199,7 +199,7 @@ class FormsCRUDController extends Controller
 
         return array(
                 'project'         => $bundle,
-                'columnModel'     => '[]',
+                'columnModel'     => $columnModel,
                 'collectionNames' => null,
                 'entity'          => $table,
                 'count'           => 0,
@@ -506,7 +506,6 @@ class FormsCRUDController extends Controller
         $request         = $this->getRequest();
         $filters         = $request->query->all();
         $columnModel     = '[]';
-        $collectionNames = null;
         $result          = array();
         $datas           = array();
         $limit           = 10;
@@ -542,7 +541,6 @@ class FormsCRUDController extends Controller
                         $result[] = $datas[$index];
                     }
 
-                    $collectionNames = $this->getCollectionNames($result[0], $bundle, $table);
                     $columnModel     = SGNTwigCrudTools::getColumnModel($result[0]);
                 }
             }
@@ -565,7 +563,6 @@ class FormsCRUDController extends Controller
                         $result[] = Serializor::toArray($datas[$index]);
                     }
 
-                    $collectionNames = $this->getCollectionNames($result[0], $bundle, $table);
                     $columnModel     = SGNTwigCrudTools::getColumnModel($result[0]);
                 }
             }
@@ -598,7 +595,6 @@ class FormsCRUDController extends Controller
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
                 'table'           => $table,
-                'collectionNames' => $collectionNames,
                 'entity'          => $collection,
                 'limit'           => 10,
                 'rowsList'        => 1,
@@ -647,7 +643,6 @@ class FormsCRUDController extends Controller
     {
         $request         = $this->getRequest();
         $columnModel     = '[]';
-        $collectionNames = null;
         $datas           = array();
         if ($request->isXmlHttpRequest() === true) {
             $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
@@ -659,12 +654,10 @@ class FormsCRUDController extends Controller
                             $result[] = $data;
                         }
 
-                        $collectionNames = $this->getCollectionNames($result[0], $bundle, $table);
                         $columnModel     = SGNTwigCrudTools::getColumnModel($result[0]);
                     }
                 } else {
                     $class           = $eManager->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($collection);
-                    $collectionNames = $this->getCollectionNames(array(), $bundle, $table);
                     $columnModel     = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class);
                 }
             }
@@ -674,7 +667,6 @@ class FormsCRUDController extends Controller
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
                 'table'           => $table,
-                'collectionNames' => $collectionNames,
                 'entity'          => $collection,
                 'limit'           => 10,
                 'rowsList'        => 1,
@@ -699,21 +691,19 @@ class FormsCRUDController extends Controller
         $bundleValid = $this->get('Kernel')->getBundle($bundleName);
         $dir         = $bundleValid->getNamespace();
         $tableAudit  = $dir.'\Entity\\'.$entity;
-        foreach ($data as $champ => $val) {
-            if (is_array($val) === true) {
-                $url = $this->get('router')->generate(
-                    'sgn_forms_formscrud_createjqgrid',
-                    array(
-                     'bundle'     => $project,
-                     'format'     => 'html',
-                     'table'      => $entity,
-                     'collection' => $champ,
-                     'id'         => '#',
-                    ),
-                    true
-                );
-                $collectionNames[$champ] = $url;
-            }
+        foreach ($data as $champ) {
+            $url = $this->get('router')->generate(
+                'sgn_forms_formscrud_createjqgrid',
+                array(
+                 'bundle'     => $project,
+                 'format'     => 'html',
+                 'table'      => $entity,
+                 'collection' => $champ,
+                 'id'         => '#',
+                ),
+                true
+            );
+            $collectionNames[$champ] = $url;
         }
 
         if ($auditManager->getMetadataFactory()->isAudited($tableAudit) === true) {
