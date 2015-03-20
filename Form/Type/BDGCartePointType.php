@@ -10,7 +10,7 @@ use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
-class PointCarteType extends AbstractType
+class BDGCartePointType extends AbstractType
 {
 
 
@@ -27,7 +27,7 @@ class PointCarteType extends AbstractType
 
     public function getName()
     {
-        return 'bdg_point_carte';
+        return 'bdg_carte_point';
     }
 
 

@@ -14,7 +14,7 @@ services:
         tags:
             - { name: form.type, alias: sgn_ajax_autocomplete }
 
-    sgn_forms.type.point_carte_type:
-        class: SGN\FormsBundle\Form\Type\PointCarteType
+    sgn_forms.type.bdg_carte_point_type:
+        class: SGN\FormsBundle\Form\Type\BDGCartePointType
         tags:
-            - { name: form.type, alias: bdg_point_carte }
+            - { name: form.type, alias: bdg_carte_point }
