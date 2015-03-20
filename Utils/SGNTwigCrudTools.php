@@ -630,19 +630,38 @@ class SGNTwigCrudTools
      * @param  string $entity  le nom de l'entité
      * @return string         le tableau au format json du modèle des colonnes
      */
-    public static function getColumnModel($data, $eManager = null, $entity = null)
+    public static function getColumnModel($data, $eManager = null, $entity = null, $tableFieldsHidden = null)
     {
         $columnModel = '';
         if ($eManager !== null && $entity !== null) {
+
             $metadata = $eManager->getClassMetadata($entity);
-            foreach ($metadata->getFieldNames() as $champ) {
-                $columnModel .= "{ name: '".$champ."' , index: '".$champ."', search: true },";
+
+            $allFields = array_merge($metadata->getFieldNames(), $metadata->getAssociationNames());
+
+            $bundle_name = self::getBundleShortName($metadata->getName());
+            $entity_name  = self::getName( $metadata->getName());
+            $short_name = $bundle_name.':'.$entity_name;
+
+            if (isset($tableFieldsHidden) === true and array_key_exists($short_name, $tableFieldsHidden) === true) {
+                $selects = explode(',', $tableFieldsHidden[$short_name]);
+                foreach ($selects as $sel) {
+                    if (array_search(trim($sel), $allFields) == true) {
+                        unset($allFields[array_search(trim($sel), $allFields)]);
+                    }
+                }
+                $allFields = array_values($allFields);
             }
 
-            foreach ($metadata->getAssociationNames() as $champ) {
-                if ($metadata->isSingleValuedAssociation($champ) === true) {
-                    $columnModel .= "{ name: '".$champ."' , index: '".$champ."' , search: false },";
+            foreach ($allFields as $champ) {
+                if ($metadata->hasAssociation($champ)) {
+                    if ($metadata->isSingleValuedAssociation($champ)) {
+                        $columnModel .= "{ name: '".$champ."' , index: '".$champ."' , search: false },";
+                    }
+                } else {
+                    $columnModel .= "{ name: '".$champ."' , index: '".$champ."', search: true },";
                 }
+
             }
 
             return '['.substr($columnModel, 0, -1).']';

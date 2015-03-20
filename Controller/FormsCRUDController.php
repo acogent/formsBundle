@@ -89,7 +89,7 @@ class FormsCRUDController extends Controller
         $limits   = SGNTwigCrudTools::getLimitsFromParams($params);
         $limit    = $limits[0];
         $rowsList = $limits[1];
-        $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity);
+
         // pour les liens de droite
         $tables = $this->container->getParameter('sgn_forms.bestof_entity');
         foreach ($tables as $ta) {
@@ -104,6 +104,11 @@ class FormsCRUDController extends Controller
         $metadata = $eManager->getClassMetadata($entity);
         $fields   = $metadata->getFieldNames();
         $associations = $metadata->getAssociationNames();
+
+        $tableFields = $this->container->getParameter('sgn_forms.entities_fields');
+        $tableFieldsHidden = $this->container->getParameter('sgn_forms.entities_fields_hidden');
+
+        $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity, $tableFieldsHidden);
 
         $keyAssoc = array();
         $colNames = array();
@@ -126,7 +131,6 @@ class FormsCRUDController extends Controller
 
         $allFields = $sFields;
         // pour personnaliser les tables jQGrid
-        $tableFields = $this->container->getParameter('sgn_forms.entities_fields');
         if (array_key_exists($entity, $tableFields) === true) {
             $selects = explode(',', $tableFields[$entity]);
             foreach ($selects as $sel) {
@@ -136,7 +140,6 @@ class FormsCRUDController extends Controller
             $allFields = array_unique(array_merge($sels, $sFields));
         }
 
-        $tableFieldsHidden = $this->container->getParameter('sgn_forms.entities_fields_hidden');
         if (array_key_exists($entity, $tableFieldsHidden) === true) {
             $selects = explode(',', $tableFieldsHidden[$entity]);
             foreach ($selects as $sel) {
@@ -658,7 +661,7 @@ class FormsCRUDController extends Controller
                     }
                 } else {
                     $class           = $eManager->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($collection);
-                    $columnModel     = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class);
+                    $columnModel     = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class, $this->container->getParameter('sgn_forms.entities_fields_hidden'));
                 }
             }
         }
