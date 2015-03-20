@@ -640,13 +640,13 @@ class SGNTwigCrudTools
             $allFields = array_merge($metadata->getFieldNames(), $metadata->getAssociationNames());
 
             $bundle_name = self::getBundleShortName($metadata->getName());
-            $entity_name  = self::getName( $metadata->getName());
+            $entity_name = self::getName($metadata->getName());
             $short_name = $bundle_name.':'.$entity_name;
 
             if (isset($tableFieldsHidden) === true and array_key_exists($short_name, $tableFieldsHidden) === true) {
                 $selects = explode(',', $tableFieldsHidden[$short_name]);
                 foreach ($selects as $sel) {
-                    if (array_search(trim($sel), $allFields) == true) {
+                    if (array_search(trim($sel), $allFields) !== false) {
                         unset($allFields[array_search(trim($sel), $allFields)]);
                     }
                 }

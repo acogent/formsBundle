@@ -143,7 +143,7 @@ class FormsCRUDController extends Controller
         if (array_key_exists($entity, $tableFieldsHidden) === true) {
             $selects = explode(',', $tableFieldsHidden[$entity]);
             foreach ($selects as $sel) {
-                if (array_search('s.'.trim($sel), $allFields) === true) {
+                if (array_search('s.'.trim($sel), $allFields) !== false) {
                     unset($allFields[array_search('s.'.trim($sel), $allFields)]);
                 }
             }
@@ -657,7 +657,7 @@ class FormsCRUDController extends Controller
                             $result[] = $data;
                         }
 
-                        $columnModel     = SGNTwigCrudTools::getColumnModel($result[0]);
+                        $columnModel = SGNTwigCrudTools::getColumnModel($result[0]);
                     }
                 } else {
                     $class           = $eManager->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($collection);
