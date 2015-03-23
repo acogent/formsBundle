@@ -1,6 +1,22 @@
 # SGN FormsBundle
 
 # Changelog
+
+## 3.0.0
+Réorganisation des options d'affichage des grilles via la nouvelle option 'entities_filters', qui rassemble 'entities_fields' (devient 'order') et 'entities_fields_hidden' (devient 'hidden'). Ajout de 'audit' pour l'affichage de la table 'Audit' (true par défaut), et de la possibilité de donner des valeurs par défaut pour toutes les entités (avec '*').
+
+```json
+sgn_forms:
+    entities_filters:
+        '*':
+            order    : 'id'
+            hidden   : 'slug, ptgTemp, projectTemp'
+        'BDGSDatabaseBundle:PointRef':
+            order    : 'id, nomFR'
+            hidden   : 'acroTemp'
+            audit    : false
+```
+
 ## 2.6.0
 Ajout d'un type pour les géométries de la BDG (utilisation de geoserver et openlayers)
 Dans son formulaire :

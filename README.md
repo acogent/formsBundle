@@ -2,12 +2,19 @@
 
 Dernière modification :
 
-## 2.6.0
-Ajout d'un type pour les géométries de la BDG (utilisation de geoserver et openlayers)
-Dans son formulaire :
+## 3.0.0
+Réorganisation des options d'affichage des grilles via la nouvelle option 'entities_filters', qui rassemble 'entities_fields' (devient 'order') et 'entities_fields_hidden' (devient 'hidden'). Ajout de 'audit' pour l'affichage de la table 'Audit' (true par défaut), et de la possibilité de donner des valeurs par défaut pour toutes les entités (avec '*').
 
 ```json
-$form->add('point', 'bdg_point_carte', array('domaine' => 'nivf','read_only' => true, 'label' => 'nivrn.point.label'));
+sgn_forms:
+    entities_filters:
+        '*':
+            order    : 'id'
+            hidden   : 'slug, ptgTemp, projectTemp'
+        'BDGSDatabaseBundle:PointRef':
+            order    : 'id, nomFR'
+            hidden   : 'acroTemp'
+            audit    : false
 ```
 - [Lien vers le changelog complet](http://geodesie.ign.fr:8088/gitlab/sgn/formsbundle/blob/2/CHANGELOG.md)
 
@@ -243,33 +250,30 @@ Où :
 
 Et normalement, tout fonctionne !
 
-### Tri des colonnes pour jQgrid
+### Options pour l'affichage des tables avec jQgrid
 
-Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid.
-Maintenant, par défaut, l'ordre sera lié à l'héritage (les champs des classes parents en premier).
-Mais, vous pouvez le changer. Il suffit de déclarer les champs dans le fichier config.yml de votre application ou mieux dans le fichier que vous avez créé précédemment.
+Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid, en masquer certaines, et décider de ne pas afficher la table 'Audit' liée à l'entité. Il suffit de renseigner l'option 'entities_filters' dans le fichier config.yml de votre application ou mieux dans le fichier que vous avez créé précédemment.
 
 ```
 sgn_forms:
     ....
-    entities_fields:
-        'BDGSDatabaseBundle:PointRef': 'id , nomFR'
-        'SITELOGDatabaseBundle:Sitelog': 'id, Domes'
+    entities_filters:
+        '*':
+            order    : 'id'
+            hidden   : 'slug, ptgTemp, projectTemp'
+        'BDGSDatabaseBundle:PointRef':
+            order    : 'id, nomFR'
+            hidden   : 'acroTemp'
+            audit    : false
 
 ```
 
-L'entrée "entities_fields" est obligatoire. Listez ensuite les entités avec leur bundle et la liste des champs ordonnés séparé par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés.
-### Masquage de colonnes pour jQgrid
+L'entrée "entities_filters" est obligatoire. Listez ensuite les entités avec leur bundle et les options souhaitées :
+* 'order' suivi de la liste des champs ordonnés séparés par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés. Par défaut, l'ordre sera lié à l'héritage (les champs des classes parents en premier).
+* 'hidden' suivi de la liste des champs à masquer séparés par une virgule (pas de tableau).
+* 'audit' suivi de 'true' ou 'false' selon que l'on veut afficher la table liée 'Audit'. Par défaut à true.
 
-Vous pouvez personnaliser l'affichage des colonnes dans jQgrid et décider d'en masquer.
-
-```
-sgn_forms:
-    ....
-    entities_fields_hidden:
-        'BDGDatabaseBundle:NivfRn': 'remPortage, geom'
-
-```
+Si vous désirez donner des valeurs par défaut à ces options, renseignez-les pour une entité s'appelant '*'. Le tri et le masque seront alors d'abord appliqués avec les valeurs par défaut, puis à nouveau avec les valeurs propres à l'entité.
 
 ### Le template bootstrap3
 
