@@ -104,6 +104,7 @@ sgn_forms:
 - show     : ce qu’affiche Ajax, par défaut property. Valeurs possible : property (la liste ajax affiche le numero, dans l’exemple), value (la liste ajax affiche l’id), property_value (la liste affiche le numero suivi de l’id entre parenthèses), value_property (la liste affiche l’id suivi du numero entre parenthèses). NB : les valeurs property_value et value_property imposent que target soit à “both”.
 
 Le mieux est de mettre le contenu ci-dessus dans un fichier séparé config/sgn_forms.yml et d’importer ce fichier dans votre config.yml :
+
 ```
     imports:
     - { resource: sgn_forms.yml }
@@ -135,6 +136,7 @@ sgn_forms:
 - Si l’entité ne dispose pas d’attribut pouvant servir de property, vous pouvez utiliser le texte renvoyé par sa fonction __toString (sous réserve que cette dernière soit définie). Dans ce cas, value, search et target sont imposés. Si vous entrez d’autres valeurs, elles seront tout simplement ignorées. Par contre, role et show fonctionnent de la même manière :
 
 Déprécié, utilser plutôt la méthode suivante !!
+
 ```
 sgn_forms:
     autocomplete_entities:
@@ -161,6 +163,7 @@ Exemple BDGS : une station appartient à un site. Elle est identifée par son ac
 
 
 Dans sgn_forms :
+
 ```
 sites_select:
     class    : BDGSDatabaseBundle:Site
@@ -170,6 +173,7 @@ sites_select:
     method : getSiteSQL
 ```
 Dans le repository du site :
+
 ```
     /**
      * Get getSelectSQL
