@@ -630,7 +630,7 @@ class SGNTwigCrudTools
      * @param  string $entity  le nom de l'entité
      * @return string         le tableau au format json du modèle des colonnes
      */
-    public static function getColumnModel($data, $eManager = null, $entity = null, $tableFieldsHidden = null)
+    public static function getColumnModel($data, $eManager = null, $entity = null, $tableFilters = null)
     {
         $columnModel = '';
         if ($eManager !== null && $entity !== null) {
@@ -643,14 +643,30 @@ class SGNTwigCrudTools
             $entity_name = self::getName($metadata->getName());
             $short_name = $bundle_name.':'.$entity_name;
 
-            if (isset($tableFieldsHidden) === true and array_key_exists($short_name, $tableFieldsHidden) === true) {
-                $selects = explode(',', $tableFieldsHidden[$short_name]);
-                foreach ($selects as $sel) {
-                    if (array_search(trim($sel), $allFields) !== false) {
-                        unset($allFields[array_search(trim($sel), $allFields)]);
+            if (isset($tableFilters) === true) {
+                $options = array('*', $short_name);
+                foreach ($options as $option) {
+                    if (array_key_exists($option, $tableFilters) !== true) {
+                        continue;
+                    }
+                    if (isset($tableFilters[$option]['order'])) {
+                        $selects = explode(',', $tableFilters[$option]['order']);
+                        $sels = array();
+                        foreach ($selects as $sel) {
+                            $sels[] = trim($sel);
+                        }
+                        $allFields = array_unique(array_merge($sels, $allFields));
+                    }
+                    if (isset($tableFilters[$option]['hidden'])) {
+                        $selects = explode(',', $tableFilters[$option]['hidden']);
+                        foreach ($selects as $sel) {
+                            if (array_search(trim($sel), $allFields) !== false) {
+                                unset($allFields[array_search(trim($sel), $allFields)]);
+                            }
+                        }
+                        $allFields = array_values($allFields);
                     }
                 }
-                $allFields = array_values($allFields);
             }
 
             foreach ($allFields as $champ) {

@@ -46,18 +46,8 @@ class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-                ->arrayNode('entities_fields')
-                    ->beforeNormalization()
-                        ->ifString()
-                            ->then(function ($value) {
-                                return array($value);
-                            })
-                    ->end()
-                    ->useAttributeAsKey('name')
-                    ->prototype('scalar')->end()
-                ->end()
 
-                ->arrayNode('entities_fields_hidden')
+                ->arrayNode('entities_filters')
                     ->beforeNormalization()
                         ->ifString()
                             ->then(function ($value) {
@@ -65,7 +55,13 @@ class Configuration implements ConfigurationInterface
                             })
                     ->end()
                     ->useAttributeAsKey('name')
-                    ->prototype('scalar')->end()
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('order')->end()
+                            ->scalarNode('hidden')->end()
+                            ->booleanNode('audit')->end()
+                        ->end()
+                    ->end()
                 ->end()
 
 
