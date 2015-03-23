@@ -105,10 +105,9 @@ class FormsCRUDController extends Controller
         $fields   = $metadata->getFieldNames();
         $associations = $metadata->getAssociationNames();
 
-        $tableFields = $this->container->getParameter('sgn_forms.entities_fields');
-        $tableFieldsHidden = $this->container->getParameter('sgn_forms.entities_fields_hidden');
+        $tableFilters = $this->container->getParameter('sgn_forms.entities_filters');
 
-        $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity, $tableFieldsHidden);
+        $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity, $tableFilters);
 
         $keyAssoc = array();
         $colNames = array();
@@ -130,25 +129,22 @@ class FormsCRUDController extends Controller
         }
 
         $allFields = $sFields;
+
         // pour personnaliser les tables jQGrid
-        if (array_key_exists($entity, $tableFields) === true) {
-            $selects = explode(',', $tableFields[$entity]);
-            foreach ($selects as $sel) {
-                $sels[] = 's.'.trim($sel);
+        $options = array('*', $entity);
+        foreach ($options as $option) {
+            if (array_key_exists($option, $tableFilters) !== true) {
+                continue;
             }
-
-            $allFields = array_unique(array_merge($sels, $sFields));
-        }
-
-        if (array_key_exists($entity, $tableFieldsHidden) === true) {
-            $selects = explode(',', $tableFieldsHidden[$entity]);
-            foreach ($selects as $sel) {
-                if (array_search('s.'.trim($sel), $allFields) !== false) {
-                    unset($allFields[array_search('s.'.trim($sel), $allFields)]);
+            if (isset($tableFilters[$option]['hidden'])) {
+                $selects = explode(',', $tableFilters[$option]['hidden']);
+                foreach ($selects as $sel) {
+                    if (array_search('s.'.trim($sel), $allFields) !== false) {
+                        unset($allFields[array_search('s.'.trim($sel), $allFields)]);
+                    }
                 }
+                $allFields = array_values($allFields);
             }
-
-            $allFields = array_values($allFields);
         }
 
         $select  = implode(' , ', $allFields);
@@ -508,7 +504,6 @@ class FormsCRUDController extends Controller
     {
         $request         = $this->getRequest();
         $filters         = $request->query->all();
-        $columnModel     = '[]';
         $result          = array();
         $datas           = array();
         $limit           = 10;
@@ -543,8 +538,6 @@ class FormsCRUDController extends Controller
 
                         $result[] = $datas[$index];
                     }
-
-                    $columnModel     = SGNTwigCrudTools::getColumnModel($result[0]);
                 }
             }
 
@@ -565,8 +558,6 @@ class FormsCRUDController extends Controller
 
                         $result[] = Serializor::toArray($datas[$index]);
                     }
-
-                    $columnModel     = SGNTwigCrudTools::getColumnModel($result[0]);
                 }
             }
         }
@@ -596,7 +587,6 @@ class FormsCRUDController extends Controller
 
         return array(
                 'project'         => $bundle,
-                'columnModel'     => $columnModel,
                 'table'           => $table,
                 'entity'          => $collection,
                 'limit'           => 10,
@@ -661,7 +651,7 @@ class FormsCRUDController extends Controller
                     }
                 } else {
                     $class           = $eManager->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($collection);
-                    $columnModel     = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class, $this->container->getParameter('sgn_forms.entities_fields_hidden'));
+                    $columnModel     = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class, $this->container->getParameter('sgn_forms.entities_filters'));
                 }
             }
         }
@@ -709,7 +699,15 @@ class FormsCRUDController extends Controller
             $collectionNames[$champ] = $url;
         }
 
-        if ($auditManager->getMetadataFactory()->isAudited($tableAudit) === true) {
+        $tableFilters = $this->container->getParameter('sgn_forms.entities_filters');
+        $options = array('*', $bundleName.':'.$entity);
+        $boolAudit = true;
+        foreach ($options as $option) {
+            if (isset($tableFilters[$option]) === true and isset($tableFilters[$option]['audit']) === true) {
+                $boolAudit = $tableFilters[$option]['audit'];
+            }
+        }
+        if ($auditManager->getMetadataFactory()->isAudited($tableAudit) === true and $boolAudit === true) {
             $url = $this->get('router')->generate(
                 'sgn_forms_formscrud_createjqgrid',
                 array(
