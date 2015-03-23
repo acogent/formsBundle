@@ -5,7 +5,7 @@ Dernière modification :
 ## 3.0.0
 Réorganisation des options d'affichage des grilles via la nouvelle option 'entities_filters', qui rassemble 'entities_fields' (devient 'order') et 'entities_fields_hidden' (devient 'hidden'). Ajout de 'audit' pour l'affichage de la table 'Audit' (true par défaut), et de la possibilité de donner des valeurs par défaut pour toutes les entités (avec '*').
 
-```json
+```
 sgn_forms:
     entities_filters:
         '*':
@@ -75,7 +75,7 @@ Cet outil a besoin de [Select2JS](http://geodesie.ign.fr:8088/gitlab/components/
 Attention, ils ne sont pas dans les dépendances, à vous de les ajouter !
 Vous devez également les déclarer dans le header de votre page.
 
-1. Ajouter les champs que vous voulez “ajaxer” dans config/config.yml :
+**1. Ajouter les champs que vous voulez “ajaxer” dans config/config.yml :**
 
 ```
 sgn_forms:
@@ -212,7 +212,7 @@ sgn_forms:
 ```
 
 
-2. Dites à twig d’utiliser le template “fields.ajax.autocomplete.html.twig” dans config/config.yml en complétant les inforamtions twig :
+**2. Dites à twig d’utiliser le template “fields.ajax.autocomplete.html.twig” dans config/config.yml en complétant les informations twig :**
 
 ```
 twig:
@@ -222,7 +222,7 @@ twig:
             - SGNFormsBundle::fields.ajax.autocomplete.html.twig
 ```
 
-3. Importer les routes :
+**3. Importer les routes :**
 
 Dans routing.yml, ajouter :
 
@@ -231,7 +231,7 @@ sgn_forms:
     resource: '@SGNFormsBundle/Resources/config/routing.xml'
 ```
 
-4. Dans le formulaire :
+**4. Dans le formulaire :**
 
 Il suffit enfin de déclarer votre champ de formulaire comme suit ;
 
@@ -254,31 +254,6 @@ Où :
 
 Et normalement, tout fonctionne !
 
-### Options pour l'affichage des tables avec jQgrid
-
-Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid, en masquer certaines, et décider de ne pas afficher la table 'Audit' liée à l'entité. Il suffit de renseigner l'option 'entities_filters' dans le fichier config.yml de votre application ou mieux dans le fichier que vous avez créé précédemment.
-
-```
-sgn_forms:
-    ....
-    entities_filters:
-        '*':
-            order    : 'id'
-            hidden   : 'slug, ptgTemp, projectTemp'
-        'BDGSDatabaseBundle:PointRef':
-            order    : 'id, nomFR'
-            hidden   : 'acroTemp'
-            audit    : false
-
-```
-
-L'entrée "entities_filters" est obligatoire. Listez ensuite les entités avec leur bundle et les options souhaitées :
-* 'order' suivi de la liste des champs ordonnés séparés par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés. Par défaut, l'ordre sera lié à l'héritage (les champs des classes parents en premier).
-* 'hidden' suivi de la liste des champs à masquer séparés par une virgule (pas de tableau).
-* 'audit' suivi de 'true' ou 'false' selon que l'on veut afficher la table liée 'Audit'. Par défaut à true.
-
-Si vous désirez donner des valeurs par défaut à ces options, renseignez-les pour une entité s'appelant '*'. Le tri et le masque seront alors d'abord appliqués avec les valeurs par défaut, puis à nouveau avec les valeurs propres à l'entité.
-
 ### Le template bootstrap3
 
 Cet outil a besoin de [Bootstrap 3](http://geodesie.ign.fr:8088/gitlab/components/bootstrapbundle)
@@ -286,7 +261,7 @@ Attention, il n'est pas dans les dépendances, à vous de l'ajouter !
 
 Dites à twig d'utiliser le template "forms.bootstrap3.html.twig" dans config/config.yml en complétant les inforamtions twig :
 
-```json
+```
 twig:
     ...
     form:
@@ -296,7 +271,7 @@ twig:
 
 Déclarer un template d'aministration :
 
-```json
+```
 twig:
     ...
     globals:
@@ -309,7 +284,7 @@ où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exemple, à vous de mettr
 ### Le générateur de formulaire et interface générique de consultation des entités
 
 
-1. AppKernel.php
+**1. AppKernel.php**
 
 Ajouter les bundles suivants, si ce n'est déjà fait :
 
@@ -321,7 +296,7 @@ new Components\Select2Bundle\ComponentsSelect2Bundle(),
 new SGN\FormsBundle\SGNFormsBundle(),
 ```
 
-2. config/config.yml
+**2. config/config.yml**
 
 ```
 sgn_forms:
@@ -330,7 +305,7 @@ sgn_forms:
     bestof_entity: ['BDGSDatabaseBundle.PointRef', 'BDGSDatabaseBundle.PointRefNumero', 'SITELOGDatabaseBundle.Sitelog','SITELOGDatabaseBundle.GNSSSiteLocation']
 ```
 
-3. Importer les routes
+**3. Importer les routes**
 
 Dans routing.yml, ajouter :
 
@@ -346,7 +321,7 @@ sgn_forms_crud:
 
 ```
 
-4. Générer les formulaires pour les Bundles configurés
+**4. Générer les formulaires pour les Bundles configurés**
 
 Appelez dans la console Symfony2 la commande suivante pour générer les formulaires des entités du bundle BDGSDatabaseBundle :
 
@@ -357,7 +332,7 @@ $ app/console sgn:generate:forms BDGSDatabaseBundle
 
 Vous pouvez également utiliser des formulaires déclarés dans un bundle différent de celui de vos entités ou des formulaires déclarés en service (voir points suivants).
 
-5. Utiliser des formulaires situés dans un bundle différent de celui des entités
+**5. Utiliser des formulaires situés dans un bundle différent de celui des entités**
 
 Pour chaque bundle du projet, déclarez le bundle contenant les formulaires dans le config.yml :
 
@@ -372,7 +347,7 @@ sgn_forms:
 
 Le paramètre sgn_forms.forms est facultatif. Par défaut, le contrôleur utilisera les formulaires contenus dans le bundle des entités.
 
-5. Utiliser des formulaires déclarés en service
+**6. Utiliser des formulaires déclarés en service**
 
 À la place de déclarer un bundle dans le config.yml, signalez _@service_ :
 
@@ -403,7 +378,8 @@ class NiveRnType extends AbstractType
         return 'nivern_type';
     }
 }
-
+```
+```
 # BDGS/DatabaseBundle/Resources/config/services.yml :
 
 services:
@@ -413,3 +389,28 @@ services:
         tags:
             - { name: form.type, alias: nivern_type }
 ```
+
+### Options pour l'interface de consultation avec jQgrid
+
+Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid, en masquer certaines, et décider de ne pas afficher la table 'Audit' liée à l'entité. Il suffit de renseigner le paramètre 'entities_filters' dans le fichier config.yml.
+
+```
+sgn_forms:
+    ....
+    entities_filters:
+        '*':
+            order    : 'id'
+            hidden   : 'slug, ptgTemp, projectTemp'
+        'BDGSDatabaseBundle:PointRef':
+            order    : 'id, nomFR'
+            hidden   : 'acroTemp'
+            audit    : false
+
+```
+
+L'entrée "entities_filters" est obligatoire. Listez ensuite les entités avec leur bundle et les options souhaitées :
+* 'order' suivi de la liste des champs ordonnés séparés par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés. Par défaut, l'ordre sera lié à l'héritage (les champs des classes parents en premier).
+* 'hidden' suivi de la liste des champs à masquer séparés par une virgule (pas de tableau).
+* 'audit' suivi de 'true' ou 'false' selon que l'on veut afficher la table liée 'Audit'. Par défaut à true.
+
+Si vous désirez donner des valeurs par défaut à ces options, renseignez-les pour une entité s'appelant '*'. Le tri et le masque seront alors d'abord appliqués avec les valeurs par défaut, puis à nouveau avec les valeurs propres à l'entité.
