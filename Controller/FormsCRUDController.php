@@ -411,7 +411,7 @@ class FormsCRUDController extends Controller
         $obj      = $eManager->getRepository($bundle.':'.$table)->findOneById($id);
         $metaData = $eManager->getClassMetadata($bundle.':'.$table);
 
-        if ($obj === false) {
+        if ($obj === false || $obj === null) {
             throw $this->createNotFoundException('Aucun enr trouvé pour cet id : '.$id);
         }
 
