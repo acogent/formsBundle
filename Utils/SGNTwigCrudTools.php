@@ -76,9 +76,9 @@ class SGNTwigCrudTools
      * @param  [type] $name [description]
      * @return [type]       [description]
      */
-    private static function getBundleShortName($name)
+    public static function getBundleShortName($name)
     {
-        return str_replace('\\', '', SGNTwigCrudTools::getBundleName($name));
+        return str_replace('\\', '', self::getBundleName($name));
     }
 
     /**

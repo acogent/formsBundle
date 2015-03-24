@@ -110,12 +110,9 @@ class FormsCRUDController extends Controller
         $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity, $tableFilters);
 
         $keyAssoc = array();
-        $colNames = array();
         foreach ($associations as $assoc) {
             if ($metadata->isSingleValuedAssociation($assoc) === true) {
                 $keyAssoc[] = $assoc;
-            } else {
-                $colNames[] = $assoc;
             }
         }
 
@@ -172,7 +169,7 @@ class FormsCRUDController extends Controller
                 $limit = $count;
             }
 
-            $collectionNames = $this->getCollectionNames($colNames, $bundle, $table);
+            $collectionNames = $this->getCollectionNames($bundle, $table);
             $urlShowOne      = $this->generateUrl('sgn_forms_formscrud_showone', array('bundle' => $bundle, 'table' => $table, 'id' => '#'), true);
             $urlEdit         = $this->generateUrl('sgn_forms_formscrud_edit', array('bundle' => $bundle, 'table' => $table, 'id' => '#'), true);
             $urlDelete       = $this->generateUrl('sgn_forms_formscrud_delete', array('bundle' => $bundle, 'table' => $table, 'id' => '#'));
@@ -494,6 +491,69 @@ class FormsCRUDController extends Controller
 
 
     /**
+     * Permet de créer la grille d'une collection quand on sélectionne un objet dans une grille
+     * @Route("/{bundle}/{table}/{format}/select/JQG/{collection}/{id}/" )
+     *
+     * @Template("SGNFormsBundle:FormsCRUD:selectJqGrid.html.twig")
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function createJqGridAction($bundle, $table, $format, $collection, $id = 0)
+    {
+        $request         = $this->getRequest();
+        $filters         = $request->query->all();
+        $columnModel     = '[]';
+        $datas           = array();
+        $parent          = null;
+
+        if (isset($filters['parent']) === true) {
+            $parent = $filters['parent'];
+        }
+
+        if ($request->isXmlHttpRequest() === true) {
+            $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+            if (isset($id) === true && $id > 0) {
+
+                if ($collection === 'Audit') {
+                    $datas = $this->getAudit($bundle, $table, $id);
+                    if (count($datas) > 0) {
+                        foreach ($datas as $data) {
+                            $result[] = $data;
+                        }
+                        $columnModel = SGNTwigCrudTools::getColumnModel($result[0]);
+                    }
+                } else {
+                    if ($parent !== null) {
+                        $class = $eManager->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($parent);
+                        $bundle = SGNTwigCrudTools::getBundleShortName($class);
+                        $table = SGNTwigCrudTools::getName($class);
+                    }
+
+                    $metadata = $eManager->getClassMetadata($bundle.':'.$table);
+                    $class = $metadata->getAssociationTargetClass($collection);
+                    $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class, $this->container->getParameter('sgn_forms.entities_filters'));
+
+                    if ($parent === null) {
+                        $collectionUrls = array();
+                        $classmeta = $eManager->getClassMetadata($class);
+                        $collectionUrls = $this->getCollectionNames($bundle, $table, $collection);
+                    }
+                }
+            }
+        }
+
+        return array(
+                'project'         => $bundle,
+                'columnModel'     => $columnModel,
+                'table'           => $table,
+                'entity'          => $collection,
+                'limit'           => 10,
+                'rowsList'        => 1,
+               );
+
+    }
+
+
+    /**
      * Permet de récupérer une collection d'un objet quand on le sélectionne dans une grille
      * @Route("/{bundle}/{table}/{format}/select/JQG/{collection}/" )
      *
@@ -515,17 +575,16 @@ class FormsCRUDController extends Controller
         if (isset($filters['rows']) === true) {
             $limit = $filters['rows'];
         }
-
         if (isset($filters['page']) === true) {
             $page = $filters['page'];
         }
-
         if (isset($filters['sourceId']) === true) {
             $sourceId = $filters['sourceId'];
         }
 
         $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         if (isset($sourceId) === true && $sourceId !== 'undefined') {
+
             if ($collection === 'Audit') {
                 $datas = $this->getAudit($bundle, $table, $sourceId);
                 $count = count($datas);
@@ -535,17 +594,23 @@ class FormsCRUDController extends Controller
                         if ($index === $count) {
                             break;
                         }
-
                         $result[] = $datas[$index];
                     }
                 }
             }
 
             if ($collection !== 'Audit') {
-                $enr        = $eManager->getRepository($bundle.':'.$table)->findOneById($sourceId);
+                $entity = $bundle.":".$table;
+                $enr = $eManager->getRepository($entity)->findOneById($sourceId);
                 $methodName = 'get'.$collection;
                 if (method_exists($enr, $methodName) === true) {
-                    $datas = $enr->$methodName();
+                    $metadata = $eManager->getClassMetadata($entity);
+                    $fetch = $enr->$methodName();
+                    if ($metadata->isCollectionValuedAssociation($collection) === true) {
+                        $datas = $fetch;
+                    } elseif ($fetch !== null) {
+                        $datas[] = $fetch;
+                    }
                 }
 
                 $count = count($datas);
@@ -555,7 +620,6 @@ class FormsCRUDController extends Controller
                         if ($index === $count) {
                             break;
                         }
-
                         $result[] = Serializor::toArray($datas[$index]);
                     }
                 }
@@ -626,100 +690,98 @@ class FormsCRUDController extends Controller
 
 
     /**
-     * Permet de créer la grille d'une collection quand on sélectionne un objet dans une grille
-     * @Route("/{bundle}/{table}/{format}/select/JQG/{collection}/{id}/" )
-     *
-     * @Template("SGNFormsBundle:FormsCRUD:selectJqGrid.html.twig")
-     * @return \Symfony\Component\HttpFoundation\Response
+     * Renvoie un tableau contenant les URL utiles à la fabrication des sous-formulaires
+     * @param  string $project le nom du projet
+     * @param  string $table  le nom de la table
+     * @return array          le tableau avec les URL
      */
-    public function createJqGridAction($bundle, $table, $format, $collection, $id = 0)
+    private function getCollectionNames($project, $table, $parent = null)
     {
-        $request         = $this->getRequest();
-        $columnModel     = '[]';
-        $datas           = array();
-        if ($request->isXmlHttpRequest() === true) {
-            $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
-            if (isset($id) === true && $id > 0) {
-                if ($collection === 'Audit') {
-                    $datas = $this->getAudit($bundle, $table, $id);
-                    if (count($datas) > 0) {
-                        foreach ($datas as $data) {
-                            $result[] = $data;
-                        }
+        $collectionNames = array();
 
-                        $columnModel = SGNTwigCrudTools::getColumnModel($result[0]);
+        $eManager     = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
+        $bundleName   = Validators::validateBundleName($project);
+        $entity       = $bundleName.':'.$table;
+        $metadata     = $eManager->getClassMetadata($entity);
+        $associations = $metadata->getAssociationNames();
+        $tableFilters = $this->container->getParameter('sgn_forms.entities_filters');
+        $options      = array('*', $entity);
+        $boolAudit    = true;
+        $boolExtended = false;
+
+        foreach ($options as $option) {
+            if (isset($tableFilters[$option]) !== true) {
+                continue;
+            }
+            if (isset($tableFilters[$option]['audit']) === true) {
+                $boolAudit = $tableFilters[$option]['audit'];
+            }
+            if (isset($tableFilters[$option]['extended']) === true) {
+                $boolExtended = $tableFilters[$option]['extended'];
+            }
+            if (isset($tableFilters[$option]['rel_hidden'])) {
+                $selects = explode(',', $tableFilters[$option]['rel_hidden']);
+                foreach ($selects as $sel) {
+                    if (array_search(trim($sel), $associations) !== false) {
+                        unset($associations[array_search(trim($sel), $associations)]);
                     }
-                } else {
-                    $class           = $eManager->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($collection);
-                    $columnModel     = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class, $this->container->getParameter('sgn_forms.entities_filters'));
                 }
             }
         }
 
-        return array(
-                'project'         => $bundle,
-                'columnModel'     => $columnModel,
-                'table'           => $table,
-                'entity'          => $collection,
-                'limit'           => 10,
-                'rowsList'        => 1,
-               );
-
-    }
-
-
-    /**
-     * Renvoie un tableau contenant les URL utiles à la fabrication des sous-formulaires
-     * @param  array $data    tableau issu d'une sérialisation du résultat d'une requete
-     * @param  string $project le nom du projet
-     * @param  string $entity  le nom de l'entité
-     * @return array          le tableau avec les URL
-     */
-    private function getCollectionNames($data, $project, $entity)
-    {
-        $collectionNames = array();
-        $auditManager    = $this->container->get('simplethings_entityaudit.manager');
-
-        $bundleName  = Validators::validateBundleName($project);
-        $bundleValid = $this->get('Kernel')->getBundle($bundleName);
-        $dir         = $bundleValid->getNamespace();
-        $tableAudit  = $dir.'\Entity\\'.$entity;
-        foreach ($data as $champ) {
+        foreach ($associations as $champ) {
+            if ($boolExtended !== true and $metadata->isSingleValuedAssociation($champ)) {
+                continue;
+            }
             $url = $this->get('router')->generate(
                 'sgn_forms_formscrud_createjqgrid',
                 array(
                  'bundle'     => $project,
                  'format'     => 'html',
-                 'table'      => $entity,
+                 'table'      => $table,
                  'collection' => $champ,
                  'id'         => '#',
+                 'parent'     => $parent
                 ),
                 true
             );
-            $collectionNames[$champ] = $url;
-        }
+            $collectionNames[$champ]['url'] = $url;
 
-        $tableFilters = $this->container->getParameter('sgn_forms.entities_filters');
-        $options = array('*', $bundleName.':'.$entity);
-        $boolAudit = true;
-        foreach ($options as $option) {
-            if (isset($tableFilters[$option]) === true and isset($tableFilters[$option]['audit']) === true) {
-                $boolAudit = $tableFilters[$option]['audit'];
+            if ($boolExtended !== true or $parent !== null) {
+                continue;
+            }
+            $class = $metadata->getAssociationTargetClass($champ);
+            $bundle_name = SGNTwigCrudTools::getBundleShortName($class);
+            $entity_name = SGNTwigCrudTools::getName($class);
+            $collectionNames[$champ]['collections'] = $this->getCollectionNames($bundle_name, $entity_name, $champ);
+
+            if (isset($collectionNames[$champ]['collections'][$table])) {
+                unset($collectionNames[$champ]['collections'][$table]);
             }
         }
-        if ($auditManager->getMetadataFactory()->isAudited($tableAudit) === true and $boolAudit === true) {
+
+        if ($boolAudit !== true or $parent !== null) {
+            return $collectionNames;
+        }
+
+        $auditManager = $this->container->get('simplethings_entityaudit.manager');
+        $bundleValid  = $this->get('Kernel')->getBundle($bundleName);
+        $dir          = $bundleValid->getNamespace();
+        $tableAudit   = $dir.'\Entity\\'.$table;
+
+        if ($auditManager->getMetadataFactory()->isAudited($tableAudit) === true) {
             $url = $this->get('router')->generate(
                 'sgn_forms_formscrud_createjqgrid',
                 array(
                  'bundle'     => $project,
                  'format'     => 'html',
-                 'table'      => $entity,
+                 'table'      => $table,
                  'collection' => 'Audit',
                  'id'         => '#',
                 ),
                 true
             );
-            $collectionNames['Audit'] = $url;
+            $collectionNames['Audit']['url'] = $url;
         }
 
         return $collectionNames;
