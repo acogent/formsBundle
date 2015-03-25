@@ -644,29 +644,7 @@ class SGNTwigCrudTools
             $short_name = $bundle_name.':'.$entity_name;
 
             if (isset($tableFilters) === true) {
-                $options = array('*', $short_name);
-                foreach ($options as $option) {
-                    if (array_key_exists($option, $tableFilters) !== true) {
-                        continue;
-                    }
-                    if (isset($tableFilters[$option]['order'])) {
-                        $selects = explode(',', $tableFilters[$option]['order']);
-                        $sels = array();
-                        foreach ($selects as $sel) {
-                            $sels[] = trim($sel);
-                        }
-                        $allFields = array_unique(array_merge($sels, $allFields));
-                    }
-                    if (isset($tableFilters[$option]['hidden'])) {
-                        $selects = explode(',', $tableFilters[$option]['hidden']);
-                        foreach ($selects as $sel) {
-                            if (array_search(trim($sel), $allFields) !== false) {
-                                unset($allFields[array_search(trim($sel), $allFields)]);
-                            }
-                        }
-                        $allFields = array_values($allFields);
-                    }
-                }
+                $allFields = self::getFieldsThroughFilters($short_name, $allFields, $tableFilters);
             }
 
             foreach ($allFields as $champ) {
@@ -692,4 +670,38 @@ class SGNTwigCrudTools
         return '['.substr($columnModel, 0, -1).']';
     }
 
+    /**
+     * Passe une liste de champs à travers les filtres entities_filters
+     * @param  string $entity       le nom de l'entité ("bundle:table")
+     * @param  array $allFields     le tableau de champs à trier et filtrer
+     * @param  array $tableFilters  le paramètre entities_filters
+     * @return array                le tableau de champs trié et filtré
+     */
+    public static function getFieldsThroughFilters($entity, $allFields, $tableFilters)
+    {
+        $options = array('*', $entity);
+        foreach ($options as $option) {
+            if (array_key_exists($option, $tableFilters) !== true) {
+                continue;
+            }
+            if (isset($tableFilters[$option]['order'])) {
+                $selects = explode(',', $tableFilters[$option]['order']);
+                $sels = array();
+                foreach ($selects as $sel) {
+                    $sels[] = trim($sel);
+                }
+                $allFields = array_unique(array_merge($sels, $allFields));
+            }
+            if (isset($tableFilters[$option]['hidden'])) {
+                $selects = explode(',', $tableFilters[$option]['hidden']);
+                foreach ($selects as $sel) {
+                    if (array_search(trim($sel), $allFields) !== false) {
+                        unset($allFields[array_search(trim($sel), $allFields)]);
+                    }
+                }
+                $allFields = array_values($allFields);
+            }
+        }
+        return $allFields;
+    }
 }

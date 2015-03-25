@@ -107,19 +107,19 @@
                     <div id="related-grid-{{collection}}" ></div>
                 </div>
                 {% if attributs.collections is defined and attributs.collections is not empty %}
-                <div class="btn-group">
-                    <button id= 'btn-annexe' role="button" class="btn btn-primary btn-md" onclick="showHideSub('{{ collection }}');" ><span class="glyphicon glyphicon-list-alt"></span> {% trans %}Related datas{% endtrans %}</button>
-                </div>
-                <div class="panel-body" id="related-grids-{{ collection }}" style="display:none;">
-                {% for subcollection, subattributs in attributs.collections %}
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">{{ subcollection }}</h4>
-                        </div>
-                        <div id="related-grid-{{ collection }}-{{ subcollection }}" ></div>
+                    <div class="btn-group">
+                        <button id= 'btn-annexe' role="button" class="btn btn-primary btn-md" onclick="showHideSub('{{ collection }}');" ><span class="glyphicon glyphicon-list-alt"></span> {% trans %}Related datas{% endtrans %}</button>
                     </div>
-                {% endfor %}
-                </div>
+                    <div class="panel-body" id="related-grids-{{ collection }}" style="display:none;">
+                    {% for subcollection, subattributs in attributs.collections %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">{{ subcollection }}</h4>
+                            </div>
+                            <div id="related-grid-{{ collection }}-{{ subcollection }}" ></div>
+                        </div>
+                    {% endfor %}
+                    </div>
                 {% endif %}
             </div>
          {% endfor %}
@@ -300,6 +300,12 @@ $(document).ready(function() {
             {% for collection, attributs in collectionNames %}
                 jQuery("#list-grid-{{ collection }}" ).clearGridData();
                 jQuery("#list-grid-{{ collection }}").trigger('reloadGrid');
+                jQuery("#related-grids-{{ collection }}").hide();
+                {% if attributs.collections is defined and attributs.collections is not empty %}
+                    {% for subcollection, subattributs in attributs.collections %}
+                        jQuery("#list-grid-{{ collection }}-{{ subcollection }}").clearGridData();
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
             jQuery(".selectedEntityId").text(getSelectedEntityId);
 

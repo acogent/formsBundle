@@ -117,6 +117,8 @@ class FormsCRUDController extends Controller
         }
 
         $fields = array_unique(array_merge($fields, $keyAssoc));
+        $fields = SGNTwigCrudTools::getFieldsThroughFilters($entity, $fields, $tableFilters);
+
         foreach ($fields as $field) {
             if (in_array($field, $keyAssoc) === true) {
                 $sFields[] = 'IDENTITY(s.'.$field.') as '.$field;
@@ -126,23 +128,6 @@ class FormsCRUDController extends Controller
         }
 
         $allFields = $sFields;
-
-        // pour personnaliser les tables jQGrid
-        $options = array('*', $entity);
-        foreach ($options as $option) {
-            if (array_key_exists($option, $tableFilters) !== true) {
-                continue;
-            }
-            if (isset($tableFilters[$option]['hidden'])) {
-                $selects = explode(',', $tableFilters[$option]['hidden']);
-                foreach ($selects as $sel) {
-                    if (array_search('s.'.trim($sel), $allFields) !== false) {
-                        unset($allFields[array_search('s.'.trim($sel), $allFields)]);
-                    }
-                }
-                $allFields = array_values($allFields);
-            }
-        }
 
         $select  = implode(' , ', $allFields);
         $builder = $eManager->getRepository($entity)->createQueryBuilder('s')->select($select);
@@ -503,6 +488,7 @@ class FormsCRUDController extends Controller
         $filters         = $request->query->all();
         $columnModel     = '[]';
         $datas           = array();
+        $collectionUrls  = array();
         $parent          = null;
 
         if (isset($filters['parent']) === true) {
@@ -522,20 +508,18 @@ class FormsCRUDController extends Controller
                         $columnModel = SGNTwigCrudTools::getColumnModel($result[0]);
                     }
                 } else {
-                    if ($parent !== null) {
-                        $class = $eManager->getClassMetadata($bundle.':'.$table)->getAssociationTargetClass($parent);
-                        $bundle = SGNTwigCrudTools::getBundleShortName($class);
-                        $table = SGNTwigCrudTools::getName($class);
-                    }
-
                     $metadata = $eManager->getClassMetadata($bundle.':'.$table);
-                    $class = $metadata->getAssociationTargetClass($collection);
-                    $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $class, $this->container->getParameter('sgn_forms.entities_filters'));
+                    $assocClass = $metadata->getAssociationTargetClass($collection);
+                    $columnModel = SGNTwigCrudTools::getColumnModel(array(), $eManager, $assocClass, $this->container->getParameter('sgn_forms.entities_filters'));
 
                     if ($parent === null) {
-                        $collectionUrls = array();
-                        $classmeta = $eManager->getClassMetadata($class);
-                        $collectionUrls = $this->getCollectionNames($bundle, $table, $collection);
+                        $assocBundle = SGNTwigCrudTools::getBundleShortName($assocClass);
+                        $assocTable = SGNTwigCrudTools::getName($assocClass);
+                        $collectionUrls = $this->getCollectionNames($assocBundle, $assocTable, $collection);
+
+                        if (isset($collectionUrls[$table])) {
+                            unset($collectionUrls[$table]);
+                        }
                     }
                 }
             }
@@ -545,13 +529,14 @@ class FormsCRUDController extends Controller
                 'project'         => $bundle,
                 'columnModel'     => $columnModel,
                 'table'           => $table,
-                'entity'          => $collection,
+                'collection'      => $collection,
                 'limit'           => 10,
                 'rowsList'        => 1,
+                'parent'          => $parent,
+                'collectionUrls'  => $collectionUrls
                );
 
     }
-
 
     /**
      * Permet de récupérer une collection d'un objet quand on le sélectionne dans une grille
@@ -736,7 +721,7 @@ class FormsCRUDController extends Controller
             $url = $this->get('router')->generate(
                 'sgn_forms_formscrud_createjqgrid',
                 array(
-                 'bundle'     => $project,
+                 'bundle'     => $bundleName,
                  'format'     => 'html',
                  'table'      => $table,
                  'collection' => $champ,
@@ -750,10 +735,10 @@ class FormsCRUDController extends Controller
             if ($boolExtended !== true or $parent !== null) {
                 continue;
             }
-            $class = $metadata->getAssociationTargetClass($champ);
-            $bundle_name = SGNTwigCrudTools::getBundleShortName($class);
-            $entity_name = SGNTwigCrudTools::getName($class);
-            $collectionNames[$champ]['collections'] = $this->getCollectionNames($bundle_name, $entity_name, $champ);
+            $assocClass = $metadata->getAssociationTargetClass($champ);
+            $assocBundle = SGNTwigCrudTools::getBundleShortName($assocClass);
+            $assocTable = SGNTwigCrudTools::getName($assocClass);
+            $collectionNames[$champ]['collections'] = $this->getCollectionNames($assocBundle, $assocTable, $champ);
 
             if (isset($collectionNames[$champ]['collections'][$table])) {
                 unset($collectionNames[$champ]['collections'][$table]);
