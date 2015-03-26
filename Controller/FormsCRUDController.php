@@ -698,9 +698,6 @@ class FormsCRUDController extends Controller
             if (isset($tableFilters[$option]) !== true) {
                 continue;
             }
-            if (isset($tableFilters[$option]['audit']) === true) {
-                $boolAudit = $tableFilters[$option]['audit'];
-            }
             if (isset($tableFilters[$option]['extended']) === true) {
                 $boolExtended = $tableFilters[$option]['extended'];
             }
@@ -709,6 +706,9 @@ class FormsCRUDController extends Controller
                 foreach ($selects as $sel) {
                     if (array_search(trim($sel), $associations) !== false) {
                         unset($associations[array_search(trim($sel), $associations)]);
+                    }
+                    if (strtolower(trim($sel)) === 'audit') {
+                        $boolAudit = false;
                     }
                 }
             }

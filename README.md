@@ -2,21 +2,18 @@
 
 Dernière modification :
 
-## 3.0.0
-Réorganisation des options d'affichage des grilles via la nouvelle option 'entities_filters', qui rassemble 'entities_fields' (devient 'order') et 'entities_fields_hidden' (devient 'hidden'). Ajout de 'audit' pour l'affichage de la table 'Audit' (true par défaut), et de la possibilité de donner des valeurs par défaut pour toutes les entités (avec '*').
+## 3.1.0
+Ajout d'une option 'extended' dans 'entities_filters' : augmente l'affichage des tables liées en ajoutant les relations ...ToOne et permet l'affichage des tables liées pour chaque objet des tables liées !
+Ajout en parallèle de l'option 'rel_hidden' pour ne pas afficher certaines relations, y compris Audit. Il n'y a par conséquent plus d'utilité pour le paramètre 'audit : true/false', qui est supprimé.
 
-```
+```json
 sgn_forms:
     entities_filters:
         '*':
-            order    : 'id'
-            hidden   : 'slug, ptgTemp, projectTemp'
-        'BDGSDatabaseBundle:PointRef':
-            order    : 'id, nomFR'
-            hidden   : 'acroTemp'
-            audit    : false
+            extended   : true
+            rel_hidden : 'TechniqueStation, TypeInstrument, Audit'
 ```
-- [Lien vers le changelog complet](http://geodesie.ign.fr:8088/gitlab/sgn/formsbundle/blob/2/CHANGELOG.md)
+- [Lien vers le changelog complet](http://geodesie.ign.fr:8088/gitlab/sgn/formsbundle/blob/3/CHANGELOG.md)
 
 
 
@@ -392,25 +389,27 @@ services:
 
 ### Options pour l'interface de consultation avec jQgrid
 
-Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid, en masquer certaines, et décider de ne pas afficher la table 'Audit' liée à l'entité. Il suffit de renseigner le paramètre 'entities_filters' dans le fichier config.yml.
+Vous pouvez personnaliser l'ordre d'affichage des colonnes dans jQgrid, en masquer certaines, décider d'afficher plus ou moins de tables liées, afficher les tables liées à chaque table liée. Il suffit de renseigner le paramètre 'entities_filters' dans le fichier config.yml.
 
 ```
 sgn_forms:
     ....
     entities_filters:
         '*':
-            order    : 'id'
-            hidden   : 'slug, ptgTemp, projectTemp'
+            order      : 'id'
+            hidden     : 'slug, ptgTemp, projectTemp'
         'BDGSDatabaseBundle:PointRef':
-            order    : 'id, nomFR'
-            hidden   : 'acroTemp'
-            audit    : false
+            order      : 'id, nomFR'
+            hidden     : 'acroTemp'
+            extended   : true
+            rel_hidden : 'TypePointRef, Audit'
 
 ```
 
 L'entrée "entities_filters" est obligatoire. Listez ensuite les entités avec leur bundle et les options souhaitées :
 * 'order' suivi de la liste des champs ordonnés séparés par une virgule (pas de tableau). L'application complètera cette liste automatiquement avec les champs non listés. Par défaut, l'ordre sera lié à l'héritage (les champs des classes parents en premier).
 * 'hidden' suivi de la liste des champs à masquer séparés par une virgule (pas de tableau).
-* 'audit' suivi de 'true' ou 'false' selon que l'on veut afficher la table liée 'Audit'. Par défaut à true.
+* 'rel_hidden' suivi de la liste des tables liées à masquer séparées par une virgule (pas de tableau).
+* 'extended' suivi de true ou false (false par défaut) pour afficher également les relations '...ToOne' dans les tables liées, et les tables liées à chaque table liée.
 
 Si vous désirez donner des valeurs par défaut à ces options, renseignez-les pour une entité s'appelant '*'. Le tri et le masque seront alors d'abord appliqués avec les valeurs par défaut, puis à nouveau avec les valeurs propres à l'entité.

@@ -2,6 +2,18 @@
 
 # Changelog
 
+## 3.1.0
+Ajout d'une option 'extended' dans 'entities_filters' : augmente l'affichage des tables liées en ajoutant les relations ...ToOne et permet l'affichage des tables liées pour chaque objet des tables liées !
+Ajout en parallèle de l'option 'rel_hidden' pour ne pas afficher certaines relations, y compris Audit. Il n'y a par conséquent plus d'utilité pour le paramètre 'audit : true/false', qui est supprimé.
+
+```json
+sgn_forms:
+    entities_filters:
+        '*':
+            extended   : true
+            rel_hidden : 'TechniqueStation, TypeInstrument, Audit'
+```
+
 ## 3.0.0
 Réorganisation des options d'affichage des grilles via la nouvelle option 'entities_filters', qui rassemble 'entities_fields' (devient 'order') et 'entities_fields_hidden' (devient 'hidden'). Ajout de 'audit' pour l'affichage de la table 'Audit' (true par défaut), et de la possibilité de donner des valeurs par défaut pour toutes les entités (avec '*').
 
