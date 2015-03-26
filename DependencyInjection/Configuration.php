@@ -60,6 +60,8 @@ class Configuration implements ConfigurationInterface
                             ->scalarNode('order')->end()
                             ->scalarNode('hidden')->end()
                             ->booleanNode('audit')->end()
+                            ->booleanNode('extended')->end()
+                            ->scalarNode('rel_hidden')->end()
                         ->end()
                     ->end()
                 ->end()
