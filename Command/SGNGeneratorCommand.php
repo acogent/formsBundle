@@ -12,7 +12,7 @@
 namespace SGN\FormsBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
+use Symfony\Component\Console\Helper\DialogHelper;
 
 /**
  * Base class for generator commands.
@@ -71,7 +71,7 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
     protected function getDialogHelper()
     {
         $dialog = $this->getHelperSet()->get('dialog');
-        if ($dialog === false || get_class($dialog) !== 'Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper') {
+        if ($dialog === false || get_class($dialog) !== 'Symfony\Component\Console\Helper\DialogHelper') {
             $dialog = new DialogHelper();
             $this->getHelperSet()->set($dialog);
         }

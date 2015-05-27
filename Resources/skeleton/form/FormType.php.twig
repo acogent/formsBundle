@@ -58,9 +58,7 @@ class {{ form_class }} extends AbstractType
              {%- for field in fieldsOneToMany %}
 
         /*
-        $builder->add(
-        '{{ field }}',
-        'collection',
+        $builder->add('{{ field }}','collection',
         array(
             'type' => new {{ field }}Type(),
             'prototype' => true,
@@ -80,15 +78,17 @@ class {{ form_class }} extends AbstractType
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function(FormEvent $event) {
-                $obj  = $event->getData();
-                $form = $event->getForm();
+                $onClick = "ajaxFormRequest(this.form, 'validate');";
+                $obj     = $event->getData();
+                $form    = $event->getForm();
                 if (isset ($obj) === true && $obj->getId() > 0) {
-                    $form->add('submit', 'submit', array('label' => 'Modifier'/*, 'attr'  => array('onclick' => $this->onClickSubmitForm())*/));
+                    // $form->add('majDate', 'text', array('read_only' => true, 'label' => 'majDate.label'));
+                    $form->add('submit', 'submit', array('label' => 'Modifier'/*, 'attr'  => array('onclick' => $onClick*/));
 
                     return;
                 }
 
-                $form->add('submit', 'submit', array('label' => 'Ajouter'/*, 'attr'  => array('onclick' => $this->onClickSubmitForm()) */));
+                $form->add('submit', 'submit', array('label' => 'Ajouter'/*, 'attr'  => array('onclick' => $onClick */));
             }
         );
 
@@ -119,8 +119,7 @@ class {{ form_class }} extends AbstractType
             function(FormEvent $event){
                 $form = $event->getForm(); // ici : FormInterface de monChamp
                 // Dans le cas d’un formulaire modifié dynamiquement :
-              //  if ($form->getParent()->get('ajax')->getData() == 'true')
-              //  {
+              //  if ($form->getParent()->get('ajax')->getData() === 'true') {
               //      ∕∕ Vous pouvez appeler une fonction qui modifie le formulaire.
               //  }
                 ∕∕ Ici, vous pouvez appeler une fonction qui modifie le formulaire.
