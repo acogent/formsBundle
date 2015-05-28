@@ -16,7 +16,8 @@ class {{ form_class }} extends AbstractType
 {
 {% block class_body %}
     {% if fields|length > 0 %}
-    /**
+
+/**
      * @param FormBuilderInterface $builder
      * @param array $options
      */
@@ -30,11 +31,15 @@ class {{ form_class }} extends AbstractType
 
 
         {%- for field in fields %}
+{% if 'majDate' not in field %}
 {% if 'date' in field %}
         $builder->add('{{ field }}', 'date', array('input'  => 'datetime', 'widget' => 'single_text', 'label' => '{{ entity_class|lower }}.{{ field }}.label'));
 {% else %}
         $builder->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'));
 {% endif %}
+
+{% endif %}
+
         {%- endfor %}
         // champ à activer si vous voulez modifier dynamiquement le formulaire
         // $builder->add('ajax', 'hidden', array('mapped' => false));
@@ -50,11 +55,10 @@ class {{ form_class }} extends AbstractType
          // N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
          // $builder->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
              {%- endfor %}
-         {% endif %}
-
+        {% endif %}
 
         {% if fieldsOneToMany|length > 0 %}
-       // Champs OneToMany
+    // Champs OneToMany
              {%- for field in fieldsOneToMany %}
 
         /*
@@ -161,12 +165,12 @@ class {{ form_class }} extends AbstractType
     }
 
 
-
     /**
      * Cette méthode renvoie la requête JQuery à associer à l’événement onChange d’un champ du formulaire, dans le cas de modification dynamique.
      *
      * @return string jquery
      */
+/*
     private function onChangeField()
     {
         $jquery  = "$('#".$this->getName()."_ajax').val('true'); ";
@@ -174,8 +178,7 @@ class {{ form_class }} extends AbstractType
 
         return $jquery;
     }
-
-
+*/
 
     /**
      * Cette méthode renvoie la requête JQuery à associer à l’événement onClick d’un bouton Submit du formulaire,
@@ -183,16 +186,17 @@ class {{ form_class }} extends AbstractType
      *
      * @return string jquery
      */
+/*
     private function onClickSubmitForm()
     {
-        $jquery = '';
+        $jquery  = '';
         // Si vous modifiez dynamiquement le formulaire, décommentez cette ligne :
         // $jquery = "$('#".$this->getName()."_ajax').val('false'); ";
-        $jquery.= "ajaxFormRequest(this.form, 'validate');";
+        $jquery .= "ajaxFormRequest(this.form, 'validate');";
 
         return $jquery;
     }
-
+*/
 
 {% endblock class_body %}
 }

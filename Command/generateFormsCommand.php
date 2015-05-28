@@ -63,9 +63,9 @@ class generateFormsCommand extends ContainerAwareCommand
                 $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$entity;
                 $metadata    = $this->getEntityMetadata($entityClass);
                 $this->generateForm($bundle, $entity, $metadata);
-                $output->writeln('Generating the Form code: <info>OK</info>');
+                $output->writeln('Generating the Form code: /Form/'.$entity.'Type.php<info>OK</info>');
             } else {
-                $output->writeln('File exists : <error>'.$path.'</error>');
+                $output->writeln('File exists : <error>/Form/'.$entity.'Type.php</error>');
             }
         }
 
