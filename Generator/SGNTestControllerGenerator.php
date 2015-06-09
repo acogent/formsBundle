@@ -21,7 +21,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Hugo Hamon <hugo.hamon@sensio.com>
  */
-class SGNTestGenerator extends SGNGenerator
+class SGNTestControllerGenerator extends SGNGenerator
 {
 
     private $filesystem;
@@ -80,7 +80,7 @@ class SGNTestGenerator extends SGNGenerator
         $namespace     = $bundle->getNamespace();
         $frm_namespace = strtolower(str_replace('\\', '_', $namespace));
         $this->renderFile(
-            'Tests/Test.php.twig',
+            'Tests/TestController.php.twig',
             $this->classPath,
             array(
              'fields'           => $this->getFieldsFromMetadata($metadata),

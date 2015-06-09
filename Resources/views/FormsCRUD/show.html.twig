@@ -136,9 +136,11 @@
     </div>
     <div class = "tab-pane" id="new" style="display:none;"><h2>{{ entity }} : </h2>
         <div id="newEntity">
-            {{ render(controller('SGNFormsBundle:FormsCRUD:new', {
-                'bundle': project, 'table': entity, 'ajax':''
-            })) }}
+            {% if route_exists('/admin/'~project~'/'~entity~'/new/') %}
+                {{ render(controller( project~':'~entity~':new')) }}
+            {% else %}
+                {{ render(controller('SGNFormsBundle:FormsCRUD:new', { 'bundle': project, 'table': entity, 'ajax':''  })) }}
+            {% endif %}
         </div>
      </div>
     <div class = "tab-pane" id="delete" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
@@ -203,7 +205,7 @@ $(document).ready(function() {
         jsonReader : {
           repeatitems: false
         },
-        //colNames    : {# {{ columnNames|json_encode()|raw }} #}, 
+        //colNames    : {# {{ columnNames|json_encode()|raw }} #},
         colModel    : {{ columnModel|raw   }} ,
         rowNum      : {{ limit }},
         rowList     : {{ rowsList }},

@@ -660,14 +660,22 @@ class FormsCRUDController extends Controller
         $eManager  = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         $entity    = $bundle.':'.$table;
         $class     = $eManager->getClassMetadata($entity);
+        $tableName = $class->table['name'].'_audit';
+        $table_    = $class->table;
+        $prefix    = '';
+
+        if (isset( $table_['schema']) === true) {
+            $prefix = $table_['schema'].'.';
+        }
+
+
+
         $champIdBd = 'id';
         if (isset($class->fieldMappings['id']['columnName']) === true) {
             $champIdBd = $class->fieldMappings['id']['columnName'];
         }
 
-        $tableName = $class->table['name'].'_audit';
-
-        $query  = 'SELECT * FROM '.$tableName.' e WHERE e.'.$champIdBd.' = '.$ident.' ORDER BY e.rev DESC';
+        $query  = 'SELECT * FROM '.$prefix.$tableName.' e WHERE e.'.$champIdBd.' = '.$ident.' ORDER BY e.rev DESC';
         $result = $eManager->getConnection()->fetchAll($query);
 
         return $result;

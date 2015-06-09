@@ -67,7 +67,10 @@ class FormsCrudExtension extends \Twig_Extension
      */
     public function getFunctions()
     {
-        return array('current_uri' => new \Twig_Function_Method($this, 'getCurrentURIFunction'));
+        return array(
+                     'current_uri'    => new \Twig_Function_Method($this, 'getCurrentURIFunction'),
+                     'route_exists'   => new \Twig_Function_Method($this, 'routeExists'),
+                     );
     }
 
 
@@ -214,4 +217,15 @@ class FormsCrudExtension extends \Twig_Extension
     }
 
 
+    function routeExists($path)
+    {
+        $router = $this->container->get('router');
+        $routes = $router->getRouteCollection();
+        foreach($routes as $route) {
+            if ($route->getPath() === $path) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

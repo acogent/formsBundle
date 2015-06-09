@@ -1,0 +1,67 @@
+<?php
+
+namespace {{ namespace }}\Tests\Validator{{ entity_namespace ? '\\' ~ entity_namespace : '' }};
+
+{% block use_statements %}
+use {{ namespace }}\Entity\{{ entity_class }};
+use {{ namespace }}\Validator\{{ entity_class }} as valid{{ entity_class }};
+
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\ConstraintValidator;
+
+
+{% endblock use_statements %}
+
+{% block class_definition %}
+
+class {{ test_class }} extends WebTestCase
+{% endblock class_definition %}
+{
+{% block class_body %}
+
+    private $constraint;
+
+    private function getKernel()
+    {
+        // ce sont les valeurs par defaut, donc pas utile, c'est juste pour se rappeler que cela peut etre changé
+        $kernel = $this->createKernel(array('environment' => 'test', 'debug' => true));
+        $kernel->boot();
+
+        return $kernel;
+
+    }//end getKernel()
+
+
+
+    /**
+     * @SuppressWarnings(PHPMD.StaticAccess)
+     */
+    public function setUp()
+    {
+        $kernel = $this->getKernel();
+
+        $this->validator  = $kernel->getContainer()->get('{{ frm_namespace }}.validator.{{ entity_class|lower }}');
+        $this->constraint = new valid{{ entity_class }}();
+        $this->obj        = new {{ entity_class }}();
+
+    }//end setUp()
+
+
+    public function testValidate()
+    {
+        $methodValid = 'validate';
+
+        $context = $this->getMockBuilder('Symfony\Component\Validator\ExecutionContext')->disableOriginalConstructor()->getMock('{{ entity_class }}Validator', array($methodValid));
+        $context->expects($this->never())->method('addViolationAt');
+        $context->expects($this->never())->method('addViolation');
+        $this->validator->initialize($context);
+
+        $this->validator->$methodValid($this->obj , $this->constraint);
+
+    }//end testValidate()
+
+
+{% endblock class_body %}
+}
+

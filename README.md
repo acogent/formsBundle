@@ -1,7 +1,10 @@
 # Changelog
 
 Dernière modification :
-
+## 3.2.0
+Lors de l'utilisation de la commande app/console sgn:generate:tests BDGDatabaseBundle, maintenant; les fichiers Tests/Validator/ENTITY sont aussi créés. Ils complètent donc les fichiers Tests/Controller/ENTITY.
+## 3.1.1
+Lors de l'utilisation de la commande app/console sgn:generate:tests BDGDatabaseBundle, maintenant; les fichiers présents dans un sous-dossier ne sont pas régénérés.
 ## 3.1.0
 Ajout d'une option 'extended' dans 'entities_filters' : augmente l'affichage des tables liées en ajoutant les relations ...ToOne et permet l'affichage des tables liées pour chaque objet des tables liées !
 Ajout en parallèle de l'option 'rel_hidden' pour ne pas afficher certaines relations, y compris Audit. Il n'y a par conséquent plus d'utilité pour le paramètre 'audit : true/false', qui est supprimé.

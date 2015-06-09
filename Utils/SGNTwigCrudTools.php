@@ -23,7 +23,7 @@ class SGNTwigCrudTools
             if ( $bundleShortName <> $bundle  && $bundle <> '*') continue;
 
             $entity_name  = self::getName( $metadata->getName());
-            if (empty($select_entity) 
+            if (empty($select_entity)
                 || $select_entity[0] == '*'
                 || in_array($bundle.".".$entity_name, $select_entity))
             {

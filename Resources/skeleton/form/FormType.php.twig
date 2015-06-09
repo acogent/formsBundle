@@ -53,7 +53,7 @@ class {{ form_class }} extends AbstractType
          // Si vous voulez une gestion de liste de choix avec Ajax,
          //supprimez la liste ci-dessus et décommentez celle ci-dessous.
          // N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
-         // $builder->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ))
+         // $builder->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ));
              {%- endfor %}
         {% endif %}
 
@@ -82,7 +82,7 @@ class {{ form_class }} extends AbstractType
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
             function(FormEvent $event) {
-                $onClick = "ajaxFormRequest(this.form, 'validate');";
+                $onClick = "ajaxFormRequest(this.form, validate);";
                 $obj     = $event->getData();
                 $form    = $event->getForm();
                 if (isset ($obj) === true && $obj->getId() > 0) {
