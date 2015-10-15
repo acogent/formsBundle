@@ -32,7 +32,8 @@ class FormsCrudExtension extends \Twig_Extension
             'sgn_forms_crud_twig_style'    =>  $this->container->getParameter('sgn_forms.twig_style'),
             'sgn_forms_crud_bestof_entity' =>  $this->container->getParameter('sgn_forms.bestof_entity'),
             'sgn_forms_crud_orm'           =>  $this->container->getParameter('sgn_forms.orm'),
-            'sgn_forms_bundles'            =>  $this->container->getParameter('sgn_forms.bundles')
+            'sgn_forms_bundles'            =>  $this->container->getParameter('sgn_forms.bundles'),
+            'sgn_forms_template'           =>  $this->container->getParameter('sgn_forms.template')
         );
 
     }

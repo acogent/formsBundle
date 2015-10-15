@@ -9,6 +9,10 @@ use {{ namespace }}\Tests\Controller\ModelControllerTest;
 
 {% block class_definition %}
 
+/**
+ * Test de l’entité {{ entity_class }}
+ *
+ */
 class {{ test_class }} extends ModelControllerTest  implements InterfaceControllerTest
 {% endblock class_definition %}
 {
@@ -16,8 +20,8 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
 
 
     public function setUp(){
-        $this->entity = "{{ entity_class }}";
-        $this->bundle = "{{ bundle }}";
+        $this->entity = '{{ entity_class }}';
+        $this->bundle = '{{ bundle }}';
         parent::setUp();
     }
 
@@ -25,7 +29,8 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
     public function testNewScenario()
     {
         $crawler = $this->client->request('GET', $this->urlNew);
-        $form    = $crawler->selectButton('Ajouter')->form(array(
+        $form    = $crawler->selectButton('Ajouter')
+        ->form(array(
 {%- for field in fields %}
 
             '{{ frm_namespace }}_{{ entity_class|lower }}[{{ field }}]' => null,
@@ -49,18 +54,46 @@ class {{ test_class }} extends ModelControllerTest  implements InterfaceControll
 
 {%- endfor %}
 
-        ));
+               ));
+
         parent::testNewScenario($form, $crawler);
     }
 
 
-    public function testUpdateScenario()   { parent::testUpdateScenario();  }
-    public function testShowHtmlScenario() { parent::testShowHtmlScenario(); }
-    public function testShowJsonScenario() { parent::testShowJsonScenario(); }
-    public function testShowOneScenario()  { parent::testShowOneScenario(); }
-    public function testDeleteScenario()   { parent::testDeleteScenario(); }
-    public function testloadData()         { parent::testloadData();  }
-    public function testAuditScenario()    { parent::testAuditScenario();  }
+    public function testUpdateScenario()
+    {
+        parent::testUpdateScenario();
+    }
+
+    public function testShowHtmlScenario()
+    {
+        parent::testShowHtmlScenario();
+    }
+
+    public function testShowJsonScenario()
+    {
+        parent::testShowJsonScenario();
+    }
+
+    public function testShowOneScenario()
+    {
+        parent::testShowOneScenario();
+    }
+
+    public function testDeleteScenario()
+    {
+        parent::testDeleteScenario();
+    }
+
+    public function testloadData()
+    {
+        parent::testloadData();
+    }
+
+    public function testAuditScenario()
+    {
+        parent::testAuditScenario();
+    }
 
 {% endblock class_body %}
 }

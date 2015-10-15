@@ -1,22 +1,98 @@
 # Changelog
 
-Dernière modification :
-## 3.2.0
-Lors de l'utilisation de la commande app/console sgn:generate:tests BDGDatabaseBundle, maintenant; les fichiers Tests/Validator/ENTITY sont aussi créés. Ils complètent donc les fichiers Tests/Controller/ENTITY.
-## 3.1.1
-Lors de l'utilisation de la commande app/console sgn:generate:tests BDGDatabaseBundle, maintenant; les fichiers présents dans un sous-dossier ne sont pas régénérés.
-## 3.1.0
-Ajout d'une option 'extended' dans 'entities_filters' : augmente l'affichage des tables liées en ajoutant les relations ...ToOne et permet l'affichage des tables liées pour chaque objet des tables liées !
-Ajout en parallèle de l'option 'rel_hidden' pour ne pas afficher certaines relations, y compris Audit. Il n'y a par conséquent plus d'utilité pour le paramètre 'audit : true/false', qui est supprimé.
+Dernières modifications :
 
-```json
-sgn_forms:
-    entities_filters:
-        '*':
-            extended   : true
-            rel_hidden : 'TechniqueStation, TypeInstrument, Audit'
+## 4.0.0
+On peut maintenant stocker ses entités dans des dossiers séparés.
+Dans votre projet, vous pouvez stocker vos entités dans des dossiers séparés mais toujours dans le dossier Entity.
+La principale fonction gérant cela est getConfigFromtable du controller FormsCRUDController.
+Les routes ont changées. Faire un :
 ```
-- [Lien vers le changelog complet](http://geodesie.ign.fr:8088/gitlab/sgn/formsbundle/blob/3/CHANGELOG.md)
+app/console route:debug
+```
+Il n'y a plus besoin de préciser le bundle dans l'URL pour l'affichage des formulaires.
+
+Pou cela, il faut le dire à doctrine/orm.
+Exemple :
+```
+#config.yml
+doctrine:
+    orm:
+        default_entity_manager: default
+        entity_managers:
+            default:
+                connection:         default
+                mappings:
+                    BDGDatabaseBundle: ~
+                    BDGAdmin:
+                        mapping:    true
+                        type:       annotation
+                        is_bundle:  false
+                        dir:        %kernel.root_dir%/../src/BDG/DatabaseBundle/Entity/admin
+                        prefix:     BDG\DatabaseBundle\Entity\admin
+                        alias:      BDGAdmin
+
+```
+Dans cet exemple, toutes les entités du domaine AUX de la BDG, ont été créées dans le dossier auxi( aux est interdit sur windows).
+Attention, à partir du moment où vous créez un alias, vous devrez toujours l'utiliser.
+
+Pour vos listes de choix gérées avec sgn_forms :
+```
+sgn_forms:
+    autocomplete_entities:
+        auxcartes_select:
+            class    : BDGAux:AuxCarte
+            property : no
+            value    : no
+            search   : contains
+            entity   : false
+            method   : getFormListeSQL
+```
+Et dans le SQL du repository:
+```
+    /**
+     * Get getFormListeSQL
+     *
+     * @return text
+     */
+    public function getFormListeSQL()
+    {
+        $sql = "SELECT e.no as id, TRIM (concat( concat( e.no, ' (' ), concat(e.nom, ')' )  ) ) as value
+        FROM   BDGAux:AuxCarte e
+        WHERE  LOWER(TRIM (concat( concat( e.no, ' (' ), concat(e.nom, ')' )  ) )) LIKE LOWER(:like)";
+
+        return $sql;
+
+    }
+```
+Pour les entités qui ont des relations avec des entité qui ne sont pas dans le même dossier, il faudra préciser le chemin complet :
+```
+<?php
+
+namespace BDG\DatabaseBundle\Entity\rsgf;
+
+/**
+ * RsgfPtg
+ *
+ * etc
+ */
+class RsgfPtg extends \BDG\DatabaseModelBundle\Model\rsgf\RsgfPtgModel
+{
+    /**
+     * @ORM\OneToMany(targetEntity="BDG\DatabaseBundle\Entity\nivf\NivfRnGeodesique", mappedBy="rsgfPtg", cascade={"persist", "remove", "merge"}, orphanRemoval=true)
+     */
+    protected $rngeods;
+
+```
+
+
+## 3.8.0
+On n'utilise plus les bundles "Components, selon les recommandations Symfony, il faut charger les bibliothèques tierces directement avec composer.
+
+## 3.2.0 à 3.7.0
+Utilisation de twgit. Insertion de toutes les anciennes branches.
+
+- [Lien vers le changelog complet](https://devsgn.ign.fr/sgn/formsbundle/blob/stable/CHANGELOG.md)
 
 
 
@@ -38,12 +114,88 @@ Mettre à jour le fichier composer.json de votre projet avec les éléments suiv
 ```json
     "require": {
         ...,
-        "sgn/forms-bundle": "1.*"
+        "sgn/forms-bundle": "~4.0",
+
+        "jquery/jquery-ui": "1.11.*",
+        "jquery/jqGrid": "5.0.0",
+        "js/tablesorter": "1.2.1",
+        "js/select2": "3.4.5",
     },
     "repositories": [
         {
             "type": "composer",
-            "url": "http://geodesie.ign.fr/satis/"
+            "url": "http://devsgn.ign.fr:8080/"
+        },
+        {
+            "type": "package",
+            "package": {
+                "name": "jquery/jquery",
+                "version": "1.11.1",
+                "dist": {
+                    "url": "https://code.jquery.com/jquery-1.11.1.js",
+                    "type": "file"
+                }
+            }
+        },
+        {
+           "type": "package",
+           "package": {
+               "name": "jquery/jquery-ui",
+               "version": "1.11.4",
+               "dist": {
+                   "type": "zip",
+                   "url": "https://jqueryui.com/resources/download/jquery-ui-1.11.4.zip",
+                   "reference": "1.11.4"
+               },
+               "autoload": {
+                   "classmap": ["."]
+               }
+           }
+        },
+        {
+           "type": "package",
+           "package": {
+               "name": "jquery/jqGrid",
+               "version": "5.0.0",
+               "dist": {
+                   "type": "zip",
+                   "url": "http://www.guriddo.net/downloads/Guriddo_jqGrid_JS_5_0_0_demo.zip",
+                   "reference": "5.0.0"
+               },
+               "autoload": {
+                   "classmap": ["."]
+               }
+           }
+        },
+        {
+           "type": "package",
+           "package": {
+               "name": "js/tablesorter",
+               "version": "1.2.1",
+               "dist": {
+                   "type": "zip",
+                   "url": "http://tablesorter.com/__jquery.tablesorter.zip",
+                   "reference": "1.2.1"
+               },
+               "autoload": {
+                   "classmap": ["."]
+               }
+           }
+        },
+        {
+           "type": "package",
+           "package": {
+               "name": "js/select2",
+               "version": "3.4.5",
+               "dist": {
+                   "type": "zip",
+                   "url": "https://github.com/select2/select2/archive/3.4.5.zip",
+                   "reference": "3.4.5"
+               },
+               "autoload": {
+                   "classmap": ["."]
+               }
+           }
         }
     ]
 ```
@@ -53,7 +205,73 @@ Puis mettre à jour vos dépendances avec composer :
 ```bash
     composer update
 ```
+Gérer les assets dans config.yml :
+```
+assetic:
+    debug:          "%kernel.debug%"
+    use_controller: false
+    bundles:        [ ]
+    assets:
+        jquery:
+            inputs:
+                - '%kernel.root_dir%/../vendor/jquery/jquery/jquery-1.11.1.js'
+            output: 'lib/jquery/jquery.1.11.1.js'
 
+        jquery_ui_css:
+            inputs:
+                - '%kernel.root_dir%/../vendor/jquery/jquery-ui/jquery-ui.css'
+            output: 'lib/jquery-ui/jquery-ui.css'
+        jquery_ui_js:
+            inputs:
+                - '%kernel.root_dir%/../vendor/jquery/jquery-ui/jquery-ui.js'
+            output: 'lib/jquery-ui/jquery-ui.js'
+            
+        tablesorter_js:
+            inputs:
+                - '%kernel.root_dir%/../vendor/js/tablesorter/jquery.tablesorter.js'
+            output: 'lib/tablesorter/tablesorter.js'
+        tablesorter_css:
+            inputs:
+                - '%kernel.root_dir%/../vendor/js/tablesorter/themes/blue/style.css'
+            output: 'lib/tablesorter/tablesorter.css'
+
+        select2_js:
+            inputs:
+                - '%kernel.root_dir%/../vendor/js/select2/select2.js'
+            output: 'lib/select2/select2.js'
+        select2_css:
+            inputs:
+                - '%kernel.root_dir%/../vendor/js/select2/select2.css'
+            output: 'lib/select2/select2.css'
+        select2_png:
+            inputs:
+                - '%kernel.root_dir%/../vendor/js/select2/select2.png'
+            output: 'lib/select2/select2.png'
+        select2_spinner_gif:
+            inputs:
+                - '%kernel.root_dir%/../vendor/js/select2/select2-spinner.gif'
+            output: 'lib/select2/select2-spinner.gif'
+        jqgrid_js:
+            inputs:
+                - '%kernel.root_dir%/../vendor/jquery/jqGrid/js/trirand/src/jquery.jqGrid.js'
+            output: 'lib/jqgrid/jqgrid.js'
+        jqgrid_i18n_js:
+            inputs:
+                - '%kernel.root_dir%/../vendor/jquery/jqGrid/js/trirand/i18n/grid.locale-fr.js'
+            output: 'lib/jqgrid/i18n/grid.locale-fr.js'
+        jqgrid_css:
+            inputs:
+                - '%kernel.root_dir%/../vendor/jquery/jqGrid/css/trirand/ui.jqgrid.css'
+            output: 'lib/jqgrid/jqgrid.css'
+        jqgrid_bootstrap_css:
+            inputs:
+                - '%kernel.root_dir%/../vendor/jquery/jqGrid/css/trirand/ui.jqgrid-bootstrap.css'
+            output: 'lib/jqgrid/ui.jqgrid-bootstrap.css'
+```
+Ne pas oublier de faire un :
+```
+php app/console assetic:watch
+```
 Enfin, activer le bundle dans votre fichier `app/AppKernel.php`:
 
 ```php
@@ -254,31 +472,38 @@ Où :
 
 Et normalement, tout fonctionne !
 
-### Le template bootstrap3
-
-Cet outil a besoin de [Bootstrap 3](http://geodesie.ign.fr:8088/gitlab/components/bootstrapbundle)
-Attention, il n'est pas dans les dépendances, à vous de l'ajouter !
-
-Dites à twig d'utiliser le template "forms.bootstrap3.html.twig" dans config/config.yml en complétant les inforamtions twig :
-
-```
-twig:
-    ...
-    form:
-        resources:
-            - SGNFormsBundle::forms.bootstrap3.html.twig
-```
+### Le template d'administration
+Ce template devra gérer le chargement des bibliothèques Select2, JqGrid, tableSorter.
 
 Déclarer un template d'aministration :
 
 ```
-twig:
-    ...
-    globals:
-        FORMS_LAYOUT: 'BDGSWebsiteBundle::admin_layout.html.twig'
+sgn_forms:
+    template: "@BDGSWebsite/bdgs_admin.html.twig"
 ```
 
-où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exemple, à vous de mettre votre template.
+où 'BDGSWebsiteBundle::bdgs_admin.html.twig' est un exemple, à vous de mettre votre template.
+
+Exemple de contenu du template :
+```
+{% extends '@BDGSWebsite/admin_layout.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="{{ asset('lib/select2/select2.css') }}" rel="stylesheet">
+    <link href="{{ asset('lib/jquery-ui/jquery-ui.css') }}" rel="stylesheet">
+    <link href="{{ asset('lib/jqgrid/jqgrid.css') }}" rel="stylesheet">
+    <link href="{{ asset('lib/jqgrid/ui.jqgrid-bootstrap.css') }}" rel="stylesheet">
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('lib/select2/select2.js') }}"></script>
+    <script src="{{ asset('lib/jqgrid/jqgrid.js') }}"></script>
+    <script src="{{ asset('lib/jqgrid/i18n/grid.locale-fr.js') }}"></script>
+    <script src="{{ asset('lib/tablesorter/tablesorter.js') }}"></script>
+{% endblock %}
+{% endblock %}
+```
 
 
 ### Le générateur de formulaire et interface générique de consultation des entités
@@ -289,10 +514,6 @@ où 'BDGSWebsiteBundle::admin_layout.html.twig' est un exemple, à vous de mettr
 Ajouter les bundles suivants, si ce n'est déjà fait :
 
 ```
-new Components\JQueryBundle\ComponentsJQueryBundle(),
-new Components\JQueryUiBundle\ComponentsJQueryUiBundle(),
-new Components\jqGridBundle\ComponentsjqGridBundle(),
-new Components\Select2Bundle\ComponentsSelect2Bundle(),
 new SGN\FormsBundle\SGNFormsBundle(),
 ```
 

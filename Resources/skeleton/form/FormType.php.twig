@@ -46,14 +46,14 @@ class {{ form_class }} extends AbstractType
 
         {% if fieldsManyToOne|length > 0 %}
 
-       // Champs ManyToOne
+        // Champs ManyToOne
+        // Si vous voulez une gestion de liste de choix avec Ajax,
+        //supprimez la liste ci-dessus et décommentez celle ci-dessous.
+        // N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
              {%- for field in fieldsManyToOne %}
 
         $builder->add('{{ field }}', null, array('label' => '{{ entity_class|lower }}.{{ field }}.label'));
-         // Si vous voulez une gestion de liste de choix avec Ajax,
-         //supprimez la liste ci-dessus et décommentez celle ci-dessous.
-         // N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
-         // $builder->add('{{ field }}', 'sgn_ajax_autocomplete',    array('label' => '{{ entity_class|lower }}.{{ field }}.label','entity_alias'=>'{{ field|lower }}s' ));
+        // $builder->add('{{ field }}', 'sgn_ajax_autocomplete', array('label' => '{{ entity_class|lower }}.{{ field }}.label', 'entity_alias'=>'{{ field|lower }}s' ));
              {%- endfor %}
         {% endif %}
 

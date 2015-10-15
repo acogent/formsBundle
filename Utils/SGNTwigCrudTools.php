@@ -9,29 +9,29 @@ use SGN\FormsBundle\Utils\Serializor;
 class SGNTwigCrudTools
 {
 
+
     /**
      * getMenuTabEntities
      *
      */
     public static function getMenuTabEntities($me, $bundle, $select_entity = array())
     {
-        $eManager = $me->getDoctrine()->getManager();
-        $metadatas = $eManager->getMetadataFactory()->getAllMetadata();
+        $eManager     = $me->getDoctrine()->getManager();
+        $metadatas    = $eManager->getMetadataFactory()->getAllMetadata();
         $tab_entities = array();
         foreach ($metadatas as $metadata) {
             $bundleShortName = self::getBundleShortName($metadata->getName());
-            if ( $bundleShortName <> $bundle  && $bundle <> '*') continue;
+            if ($bundleShortName !== $bundle && $bundle !== '*') {
+                continue;
+            }
 
-            $entity_name  = self::getName( $metadata->getName());
-            if (empty($select_entity)
-                || $select_entity[0] == '*'
-                || in_array($bundle.".".$entity_name, $select_entity))
-            {
-                $tab_entity               = array();
-                $tab_entity['project']    = $bundle;
+            $entity_name = self::getName($metadata->getName());
+            if (empty($select_entity) === true || $select_entity[0] === '*' || in_array($bundle.'.'.$entity_name, $select_entity) === true) {
+                $tab_entity = array();
+
                 $tab_entity['name']       = $entity_name;
                 $tab_entity['identifier'] = $metadata->getIdentifier();
-                $tab_entity['link']       = self::getEntityLink($me,$tab_entity['name'], $bundle);
+                $tab_entity['link']       = self::getEntityLink($me, $tab_entity['name'], $bundle);
                 $tab_entities[strtolower($tab_entity['name'])] = $tab_entity;
             }
         }
@@ -47,15 +47,7 @@ class SGNTwigCrudTools
      */
     private static function getEntityLink($me, $name, $bundle)
     {
-        $url = $me->get('router')->generate(
-            'sgn_forms_formscrud_show',
-            array(
-                'bundle' => $bundle ,
-                'table'  => $name  ,
-                'format'=>'html'
-                ),
-            true
-        );
+        $url = $me->get('router')->generate('sgn_forms_formscrud_show', array('bundle' => $bundle, 'table' => $name, 'format' => 'html'), true);
 
         return $url;
     }
@@ -89,24 +81,25 @@ class SGNTwigCrudTools
     public static function getName($name)
     {
         $namespaceParts = explode('\\', $name);
+
         return end($namespaceParts);
     }
 
     /**
      * Renvoie les données au format json
-     * @param  Entity Manager $eManager
-     * @param  string $bundle Le nom du bundle
-     * @param  string $table
-     * @param  array $filters le tableau issu de l'ajax
-     * @param  string $params les paramtres contenus dans l'URL
+     *
+     * @param Entity Manager $eManager
+     * @param string         $configTable
+     * @param array          $filters     le tableau issu de l'ajax
+     * @param string         $params      les parametres contenus dans l'URL
+     *
      * @return json         Les données filtrées au format json
      */
-    public static function getFormatJson($eManager, $bundle, $table, $filters, $params)
+    public static function getFormatJson($eManager, $configTable, $filters, $params)
     {
         $search      = 'false';
         $searchField = 'false';
-        $entity      = $bundle.':'.$table;
-
+        $entity      = $configTable['entity'];
         if (isset($filters['_search']) === true) {
             $search = $filters['_search'];
         }
@@ -139,7 +132,6 @@ class SGNTwigCrudTools
         $sord       = 'ASC';
         $sidx       = 'id';
         $page       = 0;
-
         if (isset($filters['rows']) === true) {
             $limit = $filters['rows'];
         }
@@ -160,6 +152,13 @@ class SGNTwigCrudTools
 
         $builder = $eManager->getRepository($entity)->createQueryBuilder('a')->select('count(a)');
         $builder = self::getWhereFromParams($params, $builder);
+
+        if (isset($filters['id']) === true) {
+            $builder        = self::getWhereFromFilters($filters, $builder);
+            $criteria['id'] = $filters['id'];
+        }
+
+
         $count   = $builder->getQuery()->getSingleScalarResult();
 
         if ($count > 0 && $limit > 0) {
@@ -172,6 +171,9 @@ class SGNTwigCrudTools
         }
 
         $data   = $eManager->getRepository($entity)->findBy($criteria, $orderBy, $limit, $start);
+
+        // var_dump($data);
+
         $result = array();
         // $result['debug'] = print_r('search false', true);
 
@@ -298,7 +300,7 @@ class SGNTwigCrudTools
         $criteria = array();
         $tParams  = explode('/', $params);
         array_pop($tParams);
-        while (count($tParams) > 1 && $tParams[0] <> '') {
+        while (count($tParams) > 1 && $tParams[0] !== '') {
             if ($tParams[0] === 'orderby') {
                 if ((strtolower($tParams[2]) === 'asc' || strtolower($tParams[2]) === 'desc' )) {
                     $tParams = array_slice($tParams, 3);
@@ -325,19 +327,20 @@ class SGNTwigCrudTools
      * @param  string $params la chaine de caractère contenant les parametres
      * @return builder
      */
-    private static function getWhereFromFilters($filters, $builder, $order = false)
+    public static function getWhereFromFilters($filters, $builder, $order = false)
     {
         $arrayExclude = array(
-                          'rows',
-                          'page',
-                          'nd',
-                          'sord',
-                          'sidx',
-                          'source',
-                          'sourceId',
-                          '_search',
-                          'searchField',
-                         );
+                         'rows',
+                         'page',
+                         'nd',
+                         'sord',
+                         'sidx',
+                         'source',
+                         'sourceId',
+                         '_search',
+                         'searchField',
+                        );
+
         $builder->where('1=1');
 
         if (array_key_exists('sidx', $filters) === true && $order === true) {
@@ -347,22 +350,22 @@ class SGNTwigCrudTools
         foreach ($filters as $champ => $val) {
             if (in_array($champ, $arrayExclude) === false) {
                 if (strpos('&'.$val, '%') !== false || strpos($val, '?') !== false) {
-                        $builder->andWhere("a.$champ like '$val'");
+                    $builder->andWhere('a.'.$champ." like '".$val."'");
                 } elseif (strpos('&'.$val, '>') === 1) {
                     $val = str_replace('>', '', $val);
-                    $builder->andWhere("a.$champ > '$val'");
+                    $builder->andWhere('a.'.$champ." > '".$val."'");
                 } elseif (strpos('&'.$val, '=') === 1) {
                     $val = str_replace('=', '', $val);
-                    $builder->andWhere("a.$champ = '$val'");
+                    $builder->andWhere('a.'.$champ." = '".$val."'");
                 } elseif (strpos('&'.$val, '<') === 1) {
                     $val = str_replace('<', '', $val);
-                    $builder->andWhere("a.$champ < '$val'");
+                    $builder->andWhere('a.'.$champ." < '".$val."'");
                 } elseif ($val === 'NULL' || $val === 'null') {
-                    $builder->andWhere("a.$champ is NULL");
+                    $builder->andWhere('a.'.$champ.' is NULL');
                 } elseif ($val === 'NOT NULL' || $val === 'not null') {
-                    $builder->andWhere("a.$champ is NOT NULL");
+                    $builder->andWhere('a.'.$champ.' is NOT NULL');
                 } else {
-                    $builder->andWhere("a.$champ = '$val'");
+                    $builder->andWhere('a.'.$champ." = '".$val."'");
                 }
             }
         }
@@ -380,7 +383,7 @@ class SGNTwigCrudTools
         $tParams = explode('/', $params);
         $builder->where('1=1');
         array_pop($tParams);
-        while (count($tParams) > 1 && $tParams[0] <> '') {
+        while (count($tParams) > 1 && $tParams[0] !== '') {
             if ($tParams[0] === 'orderby') {
                 if ((strtolower($tParams[2]) === 'asc' || strtolower($tParams[2]) === 'desc' )) {
                     $tParams = array_slice($tParams, 3);
@@ -393,7 +396,7 @@ class SGNTwigCrudTools
                 $tParams = array_slice($tParams, 1);
             } else {
                 if (isset($tParams[1]) === true && isset($tParams[0]) === true) {
-                    $builder->andWhere("a.$tParams[0] = '$tParams[1]'");
+                    $builder->andWhere('a.'.$tParams[0]." = '".$tParams[1]."'");
                     $tParams = array_slice($tParams, 2);
                 }
             }
@@ -415,9 +418,9 @@ class SGNTwigCrudTools
                    );
         $tParams = explode('/', $params);
         array_pop($tParams);
-        while (count($tParams) > 1 && $tParams[0] <> '') {
+        while (count($tParams) > 1 && $tParams[0] !== '') {
             if ($tParams[0] === 'orderby' && isset($tParams[1]) === true) {
-                if (isset($tParams[2]) === true && (strtolower($tParams[2]) === 'asc' or strtolower($tParams[2]) === 'desc' )) {
+                if (isset($tParams[2]) === true && (strtolower($tParams[2]) === 'asc' || strtolower($tParams[2]) === 'desc' )) {
                     $tParams = array_slice($tParams, 3);
                 } else {
                     $tParams = array_slice($tParams, 2);
@@ -503,9 +506,8 @@ class SGNTwigCrudTools
                 }
 
                 $searchString = $searchString.'%';
-                $where        = 'u.'.$searchField." LIKE :$searchField";
+                $where        = 'u.'.$searchField.' LIKE :'.$searchField;
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             case 'bn':
@@ -515,25 +517,22 @@ class SGNTwigCrudTools
                 }
 
                 $searchString = $searchString.'%';
-                $where        = 'u.'.$searchField." NOT LIKE :$searchField";
+                $where        = 'u.'.$searchField.' NOT LIKE :'.$searchField;
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             case 'in':
             //'is in'
                 $searchString = explode(',', $searchString);
-                $where        = 'u.'.$searchField." IN (:$searchField)";
+                $where        = 'u.'.$searchField.' IN (:'.$searchField.')';
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             case 'ni':
             //'is not in'
                 $searchString = explode(',', $searchString);
-                $where        = 'u.'.$searchField." NOT IN ( : $searchField )";
+                $where        = 'u.'.$searchField.' NOT IN ( : '.$searchField.' )';
                 $builder->whereNotIn($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             case 'ew':
@@ -543,9 +542,8 @@ class SGNTwigCrudTools
                 }
 
                 $searchString = '%'.$searchString;
-                $where        = 'u.'.$searchField." LIKE :$searchField";
+                $where        = 'u.'.$searchField.' LIKE :'.$searchField;
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             case 'en':
@@ -555,9 +553,8 @@ class SGNTwigCrudTools
                 }
 
                 $searchString = '%'.$searchString;
-                $where        = 'u.'.$searchField."  NOT LIKE :$searchField";
+                $where        = 'u.'.$searchField.'  NOT LIKE :'.$searchField;
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             case 'cn':
@@ -567,9 +564,8 @@ class SGNTwigCrudTools
                 }
 
                 $searchString = '%'.$searchString.'%';
-                $where        = 'u.'.$searchField." LIKE :$searchField";
+                $where        = 'u.'.$searchField.' LIKE :'.$searchField;
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             case 'nc':
@@ -579,15 +575,13 @@ class SGNTwigCrudTools
                 }
 
                 $searchString = '%'.$searchString.'%';
-                $where        = 'u.'.$searchField."  NOT LIKE :$searchField";
+                $where        = 'u.'.$searchField.'  NOT LIKE :'.$searchField;
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
 
             default:
                 $where = 'u.'.$searchField.' '.$operator[$searchOper].':'.$searchField;
                 $builder->andWhere($where)->setParameter($searchField, $searchString);
-
                 return $builder;
         }
     }
@@ -623,85 +617,107 @@ class SGNTwigCrudTools
 
     }
 
+
     /**
      * Fabrique le modèles des colonnes d'une grille
-     * @param  array $data    tableau issu d'une sérialisation du résultat d'une requete
-     * @param  entityManager $eManager
-     * @param  string $entity  le nom de l'entité
+     *
+     * @param array         $data     tableau issu d'une sérialisation du résultat d'une requete
+     * @param entityManager $eManager
+     * @param string        $entity   le nom de l'entité
+     *
      * @return string         le tableau au format json du modèle des colonnes
      */
-    public static function getColumnModel($data, $eManager = null, $entity = null, $tableFilters = null)
+    public static function getColumnModel($data, $eManager = null, $entity = null, $tableFilters = null, $arraySmallFields = array())
     {
         $columnModel = '';
-        if ($eManager !== null && $entity !== null) {
 
+        if ($eManager !== null && $entity !== null) {
             $metadata = $eManager->getClassMetadata($entity);
 
             $allFields = array_merge($metadata->getFieldNames(), $metadata->getAssociationNames());
 
-            $bundle_name = self::getBundleShortName($metadata->getName());
-            $entity_name = self::getName($metadata->getName());
-            $short_name = $bundle_name.':'.$entity_name;
-
             if (isset($tableFilters) === true) {
-                $allFields = self::getFieldsThroughFilters($short_name, $allFields, $tableFilters);
+                $allFields = self::getFieldsThroughFilters($entity, $allFields, $tableFilters);
             }
 
             foreach ($allFields as $champ) {
-                if ($metadata->hasAssociation($champ)) {
-                    if ($metadata->isSingleValuedAssociation($champ)) {
-                        $columnModel .= "{ name: '".$champ."' , index: '".$champ."' , search: false },";
-                    }
-                } else {
-                    $columnModel .= "{ name: '".$champ."' , index: '".$champ."', search: true },";
+                // les OneToMany
+                if ($metadata->hasAssociation($champ) === true && $metadata->isSingleValuedAssociation($champ) === false) {
+                    continue;
+                }
+                $width  = '150';
+                $search = 'true';
+                $align  = 'left';
+                if ($metadata->hasAssociation($champ) === true && $metadata->isSingleValuedAssociation($champ) === true) {
+                    $search = 'false';
                 }
 
+                if (in_array($champ, $arraySmallFields) === true) {
+                    $width = '70';
+                    $align = 'center';
+                }
+                $columnModel .= "{ name: '".$champ."', width : ".$width.", align : '".$align."', index: '".$champ."' , search: ".$search." },";
             }
-
+            // dump($columnModel);
             return '['.substr($columnModel, 0, -1).']';
         }
 
         foreach ($data as $champ => $val) {
             if (is_array($val) === false) {
-                $columnModel .= "{ name: '".$champ."' , index: '".$champ."', search: false },";
+                $width  = '150';
+                $align  = 'left';
+                if (in_array($champ, $arraySmallFields) === true) {
+                    $width = '70';
+                    $align = 'center';
+                }
+                $columnModel .= "{ name: '".$champ."', width : ".$width.", align : '".$align."', index: '".$champ."', search: false },";
             }
         }
+
 
         return '['.substr($columnModel, 0, -1).']';
     }
 
     /**
      * Passe une liste de champs à travers les filtres entities_filters
-     * @param  string $entity       le nom de l'entité ("bundle:table")
-     * @param  array $allFields     le tableau de champs à trier et filtrer
-     * @param  array $tableFilters  le paramètre entities_filters
+     *
+     * @param string $entity       le nom de l'entité ("bundle:table")
+     * @param array  $allFields    le tableau de champs à trier et filtrer
+     * @param array  $tableFilters le paramètre entities_filters
+     *
      * @return array                le tableau de champs trié et filtré
      */
     public static function getFieldsThroughFilters($entity, $allFields, $tableFilters)
     {
         $options = array('*', $entity);
+
         foreach ($options as $option) {
             if (array_key_exists($option, $tableFilters) !== true) {
                 continue;
             }
-            if (isset($tableFilters[$option]['order'])) {
+
+            if (isset($tableFilters[$option]['order']) === true) {
                 $selects = explode(',', $tableFilters[$option]['order']);
-                $sels = array();
+                $sels    = array();
                 foreach ($selects as $sel) {
                     $sels[] = trim($sel);
                 }
+
                 $allFields = array_unique(array_merge($sels, $allFields));
             }
-            if (isset($tableFilters[$option]['hidden'])) {
+
+            if (isset($tableFilters[$option]['hidden']) === true) {
                 $selects = explode(',', $tableFilters[$option]['hidden']);
                 foreach ($selects as $sel) {
                     if (array_search(trim($sel), $allFields) !== false) {
                         unset($allFields[array_search(trim($sel), $allFields)]);
                     }
                 }
+
                 $allFields = array_values($allFields);
             }
         }
+
         return $allFields;
     }
 }

@@ -102,6 +102,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
+
         if ( $options['query'] !== "class" && $options['class'] === "query" ) {
             $builder->addViewTransformer(new QueryvalueToPropertyTransformer(
                 $this->container->get('doctrine')->getManager(),
