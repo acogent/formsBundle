@@ -253,7 +253,12 @@ class FormsCRUDController extends Controller
         $limits   = SGNTwigCrudTools::getLimitsFromParams($params);
         $limit    = $limits[0];
         $rowsList = $limits[1];
-        $entity   = $configTable['alias'].':'.$configTable['table'];
+
+
+        if (isset($configTable['alias']) === true) {
+            $entity   = $configTable['alias'].':'.$configTable['table'];
+        }
+
 
         // pour les liens de droite
         $bestofEntity = $this->container->getParameter('sgn_forms.bestof_entity');
@@ -291,10 +296,25 @@ class FormsCRUDController extends Controller
 
     private function getConfigFromtable($table)
     {
+        $config['table']     = '';
+        $config['alias']     = '';
+        $config['meta']      = '';
+        $config['bundle']    = '';
+        $config['bundleDir'] = '';
+        $config['entity']    = '';
+        $config['type']      = '';
+
         $namespaces      = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'))->getConfiguration()->getEntityNamespaces();
         $allMeta         = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'))->getMetadataFactory()->getAllMetadata();
         $config['table'] = $table;
 
+        if (strpos($table, '.') > 0) {
+            $tab = explode('.', $table);
+            $table = $tab[1];
+            $config['alias']  = $tab[0];
+            $config['bundle'] = $tab[0];
+            $config['table']  = $tab[1];
+        }
 
         foreach ($allMeta as $meta) {
             $shortMetaName = SGNTwigCrudTools::getName($meta->name);
@@ -310,17 +330,18 @@ class FormsCRUDController extends Controller
                 $config['bundle']    = $classBundleName;
                 $config['bundleDir'] = $tab[0];
                 $config['entity']    = $config['alias'].':'.$table;
-                $config['type']      = $this->getFormFromtable($classBundleValid, $table);
-
+                $config['type']      = $this->getFormFromTable($classBundleValid, $table);
                 return $config;
             }
         }
+        $message = 'La table '.$table. ' n’existe pas !';
 
-        return $config;
+        throw new \Exception ($message);
+
     }
 
 
-    private function getFormFromtable($classBundleValid, $table)
+    private function getFormFromTable($classBundleValid, $table)
     {
         $databaseDir = $classBundleValid->getPath();
         $classDir    = $classBundleValid->getNamespace();
