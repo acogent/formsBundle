@@ -6,22 +6,29 @@
         }
     </style>
     <script>
-        defer(function() 
+        // permet de palier au chargment de scripts jQuery avant jQuery... grrrr
+    //     function defer(method) {if (window.$)method();else setTimeout(function() { defer(method) }, 500);}
+    </script>
+    <script>
+        defer(function()
         {
             $("#{{ form.vars.id }}").css( "padding", "0px" );
+            var filter = "1 = 1";
+            if ( $("#{{ form.vars.id }}").attr('filter') ) filter = $("#{{ form.vars.id }}").attr('filter');
             $("#{{ form.vars.id }}").select2({
                 placeholder: "Search for {{ entity_alias }}",
-                minimumInputLength: 3,
+                minimumInputLength: {{ minLength }},
                 ajax: {
                     url: "{{ path("sgn_ajaxautocomplete") }}",
                     dataType: 'json',
                     quietMillis: 100,
                     data: function (term, page) {
                         return {
-                            letters: term, // search term
-                            page_limit: 10,
-                            page: page, // page number
+                            letters:      term, // search term
+                            page_limit:   10,
+                            page:         page, // page number
                             entity_alias: "{{ entity_alias }}",
+                            filter:       filter
                         };
                     },
                     results: function (data,page) {
@@ -35,13 +42,14 @@
                     // using its formatResult renderer - that way the movie name is shown preselected
                     var id=$(element).val();
                     if (id!=="") {
-                        $.ajax("{{ path("sgn_ajaxautocomplete") }}", 
+                        $.ajax("{{ path("sgn_ajaxautocomplete",{"init": 1}) }}",
                         {
                             data: {
-                                letters: id, // search term
-                                page_limit: 1,
-                                page: 1, // page number
-                                entity_alias: "{{ entity_alias }}"
+                                letters:      id, // search term
+                                page_limit:   1,
+                                page:         1, // page number
+                                entity_alias: "{{ entity_alias }}",
+                                filter:       filter
                              },
 
                             dataType: "json"

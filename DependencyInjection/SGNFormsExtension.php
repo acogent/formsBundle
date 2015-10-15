@@ -24,13 +24,21 @@ class SGNFormsExtension extends Extension
 
         $container->setParameter('sgn_forms.autocomplete_entities', $config['autocomplete_entities']);
 
-        $container->setParameter('sgn_forms.twig_style',    $config['twig_style']);
-        $container->setParameter('sgn_forms.bestof_entity', $config['bestof_entity']);
-        $container->setParameter('sgn_forms.orm',           $config['orm']);
-        $container->setParameter('sgn_forms.bundles',       $config['bundles']);
-        $container->setParameter('sgn_forms.entities_fields',       $config['entities_fields']);
-        $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.xml');
+        $container->setParameter('sgn_forms.twig_style',      $config['twig_style']);
+        $container->setParameter('sgn_forms.bestof_entity',   $config['bestof_entity']);
+        $container->setParameter('sgn_forms.select_entity',   $config['select_entity']);
+        $container->setParameter('sgn_forms.orm',             $config['orm']);
+        $container->setParameter('sgn_forms.bundles',         $config['bundles']);
+        foreach($config['forms'] as $value => $name)
+        {
+            $container->setParameter(sprintf('sgn_forms.forms.%s', $value), $name["bundle"]);
+        }
+        $container->setParameter('sgn_forms.entities_filters', $config['entities_filters']);
+        // $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        // $loader->load('services.xml');
+
+        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('services.yml');
 
     }
 }

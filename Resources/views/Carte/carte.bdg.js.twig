@@ -1,0 +1,81 @@
+<script>
+    /** layer BDG  */
+    // http://docs.geoserver.org/latest/en/user/services/wfs/reference.html
+    // http://stackoverflow.com/questions/22363192/cors-tomcat-geoserver
+    // On est sur 172.16.2.234 pour pouvoir faire du cross-domain avec tmcat7 (sur cadillac que tomcat6 et c'st le bordel !!!)
+    var sourceBdgeny_carte_picto = new ol.source.ServerVector({
+      format: new ol.format.GeoJSON(),
+      loader: function(extent, resolution, projection) {
+        var url_bdg_nivf_rn = 'http://172.16.2.234:8080/geoserver/wfs?service=wfs&'+
+        'version=2.0.0&request=GetFeature&'+
+        'typeName=cadillac:bdgeny_carte_picto&'+
+        'outputFormat=json&' +
+        'srsname=EPSG:3857&'+
+        'bbox=' + extent.join(',') + ',EPSG:3857';
+
+        $.ajax({
+          url      : url_bdg_nivf_rn,
+          dataType : 'json'
+        }).done(function(data) {
+            sourceBdgeny_carte_picto.addFeatures(sourceBdgeny_carte_picto.readFeatures(data));
+        });
+      },
+      strategy: ol.loadingstrategy.createTile(new ol.tilegrid.XYZ({
+        maxZoom: 17,
+        minZoom: 13
+      })),
+      projection: 'EPSG:3857'
+    });
+
+    var vectorBdgeny_carte_picto = new ol.layer.Vector({
+      source:sourceBdgeny_carte_picto,
+      style: createPointStyleFunction()
+    });
+
+    map.addLayer(vectorBdgeny_carte_picto);
+    var view = new ol.View({
+            center : ol.proj.transform([myLon, myLat], 'EPSG:4326', 'EPSG:3857'),
+            zoom   : myZoom,
+            maxZoom: 17,
+            minZoom: 14
+        });
+
+
+
+    map.setView(view);
+
+/** popup, info-bulle  */
+    var element = document.getElementById('popup');
+
+    var popup = new ol.Overlay({
+        element: element,
+        positioning: 'bottom-center',
+        stopEvent: false
+    });
+    map.addOverlay(popup);
+
+
+
+    // display popup on click
+    map.on('click', function(evt) {
+        var feature = map.forEachFeatureAtPixel(evt.pixel,
+            function(feature, layer) {
+               return feature;
+            });
+        if (feature) {
+            $(element).popover('destroy');
+            var geometry = feature.getGeometry();
+            var coord = geometry.getCoordinates();
+            popup.setPosition(coord);
+            $(element).popover({
+                'placement': 'top',
+                'html': true,
+                'content': feature.get('nom')+ ' Diffusion '+feature.get('diffusion')
+            });
+            $(element).popover('show');
+        } else {
+            $(element).popover('destroy');
+        }
+    });
+
+</script>

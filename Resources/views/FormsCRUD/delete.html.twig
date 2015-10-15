@@ -1,0 +1,12 @@
+{% form_theme form 'bootstrap_3_horizontal_layout.html.twig'|default("SGNFormsBundle::forms.bootstrap3.html.twig") %}
+  <p>
+    Etes-vous certain de vouloir supprimer cet objet  ?
+  </p>
+ {{ form_start(form , {'attr': {'id': 'form_delete'  }}) }}
+    {{ form_errors(form) }}
+    {{ form_widget(form) }}
+    <input type="submit" value="Supprimer" class="btn btn-danger" />
+{{ form_end(form) }}
+
+
+

@@ -1,0 +1,20 @@
+parameters:
+#    bdg_database_model.example.class: BDG\DatabaseModelBundle\Example
+services:
+    # Types de formulaire :
+    sgn_forms.twig.forms_crud_twig_extension:
+        class: SGN\FormsBundle\Twig\FormsCrudExtension
+        arguments: [@service_container]
+        tags:
+            - { name: twig.extension }
+
+    sgn_forms.type.ajax_autocomplete:
+        class: SGN\FormsBundle\Form\Type\AjaxAutocompleteType
+        arguments: [@service_container]
+        tags:
+            - { name: form.type, alias: sgn_ajax_autocomplete }
+
+    sgn_forms.type.bdg_carte_point_type:
+        class: SGN\FormsBundle\Form\Type\BDGCartePointType
+        tags:
+            - { name: form.type, alias: bdg_carte_point }

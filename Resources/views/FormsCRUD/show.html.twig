@@ -1,4 +1,4 @@
-{% extends ADMIN_LAYOUT %}
+{% extends FORMS_LAYOUT %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -28,11 +28,11 @@
         padding: 15px !important;
         width: 520px !important;
     }
-    #grid_container table>tbody>tr>td[role="gridcell"] {
+    #grid_container2 table>tbody>tr>td[role="gridcell"] {
         padding: 0px;
         padding-left: 8px;
     }
-    #grid_container input {
+    #grid_container2 input {
         height: 25px;
         background-color: #F9F9F9;
     }
@@ -64,7 +64,7 @@
 {# {{ dump(app.request.query) }} #}
 <div class="row">
     {% if  entities  is defined and entities|length > 0  %}
-        <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right;">
+        <select id="e1"  onchange="location = this.options[this.selectedIndex].value;" style="float: right; margin-right:15px">
             <option></option>
             {% for entit in entities %}
                 <option value="{{ entit.link }}" >{{ entit.name}}</a></option>
@@ -72,30 +72,33 @@
         </select>
       {% endif %}
 
-<h3>{{ project }} - {{ entity }}</h3>
+
 {% set id = null%}
-
-
-<div id="grid_container">
-    <table  class="table table-striped" id="list-grid"></table>
-    <div id="grid-nav"></div>
+<div class="panel panel-primary" id="grid_container2">
+    <div class="panel-heading">
+        <h3 class="panel-title" >{{ project }} - {{ entity }}</h3>
+    </div>
+    <div id="result_panel" class="panel-body">
+        <table  class="table table-striped" id="list-grid"></table>
+        <div id="grid-nav"></div>
+    </div>
 </div>
 <br>
 
  {% if  collectionNames  is defined %}
-  
-  <div class="btn-group">    
-    <button role="button" class="btn btn-primary btn-md" onclick="showHide('related-grids');" ><span class="glyphicon glyphicon-list-alt"></span> Related datas</button>
-    <button role="button" class="btn btn-primary btn-md" onclick="showHide('show');"><span class="glyphicon glyphicon-eye-open"> </span> Show</a>
-    <button role="button" class="btn btn-warning btn-md" onclick="showHide('edit');"><span class="glyphicon glyphicon-edit"></span> Edit</button>
-    <button role="button" class="btn btn-warning btn-md" onclick="showHide('new');"><span class="glyphicon glyphicon-plus"></span> New</button>
-    <button role="button" class="btn btn-danger btn-md"  onclick="showHide('delete');"> <span class="glyphicon glyphicon-remove"></span> Delete</button>
+
+  <div class="btn-group">
+    <button id= 'btn-annexe' role="button" class="btn btn-primary btn-md" onclick="showHide('related-grids');" ><span class="glyphicon glyphicon-list-alt"></span> {% trans %}Related datas{% endtrans %}</button>
+    <button id= 'btn-show' role="button" class="btn btn-primary btn-md" onclick="showHide('show');"><span class="glyphicon glyphicon-eye-open"> </span> {% trans %}Show{% endtrans %}</a>
+    <button id= 'btn-edit' role="button" class="btn btn-warning btn-md" onclick="showHide('edit');"><span class="glyphicon glyphicon-edit"></span> {% trans %}Edit{% endtrans %}</button>
+    <button id= 'btn-create' role="button" class="btn btn-warning btn-md" onclick="showHide('new');"><span class="glyphicon glyphicon-plus"></span> {% trans %}New{% endtrans %}</button>
+    <button id= 'btn-delete' role="button" class="btn btn-danger  btn-md" onclick="showHide('delete');"> <span class="glyphicon glyphicon-remove"></span> {% trans %}Delete{% endtrans %}</button>
  </div>
 
 <div id="myTabContent" class="tab-content" >
     <div class = "tab-pane" id="related-grids" >
-        <h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
-        {% for collection , url  in collectionNames %}
+        <h2>{{ entity|trans }} : <span class='selectedEntityId'></span></h2>
+        {% for collection , attributs  in collectionNames %}
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title" id="panel-title">{{collection}}</h3>
@@ -103,6 +106,21 @@
                 <div id="result_panel" class="panel-body">
                     <div id="related-grid-{{collection}}" ></div>
                 </div>
+                {% if attributs.collections is defined and attributs.collections is not empty %}
+                    <div class="btn-group">
+                        <button id= 'btn-annexe' role="button" class="btn btn-primary btn-md" onclick="showHideSub('{{ collection }}');" ><span class="glyphicon glyphicon-list-alt"></span> {% trans %}Related datas{% endtrans %}</button>
+                    </div>
+                    <div class="panel-body" id="related-grids-{{ collection }}" style="display:none;">
+                    {% for subcollection, subattributs in attributs.collections %}
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">{{ subcollection }}</h4>
+                            </div>
+                            <div id="related-grid-{{ collection }}-{{ subcollection }}" ></div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
             </div>
          {% endfor %}
     </div>
@@ -118,12 +136,15 @@
     </div>
     <div class = "tab-pane" id="new" style="display:none;"><h2>{{ entity }} : </h2>
         <div id="newEntity">
-            {{ render(controller('SGNFormsBundle:FormsCRUD:new', {
-                'bundle': project, 'table': entity
-            })) }}
+            {% if route_exists('/admin/'~project~'/'~entity~'/new/') %}
+                {{ render(controller( project~':'~entity~':new')) }}
+            {% else %}
+                {{ render(controller('SGNFormsBundle:FormsCRUD:new', { 'bundle': project, 'table': entity, 'ajax':''  })) }}
+            {% endif %}
         </div>
+     </div>
     <div class = "tab-pane" id="delete" style="display:none;"><h2>{{ entity }} : <span class='selectedEntityId'></span></h2>
-        <div id="deletEntity">
+        <div id="deleteEntity">
             Vous devez effectuer une selection pour pouvoir la supprimer.
         </div>
     </div>
@@ -145,12 +166,24 @@
         jQuery("#new").hide();
         jQuery("#delete").hide();
         jQuery("#related-grids").hide();
-       
+
         jQuery("#"+id).show();
     }
+
+    function showHideSub(id)
+    {
+        var sel_id = $("#list-grid-"+id).getGridParam('selrow');
+        $("#related-grids-"+id).toggle(0, function(){
+            if ($(this).is(":visible") && sel_id == null) {
+                var rowArray = jQuery("#list-grid-"+id).jqGrid('getDataIDs');
+                jQuery("#list-grid-"+id).jqGrid('setSelection', rowArray[0], true);
+            }
+        });
+    }
+
     var last_selected = null;
     var last_loaded   = null;
-    var wait = "<img src=\"{{ asset('bundles/bdgsworkflow/images/working.gif') }}\" alt=\"working...\" />";
+    var wait = "<img src=\"{{ asset('bundles/sgnforms/images/working.gif') }}\" alt=\"working...\" />";
 
 $(document).ready(function() {
     $("#e1").select2({ placeholder: "Choisissez une table ..." });
@@ -172,7 +205,7 @@ $(document).ready(function() {
         jsonReader : {
           repeatitems: false
         },
-        colNames    : {{ columnNames|json_encode()|raw }},
+        //colNames    : {# {{ columnNames|json_encode()|raw }} #},
         colModel    : {{ columnModel|raw   }} ,
         rowNum      : {{ limit }},
         rowList     : {{ rowsList }},
@@ -188,67 +221,93 @@ $(document).ready(function() {
         //     var ids = jQuery("#list-grid").jqGrid('getDataIDs');
         //     for(var i=0;i < ids.length;i++){
         //         var cl = ids[i];
-        //         edit    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-edit'></span></a>"; 
-        //         restore = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-open'></span></a>"; 
-        //         del     = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-remove'></span></a>"; 
-        //         show    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-eye-open'></span></a>"; 
-        //         related = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-list-alt'></span></a>"; 
-        //         save    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-save'></span></a>"; 
+        //         edit    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-edit'></span></a>";
+        //         restore = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-open'></span></a>";
+        //         del     = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-remove'></span></a>";
+        //         show    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-eye-open'></span></a>";
+        //         related = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-list-alt'></span></a>";
+        //         save    = "<a role='button' onclick=\"jQuery('#list-grid').editRow('"+cl+"');\" class='btn btn-warning btn-xs'><span class='glyphicon glyphicon-save'></span></a>";
         //         jQuery("#list-grid").jqGrid('setRowData',ids[i],{act:related+show+edit+save+restore+del});
-        //     }    
+        //     }
         // },
     });
-
+    var width = $('#grid_container2').width()-30;
     function relatedGridsReload(sel_id) {
-        // jQuery("#myTabContent").show();
-        // jQuery("#related-grids").show();
-        // if($('#myTab li.active a').attr('href') == "#new") {
-        //     $('#myTab a[href="#related-grids"]').tab('show');
-        // }
 
         jQuery('#editEntity').html(wait);
         jQuery('#showEntity').html(wait);
         jQuery('#deletEntity').html(wait);
 
-        {% for collection, url in collectionNames %}
-            myUrl = "{{ url }}";
-            myUrl = myUrl.replace( '0', sel_id);
-            $.ajax({
-                type   : "GET",
-                url    : myUrl,
-                cache  : false,
-                success: function(data){
-                    jQuery('#related-grid-{{collection}}').append(data);
-                }
-            });
+        {% for collection, attributs in collectionNames %}
+            myUrl = "{{ attributs.url }}";
+            myUrl = myUrl.replace('%23', sel_id); // %23 = #
+            $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+                .done(function(data) {
+                    $('#related-grid-{{collection}}').append(data);
+                    $("#list-grid-{{ collection }}").jqGrid('setGridWidth', width);
+                    //$('#list-grid-{{ entity }}').jqGrid('setGridWidth', 600);
+                })
+                .fail(function(e, data) {
+                    // alert( "error "+myUrl );
+                    console.log (e);
+                })
+                .always(function() {
+                    // alert( "complete" );
+                });
+
         {% endfor %}
 
         myUrl = "{{ url_edit }}";
-        myUrl = myUrl.replace( '0', sel_id);
-        $.ajax({
-            type   : "GET",
-            url    : myUrl,
-            cache  : false,
-            success: function(data){
-                jQuery('#editEntity').html(data);
-            }
-        });
+        myUrl = myUrl.replace('%23', sel_id); // %23 = #
+        $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+            .done(function(data) {
+                jQuery('#editEntity').html( data );
+            })
+            .fail(function(e, data) {
+                // alert( "error "+myUrl );
+                console.log (e);
+            })
+            .always(function() {
+                // alert( "complete" );
+            });
 
         myUrl = "{{ url_showone }}";
-        myUrl = myUrl.replace( '0', sel_id);
-        $.ajax({
-            type   : "GET",
-            url    : myUrl,
-            cache  : false,
-            success: function(data){
-                jQuery('#showEntity').html(data);
-            }
-        });
- 
+        myUrl = myUrl.replace('%23', sel_id); // %23 = #
+        $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+            .done(function(data) {
+                jQuery('#showEntity').html( data );
+            })
+            .fail(function(e, data) {
+                // alert( "error "+myUrl );
+                console.log (e);
+            })
+            .always(function() {
+                // alert( "complete" );
+            });
+        myUrl = "{{ url_delete }}";
+        myUrl = myUrl.replace('%23', sel_id); // %23 = #
+        $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+            .done(function(data) {
+                jQuery('#deleteEntity').html( data );
+            })
+            .fail(function(e, data) {
+                // alert( "error "+myUrl );
+                console.log (e);
+            })
+            .always(function() {
+                // alert( "complete" );
+            });
+
         if (sel_id != last_loaded ) {
-            {% for collection, url in collectionNames %}
+            {% for collection, attributs in collectionNames %}
                 jQuery("#list-grid-{{ collection }}" ).clearGridData();
                 jQuery("#list-grid-{{ collection }}").trigger('reloadGrid');
+                jQuery("#related-grids-{{ collection }}").hide();
+                {% if attributs.collections is defined and attributs.collections is not empty %}
+                    {% for subcollection, subattributs in attributs.collections %}
+                        jQuery("#list-grid-{{ collection }}-{{ subcollection }}").clearGridData();
+                    {% endfor %}
+                {% endif %}
             {% endfor %}
             jQuery(".selectedEntityId").text(getSelectedEntityId);
 
@@ -257,7 +316,7 @@ $(document).ready(function() {
         last_selected = sel_id;
     }
 
-    function getSelectedEntityId() 
+    function getSelectedEntityId()
     {
 
         var sel_id = jQuery("#list-grid").getGridParam('selrow');
@@ -267,7 +326,7 @@ $(document).ready(function() {
         return id;
     }
 
-    function hideResearch() 
+    function hideResearch()
     {
         if (jQuery("#searchmodfbox_list-grid")) {
             jQuery("#searchmodfbox_list-grid a.ui-jqdialog-titlebar-close").click();
@@ -294,10 +353,10 @@ $(document).ready(function() {
 
 jQuery(window).bind('resize', function() {
     // Get width of parent container
-    var width = jQuery("#grid_container").width();
+    var width = jQuery("#grid_container2").width();
     if (width == null || width < 1){
         // For IE, revert to offsetWidth if necessary
-        width = jQuery("#grid_container").attr('offsetWidth');
+        width = jQuery("#grid_container2").attr('offsetWidth');
     }
     width = width - 2; // Fudge factor to prevent horizontal scrollbars
     if (width > 0 &&
@@ -309,6 +368,37 @@ jQuery(window).bind('resize', function() {
     }
 
 }).trigger('resize');
+
+    function ajaxFormRequest(form, ajax)
+    {
+        var formName = form.action.indexOf("/edit/") > 0 ? '#editEntity' : '#newEntity';
+
+        // On empêche le comportement par défaut du navigateur, c-à-d de soumettre le formulaire :
+        $(formName).submit(function(e)
+        {
+            e.preventDefault();
+        });
+        $.ajax({
+            type: "POST",
+            url:  form.action + ajax,
+            data: $(form).serialize()
+        })
+            .done(function(result){
+                if (result.indexOf('<form') == 0)
+                {
+                    // Le formulaire modifié dynamiquement ou avec des erreurs de validation :
+                    jQuery(formName).html(result);
+                } else {
+                    // L’objet a été modifié ou inséré, on redirige :
+                    window.location.replace(result);
+                }
+            })
+            .fail(function(result) {
+                console.log (form.action + ajax);
+                // alert( "error" );
+                // jQuery(formName).html(result);
+             })
+    }
 
 </script>
 {% endblock %}

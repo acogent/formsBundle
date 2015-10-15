@@ -6,7 +6,7 @@
 
 {% block form %}
 {% spaceless %}
-    {{ form_start(form, {attr: {class: 'form-horizontal', novalidate: 'novalidate', role :'form'}}) }}
+    {{ form_start(form, {attr: {class: 'form-horizontal',  role :'form'}}) }}
         {{ form_widget(form) }}
     {{ form_end(form) }}
 {% endspaceless %}
@@ -177,7 +177,7 @@
             </span>
         </label>
     {% else %}
-        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' col-sm-3 control-label')|trim}) %}
+        {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' ')|trim}) %}
         {{ parent() }}
     {% endif %}
 {% endspaceless %}

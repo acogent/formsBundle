@@ -1,8 +1,8 @@
-<table id="list-grid-{{ entity }}"></table>
-<div id="grid-nav-{{ entity }}"></div>
+<table id="list-grid{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}"></table>
+<div id="grid-nav{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}"></div>
 <script >
 $(document).ready(function() {
-    jQuery("#list-grid-{{ entity }}").jqGrid({
+    jQuery("#list-grid{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}").jqGrid({
         autowidth : true,
         height    : 'auto',
         mtype: "GET",
@@ -12,7 +12,7 @@ $(document).ready(function() {
                         'bundle'     : project,
                         'format'     : 'json' ,
                         'table'      :  table ,
-                        'collection' :  entity
+                        'collection' :  collection
                     } ) }}",
         postData: {
             sourceId: getSourceId
@@ -21,38 +21,69 @@ $(document).ready(function() {
         jsonReader : {
           repeatitems: false
         },
-        colNames    : {{ columnNames|json_encode()|raw }},
+        // colNames    : {# {{ columnNames|json_encode()|raw }} #},
         colModel    : {{ columnModel|raw   }} ,
         rowNum      : {{ limit }},
         rowList     : {{ rowsList }},
-        pager       : "#grid-nav-{{ entity }}",
+        pager       : "#grid-nav{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}",
         sortname    : 'id',
         viewrecords : true,
         gridview    : true,
         sortorder   : "asc",
         caption     : "",
         beforeRequest    : hidePager,
-        beforeProcessing : showPagerOrNot
+        beforeProcessing : showPagerOrNot,
+        {% if parent is null %}onSelectRow : relatedGridsReload{% endif %}
     });
 
-    var grid = jQuery("#list-grid-{{ entity }}").jqGrid("navGrid", "#grid-nav-{{ entity }}",
+    var width = $('#grid_container2').width()-30;
+
+    var grid = jQuery("#list-grid{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}").jqGrid("navGrid", "#grid-nav{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}",
         { edit:false, add:false, del:false,search: false, view:false
         },
         { } //edit options
     );
     function getSourceId() {
         // attention, c'est l'identifiant de la grille principale
-        return jQuery('#list-grid').jqGrid('getGridParam','selrow');
+        return jQuery('#list-grid{% if parent is not null %}-{{ parent }}{% endif %}').jqGrid('getGridParam','selrow');
     }
     function hidePager() {
-        jQuery("#grid-nav-{{ entity }}_center").hide();
+        jQuery("#grid-nav{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}_center").hide();
     }
 
     function showPagerOrNot(data) {
-        jQuery("#grid-nav-{{ entity }}_center").show();
-        if (data.records > 15) {
-            jQuery("#grid-nav-{{ entity }}_center").show();
+        if (data.total > 1) {
+            jQuery("#grid-nav{% if parent is not null %}-{{ parent }}{% endif %}-{{ collection }}_center").show();
         }
+    }
+
+    function relatedGridsReload(sel_id) {
+
+        jQuery("#related-grids-{{ collection }}").show();
+
+        {% for subcollection , attributs in collectionUrls %}
+            myUrl = "{{ attributs.url }}";
+            myUrl = myUrl.replace('%23', sel_id); // %23 = #
+            console.log("collec : "+myUrl);
+            $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+                .done(function(data) {
+                    $('#related-grid-{{ collection }}-{{ subcollection }}').append(data);
+                    $("#list-grid-{{ collection }}-{{ subcollection }}").jqGrid('setGridWidth', width-3);
+                })
+                .fail(function(e, data) {
+                    console.log (e);
+                })
+                .always(function() {
+                    // alert( "complete" );
+                });
+        {% endfor %}
+
+        {% for subcollection , url in collectionUrls %}
+            jQuery("#list-grid-{{ collection }}-{{ subcollection }}").clearGridData();
+            jQuery("#list-grid-{{ collection }}-{{ subcollection }}").trigger('reloadGrid');
+        {% endfor %}
+        // jQuery(".selectedEntityId").text(getSelectedEntityId);
+
     }
 });
 
