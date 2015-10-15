@@ -1,0 +1,54 @@
+<?php
+
+namespace {{ namespace }}\Tests\Fixtures\Entity{{ entity_namespace ? '\\' ~ entity_namespace : '' }};
+
+{% block use_statements %}
+use Doctrine\Common\DataFixtures\AbstractFixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
+use Doctrine\Common\Persistence\ObjectManager;
+use {{namespace}}\Entity\{{ entity_class }};
+{% endblock use_statements %}
+
+{% block class_definition %}
+class {{ fixture_class }} extends AbstractFixture implements OrderedFixtureInterface
+{% endblock class_definition %}
+{
+{% block class_body %}
+
+
+    public function load(ObjectManager $manager)
+    {
+        ${{ entity_class|lower }}1 = new {{ entity_class }}();
+
+{%- for field in fields %}
+
+        ${{ entity_class|lower }}1->set{{field[:1]|capitalize}}{{field[1:]}}(null);
+
+{%- endfor %}
+
+    // fields ManyToOne
+    // Les références doivent être d'abord créées dans un fichier chargé en premier
+{%- for field in fieldsManyToOne %}
+
+        // ${{ entity_class|lower }}1->set{{field[:1]|capitalize}}{{field[1:]}}($this->getReference('{{field|lower}}_NULL'));
+
+{%- endfor %}
+
+        $manager->persist(${{ entity_class|lower }}_1);
+        $manager->flush();
+
+        // $this->addReference('{{ entity_class|lower }}1', ${{ entity_class }}_1);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getOrder()
+    {
+        return XX; // l'ordre dans lequel les fichiers sont chargés
+    }
+
+
+{% endblock class_body %}
+}

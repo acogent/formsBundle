@@ -1,0 +1,147 @@
+<script>
+    var map ;
+    var view;
+
+
+/** Definition d'une nouvelle source  geoportail  */
+    ol.source.Geoportail = function(key, layer, options)
+    {
+        if (!options) options={};
+        var matrixIds   = new Array();
+        var resolutions = new Array();
+        var size        = ol.extent.getWidth(ol.proj.get('EPSG:3857').getExtent()) /256;
+        for (var z=0; z <= (options.maxZoom ? options.maxZoom:18) ; z++)
+        {
+            matrixIds[z]   = z ;
+            resolutions[z] = size / Math.pow(2, z)
+        }
+       var attr = [ ol.source.Geoportail.prototype.attribution ];
+       if (options.attributions) attr.push(options.attributions);
+
+       ol.source.WMTS.call (this,
+       {
+        url        : "http://wxs.ign.fr/" + key + "/wmts",
+        layer      : layer,
+        matrixSet  : "PM",
+        format     : options.format ? options.format:"image/jpeg",
+        projection : "EPSG:3857",
+        tileGrid   : new ol.tilegrid.WMTS
+        ({ origin: [-20037508, 20037508],
+            resolutions : resolutions,
+            matrixIds   : matrixIds
+        }),
+        style: options.style ? options.style:"normal",
+        attributions: attr
+       });
+    };
+
+    ol.inherits (ol.source.Geoportail, ol.source.WMTS);
+
+    // Attribution standard
+    ol.source.Geoportail.prototype.attribution = new ol.Attribution
+    ({  html: '<a href="http://www.geoportail.gouv.fr/">Géoportail</a>'
+        +'&copy; <a href="http://www.ign.fr/">IGN-France</a>'
+    });
+
+    /** layers ign  */
+    var apiKey = '11g4o1d83tjqdzh1y1ldeknf'; //cle du serveur de fiches FIXME : peut-etre faut il en demander une autre ?
+
+    var carte_ign = new ol.layer.Tile({ source: new ol.source.Geoportail(apiKey, "GEOGRAPHICALGRIDSYSTEMS.MAPS"),  minResolution: 1 , maxResolution: 2000 , visible:true} );
+    var ortho_ign = new ol.layer.Tile({ source: new ol.source.Geoportail(apiKey, "ORTHOIMAGERY.ORTHOPHOTOS"),  minResolution: 1, maxResolution: 2 , visible:true , opacity:0.7} );
+
+    var mapquest  = new ol.layer.Tile({ source: new ol.source.MapQuest({layer: 'sat'}), minResolution: 2000 , visible:true});
+    var osm       = new ol.layer.Tile({ source: new ol.source.OSM(),  minResolution: 1,  maxResolution: 2000 , visible:true});
+
+
+    /** MAP  */
+    var myLon  = 13.0;
+    var myLat  = 32.16;
+    var myZoom = 2;
+
+    {% if (zoom is defined) and (zoom is not null) %} myZoom = {{ zoom }} ; {% endif %}
+    {% if (lon is defined)  and (lon is not null )%}  myLon  = {{ lon | raw}}  ; {% endif %}
+    {% if (lat is defined)  and (lat is not null) %}  myLat  = {{ lat | raw }} ; {% endif %}
+
+
+    var map = new ol.Map({
+        layers: [
+            new ol.layer.Group({ layers: [ mapquest , osm  ]  }),
+            new ol.layer.Group({ layers: [ carte_ign , ortho_ign ] })
+        ],
+        target   : document.getElementById('map'),
+        renderer : 'canvas',
+        view: new ol.View({
+            center : ol.proj.transform([myLon, myLat], 'EPSG:4326', 'EPSG:3857'),
+            zoom   : myZoom,
+            maxZoom: 17,
+            minZoom: 1
+        })
+    });
+
+/** change mouse cursor when over marker  */
+    $(map.getViewport()).on('mousemove', function(e) {
+        var pixel = map.getEventPixel(e.originalEvent);
+        var hit = map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+            return true;
+        });
+        if (hit) {
+            map.getTarget().style.cursor = 'pointer';
+        } else {
+            map.getTarget().style.cursor = '';
+        }
+    });
+
+
+
+/**  On découpe le layer */
+    carte_ign.on('precompose', function(event){
+        var canvas = event.context;  canvas.save();
+        canvas.beginPath();
+
+        for (var i = 0, ii = clipPolygons.length; i < ii; i++){
+            var clipPolygon = clipPolygons[i];
+            var clipPixel = [];
+            for (var j = 0, jj = clipPolygon.length; j < jj; j++){
+                clipPixel.push(map.getPixelFromCoordinate(clipPolygon[j]));
+                canvas.moveTo(clipPixel[0][0] , clipPixel[0][1]);
+                for (var k = 1, kk = clipPixel.length; k < kk; k++){
+                   canvas.lineTo(clipPixel[k][0] , clipPixel[k][1]);
+                };
+            }
+        };
+        canvas.closePath();
+        canvas.clip();
+    });
+
+    carte_ign.on('postcompose', function(event){
+        var canvas = event.context;
+        canvas.restore();
+    });
+
+/**  On découpe le layer */
+    ortho_ign.on('precompose', function(event){
+        var canvas = event.context;  canvas.save();
+        canvas.beginPath();
+
+        for (var i = 0, ii = clipPolygons.length; i < ii; i++){
+            var clipPolygon = clipPolygons[i];
+            var clipPixel = [];
+            for (var j = 0, jj = clipPolygon.length; j < jj; j++){
+                clipPixel.push(map.getPixelFromCoordinate(clipPolygon[j]));
+                canvas.moveTo(clipPixel[0][0] , clipPixel[0][1]);
+                for (var k = 1, kk = clipPixel.length; k < kk; k++){
+                   canvas.lineTo(clipPixel[k][0] , clipPixel[k][1]);
+                };
+            }
+        };
+        canvas.closePath();
+        canvas.clip();
+    });
+
+    ortho_ign.on('postcompose', function(event){
+        var canvas = event.context;
+        canvas.restore();
+    });
+
+
+</script>

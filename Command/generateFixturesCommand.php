@@ -3,7 +3,8 @@
 namespace SGN\FormsBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Mapping\DisconnectedMetadataFactory;
-use SGN\FormsBundle\Generator\SGNDoctrineFormGenerator;
+
+use SGN\FormsBundle\Generator\SGNFixtureGenerator;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
@@ -11,9 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Generates the CRUD for all entities of DatabaseBundle
+ * Generates the Fixtures for all entities of DatabaseBundle
  */
-class generateFormsCommand extends ContainerAwareCommand
+class generateFixturesCommand extends ContainerAwareCommand
 {
 
 
@@ -22,7 +23,7 @@ class generateFormsCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->setName('sgn:generate:forms')->setDescription("Generer les formulaires des entites d'un bundle")->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des formulaires ?');
+        $this->setName('sgn:generate:fixtures')->setDescription("Generer des fixtures des entites d'un bundle")->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des fixtures ?');
     }
 
 
@@ -33,13 +34,13 @@ class generateFormsCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $command      = $this->getApplication()->find('sgn:generate:forms');
+        $command      = $this->getApplication()->find('sgn:generate:fixtures');
         $bundleName   = $input->getArgument('bundle');
         $databaseDir  = $this->getContainer()->get('kernel')->getBundle($bundleName)->getPath();
         $entities     = array();
         $pathEntities = $databaseDir.'/Entity';
 
-        if (is_dir($pathEntities) === true) {
+        if (is_dir($pathEntities)) {
             if ($dh = opendir($pathEntities)) {
                 while (($file = readdir($dh)) !== false) {
                     if (is_file($pathEntities.'/'.$file) === true
@@ -58,14 +59,14 @@ class generateFormsCommand extends ContainerAwareCommand
         $bundle      = $this->getContainer()->get('kernel')->getBundle($bundleName);
         $databaseDir = $bundle->getPath();
         foreach ($entities as $entity) {
-            $path = $databaseDir.'/Form/'.$entity.'Type.php';
+            $path = $databaseDir.'/Tests/Fixtures/Entity/Load'.$entity.'Data.php';
             if (file_exists($path) === false) {
                 $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$entity;
                 $metadata    = $this->getEntityMetadata($entityClass);
-                $this->generateForm($bundle, $entity, $metadata);
-                $output->writeln('Generating the Form code: /Form/'.$entity.'Type.php<info>OK</info>');
+                $this->generateFixture($bundle, $entity, $metadata);
+                $output->writeln('Generating the test code: <info>'.$path.'</info>');
             } else {
-                $output->writeln('File exists : <error>/Form/'.$entity.'Type.php</error>');
+                $output->writeln('File exists : <error>'.$path.'</error>');
             }
         }
 
@@ -83,11 +84,11 @@ class generateFormsCommand extends ContainerAwareCommand
 
 
     /**
-     * Tries to generate forms if they don't exist yet and if we need write operations on entities.
+     * Tries to generate tests if they don't exist yet and if we need write operations on entities.
      */
-    protected function generateForm($bundle, $entity, $metadata)
+    protected function generateFixture($bundle, $entity, $metadata)
     {
-        $generator      = new SGNDoctrineFormGenerator($this->getContainer()->get('filesystem'));
+        $generator      = new SGNFixtureGenerator($this->getContainer()->get('filesystem'));
         $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
         $skeletonDirs[] = __DIR__.'/../Resources';
 

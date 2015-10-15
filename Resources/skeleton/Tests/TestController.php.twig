@@ -1,0 +1,67 @@
+<?php
+
+namespace {{ namespace }}\Tests\Controller{{ entity_namespace ? '\\' ~ entity_namespace : '' }};
+
+{% block use_statements %}
+use {{ namespace }}\Tests\Controller\InterfaceControllerTest;
+use {{ namespace }}\Tests\Controller\ModelControllerTest;
+{% endblock use_statements %}
+
+{% block class_definition %}
+
+class {{ test_class }} extends ModelControllerTest  implements InterfaceControllerTest
+{% endblock class_definition %}
+{
+{% block class_body %}
+
+
+    public function setUp(){
+        $this->entity = "{{ entity_class }}";
+        $this->bundle = "{{ bundle }}";
+        parent::setUp();
+    }
+
+
+    public function testNewScenario()
+    {
+        $crawler = $this->client->request('GET', $this->urlNew);
+        $form    = $crawler->selectButton('Ajouter')->form(array(
+{%- for field in fields %}
+
+            '{{ frm_namespace }}_{{ entity_class|lower }}[{{ field }}]' => null,
+
+{%- endfor %}
+
+
+            // fields ManyToOne
+
+{%- for field in fieldsManyToOne %}
+
+                //  'bdg_databasebundle_{{ entity_class|lower }}[{{ field }}]' => null,
+
+{%- endfor %}
+
+            // fields OneToMany
+
+{%- for field in fieldsOneToMany %}
+
+               //  'bdg_databasebundle_{{ entity_class|lower }}[ {{ field }} ]' => null,
+
+{%- endfor %}
+
+        ));
+        parent::testNewScenario($form, $crawler);
+    }
+
+
+    public function testUpdateScenario()   { parent::testUpdateScenario();  }
+    public function testShowHtmlScenario() { parent::testShowHtmlScenario(); }
+    public function testShowJsonScenario() { parent::testShowJsonScenario(); }
+    public function testShowOneScenario()  { parent::testShowOneScenario(); }
+    public function testDeleteScenario()   { parent::testDeleteScenario(); }
+    public function testloadData()         { parent::testloadData();  }
+    public function testAuditScenario()    { parent::testAuditScenario();  }
+
+{% endblock class_body %}
+}
+

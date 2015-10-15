@@ -1,5 +1,5 @@
-{% form_theme form 'SGNFormsBundle::forms.table.bootstrap3.html.twig' %}
-{{ form_start(form, {'attr': {'id': 'form_new'}})  }}
+{% form_theme form 'bootstrap_3_horizontal_layout.html.twig'|default("SGNFormsBundle::forms.bootstrap3.html.twig") %}
+{{ form_start(form, {'attr': {'id': 'form_new' }})  }}
     {{ form_errors(form) }}
     {{ form_widget(form) }}
 {{ form_end(form) }}
