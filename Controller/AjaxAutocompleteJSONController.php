@@ -3,8 +3,6 @@
 namespace SGN\FormsBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,132 +14,236 @@ class AjaxAutocompleteJSONController extends Controller
     {
         $em           = $this->get('doctrine')->getManager();
         $request      = $this->getRequest();
-        $entities     = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
         $entity_alias = $request->get('entity_alias');
-        $filter       = $request->get('filter');
+
+        $entities     = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
         $entity_info  = $entities[$entity_alias];
 
         if (false === $this->get('security.context')->isGranted($entity_info['role'])) {
             throw new AccessDeniedException();
         }
 
+        // mauvaise construction des parametres, on s'en va
+        if (($entity_info['show'] == 'property_value' || $entity_info['show'] == 'value_property') && $entity_info['target'] != 'both') {
+            throw new \Exception('Inconsistency between values of parameters "target" and "show".');
+        }
+
+        // fonction __toString à éviter !!
+        if ($entity_info['property'] === '__toString') {
+            return $this->toString($init);
+        }
+
+        // Alternative à __toString !! : création d'un champ pas en base des getet set + une fonction dans repository
+        if (isset($entity_info['method']) === true) {
+            return $this->method($entity_info, $init);
+        }
+
+        // cas général
+        return $this->sql($entity_info, $init);
+    }
+
+
+
+
+
+    private function toString($init)
+    {
+        $em           = $this->get('doctrine')->getManager();
+        $request      = $this->getRequest();
+        $entity_alias = $request->get('entity_alias');
+        $entity_info  = $entities[$entity_alias];
+
         $letters = $request->get('letters');
-        $maxRows = $request->get('page_limit');
 
         $class    = $entity_info['class'];
-        $property = $entity_info['property'];
-        $method   = $entity_info['method'];
-        $value    = $entity_info['value'];
-        $target   = $entity_info['target'];
         $show     = $entity_info['show'];
-        $case_insensitive = $entity_info['case_insensitive'];
-        $query            = $entity_info['query'];
-        $minLength        = $entity_info['minLength'];
 
+        $case_insensitive = $entity_info['case_insensitive'];
+
+        $entities = $em->getRepository($class)->findAll();
+        $letters  = trim($letters, '%');
+
+        $res = array();
+
+        foreach ($entities as $entity) {
+            $id       = $entity->getId().'';
+            $toString = $entity->__toString();
+            switch ($show) {
+                case 'value':
+                    $showtext = $id;
+                    break;
+
+                case 'property':
+                    $showtext = $toString;
+                    break;
+
+                case 'property_value':
+                    $showtext = $toString.' ('.$id.')';
+                    break;
+
+                case 'value_property':
+                    $showtext = $id.' ('.$toString.')';
+                    break;
+
+                default:
+                    throw new \Exception('Unexpected value of parameter "show".');
+            }
+
+            $showtextup = $showtext;
+            if ($case_insensitive) {
+                $letters    = strtoupper($letters);
+                $toString   = strtoupper($toString);
+                $showtextup = strtoupper($showtextup);
+            }
+
+            if (strpos($toString, $letters) === false
+                && strpos($id, $letters) === false
+                && strpos($showtextup, $letters) === false
+            ) {
+                continue;
+            }
+
+            $res[] = array(
+                      'id'   => $id,
+                      'text' => $showtext,
+                     );
+            if ($init == '1') {
+                if (empty($res)) {
+                    $res = array(
+                            'id'   => null,
+                            'text' => '(not found)',
+                           );
+                } else {
+                    $res = $res[0];
+                }
+            }
+
+            return new Response(json_encode($res));
+        }
+    }
+
+    private function method($entity_info, $init)
+    {
+        $em      = $this->get('doctrine')->getManager();
+        $request = $this->getRequest();
+
+        $class   = $entity_info['class'];
+        $method  = $entity_info['method'];
+        $sql     = $em->getRepository($class)->$method();
+        $like    = $this->getLike($entity_info);
+        $maxRows = $request->get('page_limit');
+        $query   = $em->createQuery($sql)->setParameter('like', $like)->setParameter('like', $like)->setMaxResults($maxRows);
+
+        // dump( $query->getSql() ) ;
+        $res   = array();
+        $results = $query->getScalarResult();
+        // dump($results);
+        foreach ($results as $r) {
+            $res[] = array(
+                      'id'   => $r['id'],
+                      'text' => $r['value'],
+                     );
+        }
+
+        if ($init == '1') {
+            if (empty($res) === true) {
+                $res = array(
+                        'id'   => null,
+                        'text' => '(not found)',
+                       );
+            } else {
+                $res = $res[0];
+            }
+        }
+
+        return new Response(json_encode($res));
+    }
+
+    private function sql($entity_info, $init)
+    {
+        $em      = $this->get('doctrine')->getManager();
+
+        $request = $this->getRequest();
+        $filter  = $request->get('filter');
+        $maxRows = $request->get('page_limit');
+
+        $property = $entity_info['property'];
 
         // Cas des “property” spéciaux, avec un préfixe :
         if (strpos($property, '.') !== false) {
             $prop_query = $property; // utilisé dans les requêtes
             $foo        = explode('.', $property);
             $property   = $foo[1]; // property débarrassé de son préfixe
-            // $property   = explode(".", $property)[1]; // property débarrassé de son préfixe
         } else {
             $prop_query = 'e.'.$property; // utilisé dans les requêtes
         }
 
-        if (($show == 'property_value' || $show == 'value_property') && $target != 'both') {
-            throw new \Exception('Inconsistency between values of parameters "target" and "show".');
+        $like         = $this->getLike($entity_info);
+        $where_clause = $this->getWhereClause($entity_info);
+
+        $query = $entity_info['query'];
+        $class = $entity_info['class'];
+        $value = $entity_info['value'];
+        $show  = $entity_info['show'];
+
+        if ($query === 'class') {
+            $sql = 'SELECT e.'.$property.', e.'.$value.' FROM '.$class.' e WHERE '.$filter.' AND '.$where_clause.' '.'ORDER BY '.$prop_query;
+        } else {
+            $sql = $query.'AND '.$filter.' AND '.$where_clause.' '.'ORDER BY '.$prop_query;
         }
 
+        $req = $em->createQuery($sql)->setParameter('like', $like)->setMaxResults($maxRows);
+        // print_r( $req->getSql() ) ; exit();
+        $results = $req->getScalarResult();
+
         $res = array();
+        foreach ($results as $r) {
+            switch ($show) {
+                case 'property':
+                        $showtext = $r[$property];
+                    break;
 
-        // fonction __toString à éviter !!
-        if ($property == '__toString') {
-            $entities = $em->getRepository($class)->findAll();
-            $letters  = trim($letters, '%');
+                case 'value':
+                        $showtext = $r[$value];
+                    break;
 
-            foreach ($entities as $entity) {
-                $id       = $entity->getId().'';
-                $toString = $entity->__toString();
-                switch ($show)
-                {
-                    case 'value':
-                        $showtext = $id;
-                        break;
+                case 'property_value':
+                        $showtext = $r[$property].' ('.$r[$value].')';
+                    break;
 
-                    case 'property':
-                        $showtext = $toString;
-                        break;
+                case 'value_property':
+                        $showtext = $r[$value].' ('.$r[$property].')';
+                    break;
 
-                    case 'property_value':
-                        $showtext = $toString.' ('.$id.')';
-                        break;
+                default:
+                    throw new \Exception('Unexpected value of parameter "show".');
+            }
 
-                    case 'value_property':
-                        $showtext = $id.' ('.$toString.')';
-                        break;
+            $res[] = array(
+                      'id'   => $r[$value],
+                      'text' => $showtext,
+                     );
+        }
 
-                    default:
-                        throw new \Exception('Unexpected value of parameter "show".');
-                }
-
-                $showtextup = $showtext;
-                if ($case_insensitive) {
-                    $letters    = strtoupper($letters);
-                    $toString   = strtoupper($toString);
-                    $showtextup = strtoupper($showtextup);
-                }
-
-                if (strpos($toString, $letters) === false
-                    && strpos($id, $letters) === false
-                    && strpos($showtextup, $letters) === false
-                ) {
-                    continue;
-                }
-
-                $res[] = array(
-                          'id'   => $id,
-                          'text' => $showtext,
-                         );
-                if ($init == '1') {
-if (empty($res)) {
-                        $res = array(
-                                'id'   => null,
-                                'text' => '(not found)',
-                               );
-} else {
-                        $res = $res[0];
-}
-                }
-
-                return new Response(json_encode($res));
+        if ($init == '1') {
+            if (empty($res) === true) {
+                $res = array(
+                        'id'   => null,
+                        'text' => '(not found)',
+                       );
+            } else {
+                $res = $res[0];
             }
         }
 
+        return new Response(json_encode($res));
+    }
 
-        switch ($target)
-        {
-            case 'property':
-                $target1 = $prop_query;
-                $target2 = null;
-                break;
-
-            case 'value':
-                $target1 = 'e.'.$value;
-                $target2 = null;
-                break;
-
-            case 'both':
-                $target1 = $prop_query;
-                $target2 = 'e.'.$value;
-                break;
-
-            default:
-                throw new \Exception('Unexpected value of parameter "target".');
-        }
-
-        switch ($entity_info['search'])
-        {
+    private function getLike($entity_info)
+    {
+        $request = $this->getRequest();
+        $letters = $request->get('letters');
+        switch ($entity_info['search']) {
             case 'begins_with':
                 $like = $letters.'%';
                 break;
@@ -160,6 +262,44 @@ if (empty($res)) {
 
             default:
                 throw new \Exception('Unexpected value of parameter "search".');
+        }
+
+        return $like;
+    }
+
+    private function getWhereClause($entity_info)
+    {
+        $case_insensitive = $entity_info['case_insensitive'];
+        $target           = $entity_info['target'];
+        $property         = $entity_info['property'];
+
+        // Cas des “property” spéciaux, avec un préfixe :
+        if (strpos($property, '.') !== false) {
+            $prop_query = $property; // utilisé dans les requêtes
+            $foo        = explode('.', $property);
+            $property   = $foo[1]; // property débarrassé de son préfixe
+        } else {
+            $prop_query = 'e.'.$property; // utilisé dans les requêtes
+        }
+
+        switch ($target) {
+            case 'property':
+                $target1 = $prop_query;
+                $target2 = null;
+                break;
+
+            case 'value':
+                $target1 = 'e.'.$value;
+                $target2 = null;
+                break;
+
+            case 'both':
+                $target1 = $prop_query;
+                $target2 = 'e.'.$value;
+                break;
+
+            default:
+                throw new \Exception('Unexpected value of parameter "target".');
         }
 
         $where_clause_lhs2 = '';
@@ -185,98 +325,6 @@ if (empty($res)) {
             $where_clause = '('.$where_clause_lhs1.' '.$where_clause_rhs1.' OR '.$where_clause_lhs2.' '.$where_clause_rhs2.')';
         }
 
-        // Alternative à __toString !! : création d'un champ pas en base des getet set + une fonction dans repository
-        if (isset($method)) {
-            $sql   = $em->getRepository($class)->$method();
-            $query = $em->createQuery($sql)->setParameter('like', $like)->setParameter('like', $like)->setMaxResults($maxRows);
-
-            // var_dump("entity_alias $entity_alias");
-            // var_dump("filter $filter");
-            // var_dump($entity_info);
-            // var_dump($like);
-            // var_dump("where_clause $where_clause");
-            // var_dump( $query->getSql() ) ;
-
-            $results = $query->getScalarResult();
-            foreach ($results as $r) {
-                $res[] = array(
-                          'id'   => $r['id'],
-                          'text' => $r['value'],
-                         );
-            }
-
-            if ($init == '1') {
-if (empty($res)) {
-                    $res = array(
-                            'id'   => null,
-                            'text' => '(not found)',
-                           );
-} else {
-                    $res = $res[0];
-}
-            }
-
-            return new Response(json_encode($res));
-        }
-
-        if ($query == 'class') {
-            $query = $em->createQuery(
-                'SELECT e.'.$property.', e.'.$value.'
-                                FROM '.$class.' e
-                                WHERE '.$filter.' AND '.$where_clause.' '.'ORDER BY '.$prop_query
-            )->setParameter('like', $like)->setMaxResults($maxRows);
-            // print_r( $query->getSql() ) ; exit();
-            $results = $query->getScalarResult();
-        } else {
-            $query = $em->createQuery($query.'
-                                AND '.$filter.' AND '.$where_clause.' '.'ORDER BY '.$prop_query)->setParameter('like', $like)->setMaxResults($maxRows);
-            // print_r( $query->getSql() ) ; exit();
-            $results = $query->getScalarResult();
-        }
-
-
-        foreach ($results as $r) {
-        switch ($show)
-            {
-            case 'property':
-                    $showtext = $r[$property];
-                break;
-
-            case 'value':
-                    $showtext = $r[$value];
-                break;
-
-            case 'property_value':
-                    $showtext = $r[$property].' ('.$r[$value].')';
-                break;
-
-            case 'value_property':
-                    $showtext = $r[$value].' ('.$r[$property].')';
-                break;
-
-            default:
-                throw new \Exception('Unexpected value of parameter "show".');
-        }
-
-            $res[] = array(
-                      'id'   => $r[$value],
-                      'text' => $showtext,
-                     );
-        }
-
-        if ($init == '1') {
-if (empty($res)) {
-                $res = array(
-                        'id'   => null,
-                        'text' => '(not found)',
-                       );
-} else {
-                $res = $res[0];
-}
-        }
-
-        return new Response(json_encode($res));
+        return $where_clause;
     }
-
-
 }

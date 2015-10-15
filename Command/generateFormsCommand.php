@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Generates the CRUD for all entities of DatabaseBundle
@@ -22,7 +23,9 @@ class generateFormsCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->setName('sgn:generate:forms')->setDescription("Generer les formulaires des entites d'un bundle")->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des formulaires ?');
+        $this->setName('sgn:generate:forms')->setDescription("Generer les formulaires des entites d'un bundle")
+        ->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des formulaires ?')
+        ->addArgument('dir', InputArgument::OPTIONAL, 'Un sous-dossier contenant les entités ?');
     }
 
 
@@ -36,8 +39,9 @@ class generateFormsCommand extends ContainerAwareCommand
         $command      = $this->getApplication()->find('sgn:generate:forms');
         $bundleName   = $input->getArgument('bundle');
         $databaseDir  = $this->getContainer()->get('kernel')->getBundle($bundleName)->getPath();
+        $dir          = $input->getArgument('dir');
         $entities     = array();
-        $pathEntities = $databaseDir.'/Entity';
+        $pathEntities = $databaseDir.'/Entity/'.$dir;
 
         if (is_dir($pathEntities) === true) {
             if ($dh = opendir($pathEntities)) {
@@ -57,15 +61,31 @@ class generateFormsCommand extends ContainerAwareCommand
 
         $bundle      = $this->getContainer()->get('kernel')->getBundle($bundleName);
         $databaseDir = $bundle->getPath();
+        $pathForm = $databaseDir.'/Form/';
+
         foreach ($entities as $entity) {
+            $finder   = new Finder();
+            $finder->files()->in($pathForm)->name($entity.'Type.php');
+
+            if (iterator_count($finder) > 0) {
+                $output->writeln('File exists : <comment>'.$entity.'Type.php</comment>');
+                continue;
+            }
+
             $path = $databaseDir.'/Form/'.$entity.'Type.php';
+            if ($dir !== null) {
+                 $path = $databaseDir.'/Form/'.$dir.'/'.$entity.'Type.php';
+            }
+
             if (file_exists($path) === false) {
                 $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$entity;
+                if ($dir !== null) {
+                    $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$dir.'\\'.$entity;
+                }
+
                 $metadata    = $this->getEntityMetadata($entityClass);
                 $this->generateForm($bundle, $entity, $metadata);
                 $output->writeln('Generating the Form code: /Form/'.$entity.'Type.php<info>OK</info>');
-            } else {
-                $output->writeln('File exists : <error>/Form/'.$entity.'Type.php</error>');
             }
         }
 

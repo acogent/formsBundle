@@ -1,6 +1,87 @@
 # SGN FormsBundle
 
 # Changelog
+## 4.0.0
+On peut maintenant stocker ses entités dans des dossiers séparés.
+Dans votre projet, vous pouvez stocker vos entités dans des dossiers séparés mais toujours dans le dossier Entity.
+Pou cela, il faut le dire à doctrine/orm.
+Exemple :
+```
+#config.yml
+doctrine:
+    orm:
+        default_entity_manager: default
+        entity_managers:
+            default:
+                connection:         default
+                mappings:
+                    BDGDatabaseBundle: ~
+                    BDGAdmin:
+                        mapping:    true
+                        type:       annotation
+                        is_bundle:  false
+                        dir:        %kernel.root_dir%/../src/BDG/DatabaseBundle/Entity/admin
+                        prefix:     BDG\DatabaseBundle\Entity\admin
+                        alias:      BDGAdmin
+
+```
+Dans cet exemple, toutes les entités du domaine AUX de la BDG, ont été créées dans le dossier auxi( aux est interdit sur windows).
+Attention, à partir du moment où vous créez un alias, vous devrez toujours l'utiliser.
+
+Pour vos listes de choix gérées avec sgn_forms :
+```
+sgn_forms:
+    autocomplete_entities:
+        auxcartes_select:
+            class    : BDGAux:AuxCarte
+            property : no
+            value    : no
+            search   : contains
+            entity   : false
+            method   : getFormListeSQL
+```
+Et dans le SQL du repository:
+```
+    /**
+     * Get getFormListeSQL
+     *
+     * @return text
+     */
+    public function getFormListeSQL()
+    {
+        $sql = "SELECT e.no as id, TRIM (concat( concat( e.no, ' (' ), concat(e.nom, ')' )  ) ) as value
+        FROM   BDGAux:AuxCarte e
+        WHERE  LOWER(TRIM (concat( concat( e.no, ' (' ), concat(e.nom, ')' )  ) )) LIKE LOWER(:like)";
+
+        return $sql;
+
+    }
+```
+Pour les entités qui ont des relations avec des entité qui ne sont pas dans le même dossier, il faudra préciser le chemin complet :
+```
+<?php
+
+namespace BDG\DatabaseBundle\Entity\rsgf;
+
+/**
+ * RsgfPtg
+ *
+ * etc
+ */
+class RsgfPtg extends \BDG\DatabaseModelBundle\Model\rsgf\RsgfPtgModel
+{
+    /**
+     * @ORM\OneToMany(targetEntity="BDG\DatabaseBundle\Entity\nivf\NivfRnGeodesique", mappedBy="rsgfPtg", cascade={"persist", "remove", "merge"}, orphanRemoval=true)
+     */
+    protected $rngeods;
+
+```
+
+## 3.8.0
+On n'utilise plus les bundles "Components, selon les recommandations Symfony, il faut charger les bibliothèques tierces directement avec composer.
+
+## 3.2.0 à 3.7.0
+Utilisation de twgit. Insertion de toutes les anciennes branches.
 
 ## 3.1.0
 Ajout d'une option 'extended' dans 'entities_filters' : augmente l'affichage des tables liées en ajoutant les relations ...ToOne et permet l'affichage des tables liées pour chaque objet des tables liées !

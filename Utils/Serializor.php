@@ -2,71 +2,74 @@
 
 namespace SGN\FormsBundle\Utils;
 
-class Serializor {
-
+class Serializor
+{
     /**
-     * Converts the Doctrine Entity into a JSON Representation
+     * Converts the Doctrine Entity into a JSON Representation.
      *
-     * @param object $object The Object (Typically a Doctrine Entity) to convert to an array
-     * @param integer $depth The Depth of the object graph to pursue
-     * @param array $whitelist List of entity=>array(parameters) to convert
-     * @param array $blacklist List of entity=>array(parameters) to skip
+     * @param object  $object    The Object (Typically a Doctrine Entity) to convert to an array
+     * @param integer $depth     The Depth of the object graph to pursue
+     * @param array   $whitelist List of entity=>array(parameters) to convert
+     * @param array   $blacklist List of entity=>array(parameters) to skip
+     *
      * @return string
      */
-    public static function json_encode($object, $depth=1, $whitelist=array(), $blacklist=array()){
-
-
+    public static function json_encode($object, $depth = 1, $whitelist = array(), $blacklist = array())
+    {
         return json_encode(Serializor::toArray($object, $depth, $whitelist, $blacklist));
     }
 
     /**
-     * Serializes our Doctrine Entities
+     * Serializes our Doctrine Entities.
      *
      * This is the primary entry point, because it assists with handling collections
      * as the primary Object
      *
-     * @param object $object The Object (Typically a Doctrine Entity) to convert to an array
-     * @param integer $depth The Depth of the object graph to pursue
-     * @param array $whitelist List of entity=>array(parameters) to convert
-     * @param array $blacklist List of entity=>array(parameters) to skip
-     * @return NULL|Array
+     * @param object  $object    The Object (Typically a Doctrine Entity) to convert to an array
+     * @param integer $depth     The Depth of the object graph to pursue
+     * @param array   $whitelist List of entity=>array(parameters) to convert
+     * @param array   $blacklist List of entity=>array(parameters) to skip
      *
+     * @return NULL|Array
      */
-    public static function toArray($object, $depth = 1,$whitelist=array(), $blacklist=array()){
+    public static function toArray($object, $depth = 1, $whitelist = array(), $blacklist = array())
+    {
         // If we drop below depth 0, just return NULL
 
-        if ($depth < 0){
-            return NULL;
+        if ($depth < 0) {
+            return;
         }
 
         // If this is an array, we need to loop through the values
-        if (is_array($object)){
+        if (is_array($object)) {
             // Somthing to Hold Return Values
             $anArray = array();
 
             // The Loop
-            foreach ($object as $value){
+            foreach ($object as $value) {
                 // Store the results
                 $anArray[] = Serializor::arrayizor($value, $depth, $whitelist, $blacklist);
             }
             // Return it
             return $anArray;
-        }else{
+        } else {
             // Just return it
             return Serializor::arrayizor($object, $depth, $whitelist, $blacklist);
         }
     }
 
     /**
-     * This does all the heavy lifting of actually converting to an array
+     * This does all the heavy lifting of actually converting to an array.
      *
-     * @param object $object The Object (Typically a Doctrine Entity) to convert to an array
-     * @param integer $depth The Depth of the object graph to pursue
-     * @param array $whitelist List of entity=>array(parameters) to convert
-     * @param array $blacklist List of entity=>array(parameters) to skip
+     * @param object  $object    The Object (Typically a Doctrine Entity) to convert to an array
+     * @param integer $depth     The Depth of the object graph to pursue
+     * @param array   $whitelist List of entity=>array(parameters) to convert
+     * @param array   $blacklist List of entity=>array(parameters) to skip
+     *
      * @return NULL|Array
      */
-    private static function arrayizor($anObject, $depth, $whitelist=array(), $blacklist=array()){
+    private static function arrayizor($anObject, $depth, $whitelist = array(), $blacklist = array())
+    {
         // Determine the next depth to use
         $nextDepth = $depth - 1;
 
@@ -76,11 +79,10 @@ class Serializor {
 
         // Now get our reflection class for this class name
         $reflectionClass = new \ReflectionClass($clazzName);
-
         // Then grap the class properites
         $clazzProps = $reflectionClass->getProperties();
 
-        if (is_a($anObject, 'Doctrine\ORM\Proxy\Proxy')){
+        if (is_a($anObject, 'Doctrine\ORM\Proxy\Proxy')) {
             $parent     = $reflectionClass->getParentClass();
             $clazzName  = $parent->getName();
             $clazzProps = $parent->getProperties();
@@ -88,69 +90,72 @@ class Serializor {
         // A new array to hold things for us
         $anArray = array();
 
-        // Lets loop through those class properties now
-        foreach ($clazzProps as $prop){
+        // var_dump($anObject);
 
+        // Lets loop through those class properties now
+        foreach ($clazzProps as $prop) {
             // If a Whitelist exists
-            if (@count($whitelist[$clazzName]) > 0){
+            if (@count($whitelist[$clazzName]) > 0) {
                 // And this class property is not in it
-                if (! @in_array($prop->name, $whitelist[$clazzName])){
+                if (! @in_array($prop->name, $whitelist[$clazzName])) {
                     // lets skip it.
                     continue;
                 }
             // Otherwise, if a blacklist exists
-            }elseif (@count($blacklist[$clazzName] > 0)){
+            } elseif (@count($blacklist[$clazzName] > 0)) {
                 // And this class property is in it
-                if (@in_array($prop->name, $blacklist[$clazzName])){
+                if (@in_array($prop->name, $blacklist[$clazzName])) {
                     // lets skip it.
                     continue;
                 }
             }
 
             // We know the property, lets craft a getProperty method
-            $method_name = 'get' . ucfirst($prop->name) ;
-
+            $method_name = 'get'.ucfirst($prop->name);
             // And check to see that it exists for this object
-            if (! method_exists($anObject, $method_name)){
+            if (! method_exists($anObject, $method_name)) {
+                // exit();
                 continue;
             }
             // It did, so lets call it!
             $aValue = $anObject->$method_name();
 
+
             // If it is an object, we need to handle that
-            if (is_object($aValue)){
+            if (is_object($aValue)) {
+                // dump($method_name);
+                // dump(get_class($aValue));
+                // dump($aValue);
                 // If it is a datetime, lets make it a string
-                if (get_class($aValue) === 'DateTime'){
+                if (get_class($aValue) === 'DateTime') {
                     $anArray[$prop->name] = $aValue->format('Y-m-d H:i:s');
 
                 // If it is a Doctrine Collection, we need to loop through it
-                }
+                } elseif (get_class($aValue) === 'Doctrine\ORM\PersistentCollection') {
                 // oneToMany ou ManyToMany
-                elseif(get_class($aValue) ==='Doctrine\ORM\PersistentCollection'){
-
                     $collect = array();
-                    foreach ($aValue as $val){
+                    foreach ($aValue as $val) {
                         $collect[] = $val->getId();//Serializor::toArray($val, $nextDepth, $whitelist, $blacklist);
                        // $collect[] = Serializor::toArray($val, $nextDepth, $whitelist, $blacklist);
                     }
+
                     $anArray[$prop->name] = $collect;
 
                 // Otherwise, we can simply make it an array
                 // ManyToOne
-                }else{
-                   // var_dump( $prop->name . "-----".$aValue->__toString());
+                } else {
+                    // dump( $prop->name . "-----".$aValue->__toString());
                     $anArray[$prop->name] = $aValue->__toString();
                     //$anArray[$prop->name] = Serializor::toArray($aValue, $nextDepth, $whitelist, $blacklist);
                 }
             // Otherwise, we just use the base value
-            }else{
-
+            } else {
                 $anArray[$prop->name] = $aValue;
             }
+
         }
+
         // All done, send it back!
         return $anArray;
     }
 }
-
-?>

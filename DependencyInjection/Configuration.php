@@ -21,10 +21,15 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('sgn_forms');
         $rootNode
             ->children()
+                ->scalarNode('template')->defaultValue('SGNAdminInterfaceBundle::layout.html.twig')->end()
                 ->scalarNode('orm')->defaultValue('default')->end()
                 ->arrayNode('bestof_entity')
                     ->prototype('scalar')->end()
                     ->defaultValue(array('*'))
+                ->end()
+                ->arrayNode('smallFields')
+                    ->prototype('scalar')->end()
+                    ->defaultValue(array(''))
                 ->end()
                 ->arrayNode('select_entity')
                     ->prototype('scalar')->end()
