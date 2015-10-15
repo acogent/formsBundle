@@ -1,5 +1,10 @@
 # Changelog
 
+Ateention !!!!!
+
+Suite au plantage de devsgn, les tags et les branches ne sont plus bons !!
+Il est, de toute manière, conseillé de prendre la dernière version sur la branche stable !!!
+
 Dernières modifications :
 
 ## 4.0.0
