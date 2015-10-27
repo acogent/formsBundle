@@ -30,7 +30,7 @@ class AjaxAutocompleteJSONController extends Controller
 
         // fonction __toString à éviter !!
         if ($entity_info['property'] === '__toString') {
-            return $this->toString($init);
+            return $this->toString($entity_info, $init);
         }
 
         // Alternative à __toString !! : création d'un champ pas en base des getet set + une fonction dans repository
@@ -46,22 +46,26 @@ class AjaxAutocompleteJSONController extends Controller
 
 
 
-    private function toString($init)
+    private function toString($entity_info, $init)
     {
         $em           = $this->get('doctrine')->getManager();
         $request      = $this->getRequest();
-        $entity_alias = $request->get('entity_alias');
-        $entity_info  = $entities[$entity_alias];
 
         $letters = $request->get('letters');
 
         $class    = $entity_info['class'];
         $show     = $entity_info['show'];
-
+        $entities     = $em->getRepository($class)->findAll();
         $case_insensitive = $entity_info['case_insensitive'];
 
-        $entities = $em->getRepository($class)->findAll();
         $letters  = trim($letters, '%');
+        if (strlen($letters) === 0) {
+            $res = array(
+                'id'   => null,
+                'text' => '(no letters)',
+            );
+            return new Response(json_encode($res));
+        }
 
         $res = array();
 
@@ -95,6 +99,7 @@ class AjaxAutocompleteJSONController extends Controller
                 $toString   = strtoupper($toString);
                 $showtextup = strtoupper($showtextup);
             }
+
 
             if (strpos($toString, $letters) === false
                 && strpos($id, $letters) === false
