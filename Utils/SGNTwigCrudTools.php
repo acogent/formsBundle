@@ -100,6 +100,11 @@ class SGNTwigCrudTools
         $search      = 'false';
         $searchField = 'false';
         $entity      = $configTable['entity'];
+
+        // A vérifier, il doit etre supprimé pour searchBar, mais pour les autres ??
+        unset($filters['bundle']);
+
+
         if (isset($filters['_search']) === true) {
             $search = $filters['_search'];
         }
