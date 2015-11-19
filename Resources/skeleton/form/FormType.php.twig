@@ -4,14 +4,16 @@ namespace {{ namespace }}\Form{{ entity_namespace ? '\\' ~ entity_namespace : ''
 
 {% block use_statements %}
 use Symfony\Component\Form\AbstractType;
+// use BDG\DatabaseBundle\Form\Model\FormTools;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 {% endblock use_statements %}
 
 {% block class_definition %}
-class {{ form_class }} extends AbstractType
+class {{ form_class }} extends AbstractType /* FormTools */
 {% endblock class_definition %}
 {
 {% block class_body %}
@@ -24,11 +26,15 @@ class {{ form_class }} extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         /* Si vous souhaitez personnaliser votre formulaire selon des données soumises,
-            décommentez la fonction onChangeField de la classe. À utiliser de la sorte :
-            ->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label',
-            'entity_alias'=>'geocids', 'attr' => array('onchange' => $this->onChangeField())))
+            décommentez la ligne suivante. À utiliser de la sorte :
+            $builder->add('geoCid', 'sgn_ajax_autocomplete', array('label' => 'nivern.geoCid.label',
+            'entity_alias'=>'geocids', 'attr' => array('onchange' => $onChange)))
+            La fonction $this->onChangeField('true') est contenu dans  Model\FormTools
         */
+        //  $onChange = $this->onChangeField('true');
 
+        // champ à activer si vous voulez modifier dynamiquement le formulaire
+        // $builder->add('ajax', 'hidden', array('mapped' => false));
 
         {%- for field in fields %}
 {% if 'majDate' not in field %}
@@ -41,14 +47,13 @@ class {{ form_class }} extends AbstractType
 {% endif %}
 
         {%- endfor %}
-        // champ à activer si vous voulez modifier dynamiquement le formulaire
-        // $builder->add('ajax', 'hidden', array('mapped' => false));
+
 
         {% if fieldsManyToOne|length > 0 %}
 
         // Champs ManyToOne
         // Si vous voulez une gestion de liste de choix avec Ajax,
-        //supprimez la liste ci-dessus et décommentez celle ci-dessous.
+        // supprimez la liste ci-dessus et décommentez celle ci-dessous.
         // N'oubliez pas de déclarer votre entité dans config.yml ou mieux dans sgn_forms.yml
              {%- for field in fieldsManyToOne %}
 
@@ -61,38 +66,44 @@ class {{ form_class }} extends AbstractType
     // Champs OneToMany
              {%- for field in fieldsOneToMany %}
 
-        /*
-        $builder->add('{{ field }}','collection',
-        array(
-            'type' => new {{ field }}Type(),
-            'prototype' => true,
-            'allow_add' => true,
-            'allow_delete' => true,
-            'by_reference' => false,
-            'cascade_validation' => true,
-            )
-        );
-        */
+        /* $builder->add('{{ field }}','collection', array('type' => new {{ field }}Type(), 'prototype' => true, 'allow_add' => true, 'allow_delete' => true, 'by_reference' => false, 'cascade_validation' => true)); */
              {%- endfor %}
 
          {% endif %}
 
+        // si votre formulaire d'édition est différent du formulaire d'ajout
+        /*
+         * Fonction qui modifie le formulaire pour l’édition.
+         */
+        $fmEdit = function (FormInterface $form) {
+            //$form->add('niveRn', 'sgn_ajax_autocomplete', array('label' => 'nivRn.label', 'entity_alias' => 'niverns_select', 'read_only' => true));
+        };
+
+        $fmAdd = function (FormInterface $form) {
+            //$form->add('niveRn', 'sgn_ajax_autocomplete', array('label' => 'nivRn.label', 'entity_alias' => 'niverns_select', 'read_only' => false));
+        };
+
+
          // Si vous avez des règles de validation personnelles,
-         // utilisez l’Ajax pour soumettre le formulaire : décommentez les deux lignes ci-dessous et la fonction onClickSubmitForm de la classe.
+         // utilisez l’Ajax pour soumettre le formulaire : décommentez la ligne ci-dessous
+         // et "use" la fonction .
+
+        // $onClickSubmit = $this->onClickSubmitForm('false');
+
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
-            function(FormEvent $event) {
-                $onClick = "ajaxFormRequest(this.form, validate);";
+            function(FormEvent $event) use ($fmEdit /*, $onClickSubmit */) {
                 $obj     = $event->getData();
                 $form    = $event->getForm();
                 if (isset ($obj) === true && $obj->getId() > 0) {
+                    $fmEdit($form);
                     // $form->add('majDate', 'text', array('read_only' => true, 'label' => 'majDate.label'));
-                    $form->add('submit', 'submit', array('label' => 'Modifier'/*, 'attr'  => array('onclick' => $onClick*/));
+                    $form->add('submit', 'submit', array('label' => 'Modifier', 'attr'  => array('class' => 'btn btn-danger btn-lg' /*, 'onclick' => $onClickSubmit*/));
 
                     return;
                 }
 
-                $form->add('submit', 'submit', array('label' => 'Ajouter'/*, 'attr'  => array('onclick' => $onClick */));
+                $form->add('submit', 'submit', array('label' => 'Ajouter', 'attr'  => array('class' => 'btn btn-danger btn-lg' /*, 'onclick' => $onClickSubmit*/ ));
             }
         );
 
@@ -108,7 +119,9 @@ class {{ form_class }} extends AbstractType
             }
         );
 
-        $builders->addEventListener(FormEvents::PRE_SUBMIT, function(FormEvent $event) {
+        $builders->addEventListener(
+            FormEvents::PRE_SUBMIT,
+            function(FormEvent $event) {
             $newObj = $event->getData();
 
             if (...) {
@@ -131,9 +144,11 @@ class {{ form_class }} extends AbstractType
         );
 
         // Pour empêcher le ValidationListener d'être appelé dans le cas de formulaire modifié dynamique via Ajax :
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function($event) {
-            $event->stopPropagation();
-        }, 900); // priorité plus grande que le ValidationListener
+        $builder->addEventListener(
+            FormEvents::POST_SUBMIT,
+            function($event) {
+                $event->stopPropagation();
+            }, 900); // priorité plus grande que le ValidationListener
 
         */
 
@@ -170,33 +185,6 @@ class {{ form_class }} extends AbstractType
      *
      * @return string jquery
      */
-/*
-    private function onChangeField()
-    {
-        $jquery  = "$('#".$this->getName()."_ajax').val('true'); ";
-        $jquery .= "ajaxFormRequest(this.form, 'dynamic');";
-
-        return $jquery;
-    }
-*/
-
-    /**
-     * Cette méthode renvoie la requête JQuery à associer à l’événement onClick d’un bouton Submit du formulaire,
-     * dans le cas d’une validation par Ajax.
-     *
-     * @return string jquery
-     */
-/*
-    private function onClickSubmitForm()
-    {
-        $jquery  = '';
-        // Si vous modifiez dynamiquement le formulaire, décommentez cette ligne :
-        // $jquery = "$('#".$this->getName()."_ajax').val('false'); ";
-        $jquery .= "ajaxFormRequest(this.form, 'validate');";
-
-        return $jquery;
-    }
-*/
 
 {% endblock class_body %}
 }

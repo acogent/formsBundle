@@ -2,9 +2,6 @@
 
 namespace SGN\FormsBundle\Controller;
 
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Doctrine\ORM\Query\ResultSetMapping;
-use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use SGN\FormsBundle\Utils\SGNTwigCrudTools;
 use SGN\FormsBundle\Utils\Serializor;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -23,7 +20,6 @@ class FormsCRUDController extends Controller
 
 
     /**
-     *
      * @Route("/{table}/{format}/show/{params}", requirements= { "params"=".+"})
      * @Route("/{table}/{format}/show/" )
      * @Route("/{table}/" )
@@ -47,6 +43,7 @@ class FormsCRUDController extends Controller
         // c'est pour retourner des données en json
         if ($format === 'json') {
             $filters = $request->query->all();
+
             return SGNTwigCrudTools::getFormatJson($eManager, $configTable, $filters, $params);
         }
 
@@ -58,13 +55,11 @@ class FormsCRUDController extends Controller
         }
 
         throw $this->render('SGNFormsBundle:FormsCRUD:show.html.twig', $this->createNotFoundException('Le produit n’existe pas'));
-
     }
 
     /**
-     *
      * @Route("/{table}/new/")
-     * @Route("/{table}/new/{ajax}")
+     * @Route("/{table}/new/{ajax}/")
      *
      * @Template()
      */
@@ -93,12 +88,11 @@ class FormsCRUDController extends Controller
             array(
              'action' => $this->generateUrl(
                  'sgn_forms_formscrud_new',
-                 array(
-                  'table'  => $table,
-                 )
+                 array('table' => $table)
              ),
             )
         );
+        // dump($ajax);
 
         $form->handleRequest($request);
         $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
@@ -111,9 +105,7 @@ class FormsCRUDController extends Controller
 
             return $this->redirect($this->generateUrl(
                 'sgn_forms_formscrud_show',
-                array(
-                 'table'  => $table,
-                )
+                array('table' => $table)
             ));
         }
 
@@ -126,15 +118,22 @@ class FormsCRUDController extends Controller
             // Si on valide le formulaire par Ajax, la redirection se fait en JQuery.
             return new Response($this->generateUrl(
                 'sgn_forms_formscrud_show',
-                array(
-                 'table'  => $table,
-                )
+                array('table' => $table)
             ));
         }
 
+// dump( $form); exit();
         // ajax pas valide
         if ($ajax === 'validate' && $form->isValid() === false) {
-            return array( 'form' => $form->createView() );
+            return array('form' => $form->createView());
+        }
+
+        if ($ajax === 'dynamic' && $form->isValid() === false) {
+            return array('form' => $form->createView());
+        }
+
+        if ($ajax === 'dynamicChoise' && $form->isValid() === false) {
+            return array('form' => $form->createView($form->getParent()));
         }
 
         // Pb des formulaires avec file et ajax, on est obligé de bricoler !!!!
@@ -153,11 +152,10 @@ class FormsCRUDController extends Controller
             return $response;
         }
 
-        return array( 'form' => $form->createView() );
+        return array('form' => $form->createView());
     }
 
     /**
-     *
      * @Route("/{table}/edit/{ident}/")
      * @Route("/{table}/edit/{ident}/{ajax}")
      *
@@ -203,7 +201,6 @@ class FormsCRUDController extends Controller
 
         $form->handleRequest($request);
 
-
         // Cas 'normal'
         if ($ajax === '' && $form->isValid() === true) {
             $eManager->flush();
@@ -211,9 +208,7 @@ class FormsCRUDController extends Controller
 
             return $this->redirect($this->generateUrl(
                 'sgn_forms_formscrud_show',
-                array(
-                 'table'  => $table,
-                )
+                array('table' => $table)
             ));
         }
 
@@ -224,9 +219,7 @@ class FormsCRUDController extends Controller
             // Si on valide le formulaire par Ajax, la redirection se fait en JQuery.
             return new Response($this->generateUrl(
                 'sgn_forms_formscrud_show',
-                array(
-                 'table'  => $table,
-                )
+                array('table' => $table)
             ));
         }
 
@@ -235,16 +228,15 @@ class FormsCRUDController extends Controller
                );
     }
 
-
     /**
-     * Renvoie les éléments utiles à la construction HTML de la page
+     * Renvoie les éléments utiles à la construction HTML de la page.
      *
      * @param Entity Manager $eManager
-     * @param string $bundle Le nom du bundle
-     * @param string $table
-     * @param string $params les paramtres contenus dans l'URL
+     * @param string         $bundle   Le nom du bundle
+     * @param string         $table
+     * @param string         $params   les paramtres contenus dans l'URL
      *
-     * @return array         Les éléments utiles à la page
+     * @return array Les éléments utiles à la page
      *
      * @SuppressWarnings(PHPMD.StaticAccess)
      */
@@ -254,22 +246,20 @@ class FormsCRUDController extends Controller
         $limit    = $limits[0];
         $rowsList = $limits[1];
 
-
         if (isset($configTable['alias']) === true) {
-            $entity   = $configTable['alias'].':'.$configTable['table'];
+            $entity = $configTable['alias'].':'.$configTable['table'];
         }
-
 
         // pour les liens de droite
         $bestofEntity = $this->container->getParameter('sgn_forms.bestof_entity');
 
-        $bundle      = $configTable['bundle'];
-        $tabEntities = SGNTwigCrudTools::getMenuTabEntities($this, $bundle, $this->container->getParameter('sgn_forms.select_entity'));
-        $entity      = $configTable['alias'].':'.$configTable['table'];
-        $table       = $configTable['table'];
+        $bundle           = $configTable['bundle'];
+        $tabEntities      = SGNTwigCrudTools::getMenuTabEntities($this, $bundle, $this->container->getParameter('sgn_forms.select_entity'));
+        $entity           = $configTable['alias'].':'.$configTable['table'];
+        $table            = $configTable['table'];
         $arraySmallFields = $this->container->getParameter('sgn_forms.smallFields');
-        $tableFilters = $this->container->getParameter('sgn_forms.entities_filters');
-        $columnModel  = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity, $tableFilters, $arraySmallFields);
+        $tableFilters     = $this->container->getParameter('sgn_forms.entities_filters');
+        $columnModel      = SGNTwigCrudTools::getColumnModel(array(), $eManager, $entity, $tableFilters, $arraySmallFields);
 
         $collectionNames = $this->getCollectionNames($configTable);
         $urlShowOne      = $this->generateUrl('sgn_forms_formscrud_showone', array('table' => $table, 'ident' => '#'), true);
@@ -293,7 +283,6 @@ class FormsCRUDController extends Controller
                );
     }
 
-
     private function getConfigFromtable($table)
     {
         $config['table']     = '';
@@ -309,8 +298,8 @@ class FormsCRUDController extends Controller
         $config['table'] = $table;
 
         if (strpos($table, '.') > 0) {
-            $tab = explode('.', $table);
-            $table = $tab[1];
+            $tab              = explode('.', $table);
+            $table            = $tab[1];
             $config['alias']  = $tab[0];
             $config['bundle'] = $tab[0];
             $config['table']  = $tab[1];
@@ -318,7 +307,7 @@ class FormsCRUDController extends Controller
 
         foreach ($allMeta as $meta) {
             $shortMetaName = SGNTwigCrudTools::getName($meta->name);
-            if ($shortMetaName ===  $table) {
+            if ($shortMetaName === $table) {
                 $tab    = explode('\Entity', $meta->namespace);
                 $bundle = str_replace('\\', '', $tab[0]);
 
@@ -331,15 +320,15 @@ class FormsCRUDController extends Controller
                 $config['bundleDir'] = $tab[0];
                 $config['entity']    = $config['alias'].':'.$table;
                 $config['type']      = $this->getFormFromTable($classBundleValid, $table);
+
                 return $config;
             }
         }
-        $message = 'La table '.$table. ' n’existe pas !';
 
-        throw new \Exception ($message);
+        $message = 'La table '.$table.' n’existe pas !';
 
+        throw new \Exception($message);
     }
-
 
     private function getFormFromTable($classBundleValid, $table)
     {
@@ -357,9 +346,7 @@ class FormsCRUDController extends Controller
         return $type;
     }
 
-
     /**
-     *
      * @Route("/{table}/showone/{ident}/")
      *
      * @Template()
@@ -376,7 +363,6 @@ class FormsCRUDController extends Controller
         }
 
         foreach ($metaData->fieldNames as $value) {
-
             $theValue = $obj->{'get'.ucfirst($value)}();
             if ($theValue === null) {
                 $fields[$value] = '';
@@ -399,9 +385,7 @@ class FormsCRUDController extends Controller
         return array('obj' => $fields);
     }
 
-
     /**
-     *
      * @Route("/{table}/delete/{ident}/")
      *
      * @Template()
@@ -426,7 +410,6 @@ class FormsCRUDController extends Controller
 
         $form = $this->createFormBuilder($obj)->setAction($this->generateUrl('sgn_forms_formscrud_delete', array('bundle' => $bundle, 'table' => $table, 'ident' => $ident)))->getForm();
         $form->handleRequest($request);
-
 
         // Valider un objet qui va etre détruit ;-) On maintient à cause des relations OneToMany & co
         // On considere donc que les données à supprimer sont bonnes
@@ -454,18 +437,16 @@ class FormsCRUDController extends Controller
                );
     }
 
-
     /**
-     * Permet de créer la grille HTML d'une collection quand on sélectionne un objet dans une grille
+     * Permet de créer la grille HTML d'une collection quand on sélectionne un objet dans une grille.
      *
      * @Route("/{table}/create/JQG/{collection}/{ident}/" )
      *
-     * @return                                                      \Symfony\Component\HttpFoundation\Response
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function createJqGridAction(Request $request, $table, $collection, $ident = 1)
     {
         $arraySmallFields = $this->container->getParameter('sgn_forms.smallFields');
-
 
         $filters   = $request->query->all();
         $datas     = array();
@@ -520,9 +501,9 @@ class FormsCRUDController extends Controller
                 }
 
                 if ($collection !== 'Audit') {
-                    $assoc      = $configTable['meta']->getAssociationMapping($collection);
-                    $name       = $assoc['targetEntity'];
-                    $entityColl = SGNTwigCrudTools::getName($name);
+                    $assoc            = $configTable['meta']->getAssociationMapping($collection);
+                    $name             = $assoc['targetEntity'];
+                    $entityColl       = SGNTwigCrudTools::getName($name);
                     $tabResult['url'] = $this->get('router')->generate(
                         'sgn_forms_formscrud_show',
                         array(
@@ -541,12 +522,12 @@ class FormsCRUDController extends Controller
 
     /**
      * Permet de récupérer une collection d'un objet quand on le sélectionne dans une grille
-     * Format json
+     * Format json.
      *
      * @Route("/{table}/select/JQG/{collection}/" )
      * @Route("/{table}/select/JQG/{collection}/{ident}/" )
      *
-     * @return     \Symfony\Component\HttpFoundation\Response
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function selectJqGridAction(Request $request, $table, $collection, $ident = 0)
     {
@@ -576,7 +557,7 @@ class FormsCRUDController extends Controller
                 $datas = $this->getAudit($table, $sourceId);
                 $count = count($datas);
                 if ($count > 0) {
-                    for ($i = 0; $i < $limit; $i++) {
+                    for ($i = 0; $i < $limit; ++$i) {
                         $index = ($i + ($page * $limit) - $limit);
                         if ($index === $count) {
                             break;
@@ -589,7 +570,7 @@ class FormsCRUDController extends Controller
                 $datas = $this->getCollection($table, $collection, $sourceId);
                 $count = count($datas);
                 if ($count > 0) {
-                    for ($i = 0; $i < $limit; $i++) {
+                    for ($i = 0; $i < $limit; ++$i) {
                         $index = ($i + ($page * $limit) - $limit);
                         if ($index === $count) {
                             break;
@@ -619,7 +600,6 @@ class FormsCRUDController extends Controller
         $configTable = $this->getConfigFromtable($table);
         $eManager    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
 
-
         // $truc = SGNTwigCrudTools::getFormatJson($eManager, $configTable, $filters, $params);
 
         $json     = json_encode($res);
@@ -628,8 +608,6 @@ class FormsCRUDController extends Controller
 
         return $response;
     }
-
-
 
     private function getCollection($table, $collection, $sourceId)
     {
@@ -673,7 +651,7 @@ class FormsCRUDController extends Controller
         $table_    = $class->table;
         $prefix    = '';
 
-        if (isset( $table_['schema']) === true) {
+        if (isset($table_['schema']) === true) {
             $prefix = $table_['schema'].'.';
         }
 
@@ -693,12 +671,13 @@ class FormsCRUDController extends Controller
         return $result;
     }
 
-
     /**
-     * Renvoie un tableau contenant les URL utiles à la fabrication des sous-formulaires
-     * @param  string $project le nom du projet
-     * @param  string $table  le nom de la table
-     * @return array          le tableau avec les URL
+     * Renvoie un tableau contenant les URL utiles à la fabrication des sous-formulaires.
+     *
+     * @param string $project le nom du projet
+     * @param string $table   le nom de la table
+     *
+     * @return array le tableau avec les URL
      */
     private function getCollectionNames($configTable, $parent = null)
     {
@@ -749,7 +728,6 @@ class FormsCRUDController extends Controller
             $assocTable = SGNTwigCrudTools::getName($assocClass);
             $configT    = $this->getConfigFromtable($assocTable);
 
-
             $url = $this->get('router')->generate(
                 'sgn_forms_formscrud_createjqgrid',
                 array(
@@ -767,14 +745,13 @@ class FormsCRUDController extends Controller
                 array(
                  'table'  => $assocTable,
                  'format' => 'html',
-                 'id'    => '#',
+                 'id'     => '#',
 
                 ),
                 true
             );
 
             $collectionNames[$champ]['urlRelocation'] = $urlRelocation;
-
 
             if ($boolExtended !== true || $parent !== null) {
                 continue;
@@ -793,7 +770,6 @@ class FormsCRUDController extends Controller
 
         $auditManager = $this->container->get('simplethings_entityaudit.manager');
         $tableAudit   = $configTable['alias'].'\\'.$configTable['table'];
-
 
         if ($auditManager->getMetadataFactory()->isAudited($tableAudit) === true) {
             // $urlRelocation = $this->get('router')->generate(

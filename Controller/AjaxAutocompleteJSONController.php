@@ -16,8 +16,8 @@ class AjaxAutocompleteJSONController extends Controller
         $request      = $this->getRequest();
         $entity_alias = $request->get('entity_alias');
 
-        $entities     = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
-        $entity_info  = $entities[$entity_alias];
+        $entities    = $this->get('service_container')->getParameter('sgn_forms.autocomplete_entities');
+        $entity_info = $entities[$entity_alias];
 
         if (false === $this->get('security.context')->isGranted($entity_info['role'])) {
             throw new AccessDeniedException();
@@ -42,28 +42,25 @@ class AjaxAutocompleteJSONController extends Controller
         return $this->sql($entity_info, $init);
     }
 
-
-
-
-
     private function toString($entity_info, $init)
     {
-        $em           = $this->get('doctrine')->getManager();
-        $request      = $this->getRequest();
+        $em      = $this->get('doctrine')->getManager();
+        $request = $this->getRequest();
 
         $letters = $request->get('letters');
 
-        $class    = $entity_info['class'];
-        $show     = $entity_info['show'];
-        $entities     = $em->getRepository($class)->findAll();
+        $class            = $entity_info['class'];
+        $show             = $entity_info['show'];
+        $entities         = $em->getRepository($class)->findAll();
         $case_insensitive = $entity_info['case_insensitive'];
 
-        $letters  = trim($letters, '%');
+        $letters = trim($letters, '%');
         if (strlen($letters) === 0) {
             $res = array(
-                'id'   => null,
-                'text' => '(no letters)',
-            );
+                    'id'   => null,
+                    'text' => '(no letters)',
+                   );
+
             return new Response(json_encode($res));
         }
 
@@ -100,7 +97,6 @@ class AjaxAutocompleteJSONController extends Controller
                 $showtextup = strtoupper($showtextup);
             }
 
-
             if (strpos($toString, $letters) === false
                 && strpos($id, $letters) === false
                 && strpos($showtextup, $letters) === false
@@ -131,17 +127,30 @@ class AjaxAutocompleteJSONController extends Controller
     {
         $em      = $this->get('doctrine')->getManager();
         $request = $this->getRequest();
-
+        // dump($request);
         $class   = $entity_info['class'];
         $method  = $entity_info['method'];
-        $sql     = $em->getRepository($class)->$method();
         $like    = $this->getLike($entity_info);
         $maxRows = $request->get('page_limit');
-        $query   = $em->createQuery($sql)->setParameter('like', $like)->setParameter('like', $like)->setMaxResults($maxRows);
+        $filter  = $request->get('filter');
+        if (isset($filter) === true) {
+            $filter = ' AND '.$filter;
+        }
+
+        $resMethod = $em->getRepository($class)->$method();
+        if (is_object($resMethod) === true) {
+            $queryBuilder = $resMethod;
+            $query        = $queryBuilder->setMaxResults($maxRows);
+            $results      = $query->getQuery()->getResult();
+        } else {
+            $sql     = $resMethod.$filter;
+            $query   = $em->createQuery($sql)->setParameter('like', $like)->setMaxResults($maxRows);
+            $results = $query->getScalarResult();
+        }
 
         // dump( $query->getSql() ) ;
-        $res   = array();
-        $results = $query->getScalarResult();
+        $res = array();
+
         // dump($results);
         foreach ($results as $r) {
             $res[] = array(
@@ -166,7 +175,7 @@ class AjaxAutocompleteJSONController extends Controller
 
     private function sql($entity_info, $init)
     {
-        $em      = $this->get('doctrine')->getManager();
+        $em = $this->get('doctrine')->getManager();
 
         $request = $this->getRequest();
         $filter  = $request->get('filter');
@@ -277,7 +286,7 @@ class AjaxAutocompleteJSONController extends Controller
         $case_insensitive = $entity_info['case_insensitive'];
         $target           = $entity_info['target'];
         $property         = $entity_info['property'];
-
+        $value            = $entity_info['value'];
         // Cas des “property” spéciaux, avec un préfixe :
         if (strpos($property, '.') !== false) {
             $prop_query = $property; // utilisé dans les requêtes
