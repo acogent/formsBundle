@@ -59,8 +59,7 @@ class SGNTwigCrudTools
      */
     private static function getBundleName($name)
     {
-        return ($p1 = strpos($ns = $name, '\\')) === false ? $ns :
-            substr($ns, 0, ($p2 = strpos($ns, 'Bundle\\', $p1 + 1)) === false ? strlen($ns) : $p2+6);
+        return ($p1 = strpos($ns = $name, '\\')) === false ? $ns : substr($ns, 0, ($p2 = strpos($ns, 'Bundle\\', ($p1 + 1))) === false ? strlen($ns) : ($p2 + 6));
     }
 
     /**
@@ -104,10 +103,10 @@ class SGNTwigCrudTools
         // A vérifier, il doit etre supprimé pour searchBar, mais pour les autres ??
         unset($filters['bundle']);
 
-
         if (isset($filters['_search']) === true) {
             $search = $filters['_search'];
         }
+
 
         if (isset($filters['searchField']) === true) {
             $searchField = $filters['searchField'];
@@ -164,7 +163,7 @@ class SGNTwigCrudTools
         }
 
 
-        $count   = $builder->getQuery()->getSingleScalarResult();
+        $count = $builder->getQuery()->getSingleScalarResult();
 
         if ($count > 0 && $limit > 0) {
             $totalPages = ceil($count / $limit);
@@ -175,7 +174,7 @@ class SGNTwigCrudTools
             $start = 0;
         }
 
-        $data   = $eManager->getRepository($entity)->findBy($criteria, $orderBy, $limit, $start);
+        $data = $eManager->getRepository($entity)->findBy($criteria, $orderBy, $limit, $start);
 
         // var_dump($data);
 
@@ -218,7 +217,7 @@ class SGNTwigCrudTools
             $result['page']    = $page;
             $result['records'] = '';
             $result['total']   = '';
-            $data = $query->getResult();
+            $data              = $query->getResult();
 
             $result['rows'] = Serializor::toArray($data);
         }
@@ -256,8 +255,9 @@ class SGNTwigCrudTools
         // Pour le nombre de pages
         $builder = $eManager->getRepository($entity)->createQueryBuilder('a')->select('count(a)');
         $builder = self::getWhereFromFilters($filters, $builder);
-        $query   = $builder->getQuery();
-        $count   = $builder->getQuery()->getSingleScalarResult();
+
+        $query = $builder->getQuery();
+        $count = $builder->getQuery()->getSingleScalarResult();
 
         if ($count > 0 && $limit > 0) {
             $totalPages = ceil($count / $limit);
@@ -320,7 +320,7 @@ class SGNTwigCrudTools
 
             if (isset($tParams[1]) === true && isset($tParams[0]) === true) {
                 $criteria[$tParams[0]] = $tParams[1];
-                $tParams = array_slice($tParams, 2);
+                $tParams               = array_slice($tParams, 2);
             }
         }
 
@@ -608,7 +608,7 @@ class SGNTwigCrudTools
         $col      = $metadata->getColumnName($searchField);
         if (strpos($searchField, '::') > 0) {
             list($field, $type) = explode('::', $searchField);
-            $col = $metadata->getColumnName($field).'::'.$type;
+            $col                = $metadata->getColumnName($field).'::'.$type;
         }
 
         $rsm = new ResultSetMappingBuilder($eManager);
@@ -650,6 +650,7 @@ class SGNTwigCrudTools
                 if ($metadata->hasAssociation($champ) === true && $metadata->isSingleValuedAssociation($champ) === false) {
                     continue;
                 }
+
                 $width  = '150';
                 $search = 'true';
                 $align  = 'left';
@@ -661,20 +662,23 @@ class SGNTwigCrudTools
                     $width = '70';
                     $align = 'center';
                 }
-                $columnModel .= "{ name: '".$champ."', width : ".$width.", align : '".$align."', index: '".$champ."' , search: ".$search." },";
+
+                $columnModel .= "{ name: '".$champ."', width : ".$width.", align : '".$align."', index: '".$champ."' , search: ".$search.' },';
             }
+
             // dump($columnModel);
             return '['.substr($columnModel, 0, -1).']';
         }
 
         foreach ($data as $champ => $val) {
             if (is_array($val) === false) {
-                $width  = '150';
-                $align  = 'left';
+                $width = '150';
+                $align = 'left';
                 if (in_array($champ, $arraySmallFields) === true) {
                     $width = '70';
                     $align = 'center';
                 }
+
                 $columnModel .= "{ name: '".$champ."', width : ".$width.", align : '".$align."', index: '".$champ."', search: false },";
             }
         }
@@ -694,7 +698,10 @@ class SGNTwigCrudTools
      */
     public static function getFieldsThroughFilters($entity, $allFields, $tableFilters)
     {
-        $options = array('*', $entity);
+        $options = array(
+                    '*',
+                    $entity,
+                   );
 
         foreach ($options as $option) {
             if (array_key_exists($option, $tableFilters) !== true) {
