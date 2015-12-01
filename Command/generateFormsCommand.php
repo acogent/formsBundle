@@ -19,6 +19,7 @@ class generateFormsCommand extends ContainerAwareCommand
 
     protected $kernel;
 
+
     public function __construct(KernelInterface $kernel)
     {
         $this->kernel = $kernel;
@@ -29,9 +30,7 @@ class generateFormsCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->setName('sgn:generate:forms')->setDescription("Generer les formulaires des entites d'un bundle")
-        ->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des formulaires ?')
-        ->addArgument('dir', InputArgument::OPTIONAL, 'Un sous-dossier contenant les entités ?');
+        $this->setName('sgn:generate:forms')->setDescription("Generer les formulaires des entites d'un bundle")->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des formulaires ?')->addArgument('dir', InputArgument::OPTIONAL, 'Un sous-dossier contenant les entités ?');
     }
 
 
@@ -66,10 +65,10 @@ class generateFormsCommand extends ContainerAwareCommand
 
         $bundle      = $this->getContainer()->get('kernel')->getBundle($bundleName);
         $databaseDir = $bundle->getPath();
-        $pathForm = $databaseDir.'/Form/';
+        $pathForm    = $databaseDir.'/Form/';
 
         foreach ($entities as $entity) {
-            $finder   = new Finder();
+            $finder = new Finder();
             $finder->files()->in($pathForm)->name($entity.'Type.php');
 
             if (iterator_count($finder) > 0) {
@@ -88,7 +87,7 @@ class generateFormsCommand extends ContainerAwareCommand
                     $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$dir.'\\'.$entity;
                 }
 
-                $metadata    = $this->getEntityMetadata($entityClass);
+                $metadata = $this->getEntityMetadata($entityClass);
                 $this->generateForm($bundle, $entity, $metadata);
                 $output->writeln('Generating the Form code: /Form/'.$entity.'Type.php<info>OK</info>');
             }

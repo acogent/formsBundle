@@ -7,6 +7,7 @@ use \Twig_Filter_Method;
 
 class FormsCrudExtension extends \Twig_Extension
 {
+
     private $container;
 
 
@@ -24,14 +25,13 @@ class FormsCrudExtension extends \Twig_Extension
 
     public function getGlobals()
     {
-        return array
-        (
-            'sgn_forms_crud_twig_style'    =>  $this->container->getParameter('sgn_forms.twig_style'),
-            'sgn_forms_crud_bestof_entity' =>  $this->container->getParameter('sgn_forms.bestof_entity'),
-            'sgn_forms_crud_orm'           =>  $this->container->getParameter('sgn_forms.orm'),
-            'sgn_forms_bundles'            =>  $this->container->getParameter('sgn_forms.bundles'),
-            'sgn_forms_template'           =>  $this->container->getParameter('sgn_forms.template')
-        );
+        return array(
+                'sgn_forms_crud_twig_style'    => $this->container->getParameter('sgn_forms.twig_style'),
+                'sgn_forms_crud_bestof_entity' => $this->container->getParameter('sgn_forms.bestof_entity'),
+                'sgn_forms_crud_orm'           => $this->container->getParameter('sgn_forms.orm'),
+                'sgn_forms_bundles'            => $this->container->getParameter('sgn_forms.bundles'),
+                'sgn_forms_template'           => $this->container->getParameter('sgn_forms.template'),
+               );
 
     }
 
@@ -43,17 +43,16 @@ class FormsCrudExtension extends \Twig_Extension
      */
     public function getFilters()
     {
-        return array
-        (
-            'json_decode'     => new Twig_Filter_Method($this, 'jsonDecodeFilter'),
+        return array(
+                'json_decode'     => new Twig_Filter_Method($this, 'jsonDecodeFilter'),
             // 'dump_php'     => new Twig_Filter_Method($this, 'dumpFilter'),
-            'DD2DMS'          => new Twig_Filter_Method($this, 'DD2DMSFilter'),
-            'GPSWeek'         => new Twig_Filter_Method($this, 'GPSWeekFilter'),
-            'DayOfYear'       => new Twig_Filter_Method($this, 'DayOfYearFilter'),
-            'DayOfWeek'       => new Twig_Filter_Method($this, 'DayOfWeekFilter'),
-            'YearOfDate'      => new Twig_Filter_Method($this, 'YearOfDateFilter'),
-            'jsonToHTMLTable' => new Twig_Filter_Method($this, 'jsonToHTMLTableFilter'),
-        );
+                'DD2DMS'          => new Twig_Filter_Method($this, 'DD2DMSFilter'),
+                'GPSWeek'         => new Twig_Filter_Method($this, 'GPSWeekFilter'),
+                'DayOfYear'       => new Twig_Filter_Method($this, 'DayOfYearFilter'),
+                'DayOfWeek'       => new Twig_Filter_Method($this, 'DayOfWeekFilter'),
+                'YearOfDate'      => new Twig_Filter_Method($this, 'YearOfDateFilter'),
+                'jsonToHTMLTable' => new Twig_Filter_Method($this, 'jsonToHTMLTableFilter'),
+               );
 
     }
 
@@ -66,9 +65,9 @@ class FormsCrudExtension extends \Twig_Extension
     public function getFunctions()
     {
         return array(
-                     'current_uri'    => new \Twig_Function_Method($this, 'getCurrentURIFunction'),
-                     'route_exists'   => new \Twig_Function_Method($this, 'routeExists'),
-                     );
+                'current_uri'  => new \Twig_Function_Method($this, 'getCurrentURIFunction'),
+                'route_exists' => new \Twig_Function_Method($this, 'routeExists'),
+               );
     }
 
 
@@ -109,8 +108,8 @@ class FormsCrudExtension extends \Twig_Extension
         $dateTime         = new \DateTime($str);
         $originalDateTime = new \DateTime('1980-01-09');
         $interval         = $originalDateTime->diff($dateTime);
-        $days  = (double) $interval->format('%a');
-        $weeks = (integer) (($days / 7) + 0.5);
+        $days             = (double) $interval->format('%a');
+        $weeks            = (integer) (($days / 7) + 0.5);
 
         return $weeks;
     }
@@ -224,6 +223,7 @@ class FormsCrudExtension extends \Twig_Extension
                 return true;
             }
         }
+
         return false;
     }
 }

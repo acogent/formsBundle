@@ -9,10 +9,15 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class EntityToPropertyTransformer implements DataTransformerInterface
 {
+
     protected $em;
+
     protected $class;
+
     protected $property;
+
     protected $unitOfWork;
+
     protected $value;
 
 
@@ -35,10 +40,12 @@ class EntityToPropertyTransformer implements DataTransformerInterface
         if (!$this->unitOfWork->isInIdentityMap($entity)) {
             throw new TransformationFailedException('Entities passed to the choice field must be managed');
         }
+
         if ($this->property) {
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
             return $propertyAccessor->getValue($entity, $this->property);
         }
+
         return current($this->unitOfWork->getEntityIdentifier($entity));
     }
 
@@ -51,7 +58,7 @@ class EntityToPropertyTransformer implements DataTransformerInterface
         }
 
         $entity = $this->em->getRepository($this->class)->findOneBy(array($this->property => $prop_value));
-        if ($entity != null) {
+        if ($entity !== null) {
             return $entity;
         }
 

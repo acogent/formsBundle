@@ -20,6 +20,7 @@ class generateTestsCommand extends ContainerAwareCommand
 
     protected $kernel;
 
+
     public function __construct(KernelInterface $kernel)
     {
         $this->kernel = $kernel;
@@ -30,9 +31,7 @@ class generateTestsCommand extends ContainerAwareCommand
      */
     protected function configure()
     {
-        $this->setName('sgn:generate:tests')->setDescription("Generer les tests fonctionnels des entites d'un bundle")
-        ->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des tests fonctionnels ?')
-        ->addArgument('dir', InputArgument::OPTIONAL, 'Un sous-dossier contenant les entités ?');
+        $this->setName('sgn:generate:tests')->setDescription("Generer les tests fonctionnels des entites d'un bundle")->addArgument('bundle', InputArgument::REQUIRED, 'Pour quel bundle voulez-vous generer des tests fonctionnels ?')->addArgument('dir', InputArgument::OPTIONAL, 'Un sous-dossier contenant les entités ?');
     }
 
 
@@ -78,7 +77,7 @@ class generateTestsCommand extends ContainerAwareCommand
         $pathTest = $databaseDir.'/Tests/Controller/';
 
         foreach ($entities as $entity) {
-            $finder   = new Finder();
+            $finder = new Finder();
             $finder->files()->in($pathTest)->name($entity.'ControllerTest.php');
 
             if (iterator_count($finder) > 0) {
@@ -96,17 +95,18 @@ class generateTestsCommand extends ContainerAwareCommand
                 $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$dir.'\\'.$entity;
             }
 
-            $metadata    = $this->getEntityMetadata($entityClass);
+            $metadata = $this->getEntityMetadata($entityClass);
             $this->generateControllerTest($bundle, $entity, $metadata);
             $output->writeln('Generating the test code: <info>'.$path.'</info>');
         }
+
         $output->writeln('---');
         $output->writeln('Tous les Tests/Controller des entités ont été traitées.');
         $output->writeln('---');
 
         $pathTest = $databaseDir.'/Tests/Validator/';
         foreach ($entities as $entity) {
-            $finder   = new Finder();
+            $finder = new Finder();
             $finder->files()->in($pathTest)->name($entity.'ValidatorTest.php');
             if (iterator_count($finder) > 0) {
                 $output->writeln('File exists : <comment>'.$entity.'ValidatorTest.php</comment>');
@@ -120,10 +120,11 @@ class generateTestsCommand extends ContainerAwareCommand
                 $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundleName).'\\'.$dir.'\\'.$entity;
             }
 
-            $metadata    = $this->getEntityMetadata($entityClass);
+            $metadata = $this->getEntityMetadata($entityClass);
             $this->generateValidatorTest($bundle, $entity, $metadata);
             $output->writeln('Generating the test code: <info>'.$path.'</info>');
         }
+
         $output->writeln('---');
         $output->writeln('Tous les /Tests/Validator des entités ont été traitées.');
         $output->writeln('---');

@@ -7,10 +7,15 @@ use Doctrine\ORM\EntityManager;
 
 class QueryvalueToPropertyTransformer implements DataTransformerInterface
 {
+
     protected $em;
+
     protected $query;
+
     protected $property;
+
     protected $value;
+
 
     public function __construct(EntityManager $em, $query, $property, $value)
     {
@@ -26,10 +31,7 @@ class QueryvalueToPropertyTransformer implements DataTransformerInterface
             return null;
         }
 
-        $result = $this->em
-                       ->createQuery($this->query." AND e.".$this->value." = :val_value")
-                       ->setParameter('val_value', $val_value)
-                       ->getOneOrNullResult();
+        $result = $this->em->createQuery($this->query.' AND e.'.$this->value.' = :val_value')->setParameter('val_value', $val_value)->getOneOrNullResult();
 
         return $result[$this->property];
     }
@@ -42,10 +44,7 @@ class QueryvalueToPropertyTransformer implements DataTransformerInterface
             return null;
         }
 
-        $result = $this->em
-                       ->createQuery($this->query." AND e.".$this->property." = :prop_value")
-                       ->setParameter('prop_value', $prop_value)
-                       ->getOneOrNullResult();
+        $result = $this->em->createQuery($this->query.' AND e.'.$this->property.' = :prop_value')->setParameter('prop_value', $prop_value)->getOneOrNullResult();
 
         return $result[$this->value];
     }
