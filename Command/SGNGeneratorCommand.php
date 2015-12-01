@@ -16,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\DialogHelper;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Sensio\Bundle\GeneratorBundle\Generator;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
  * Base class for generator commands.
