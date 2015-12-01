@@ -73,11 +73,8 @@ class Serializor
      */
     private static function arrayizor($anObject, $depth, $whitelist = array(), $blacklist = array())
     {
-        // Determine the next depth to use
-        $nextDepth = $depth - 1;
-
         // Lets get our Class Name
-        // @TODO: Making some assumptions that only objects get passed in, need error checking
+        // TODO: Making some assumptions that only objects get passed in, need error checking
         $clazzName = get_class($anObject);
 
         // Now get our reflection class for this class name
@@ -92,8 +89,6 @@ class Serializor
         }
         // A new array to hold things for us
         $anArray = array();
-
-        // var_dump($anObject);
 
         // Lets loop through those class properties now
         foreach ($clazzProps as $prop) {
@@ -117,7 +112,6 @@ class Serializor
             $method_name = 'get'.ucfirst($prop->name);
             // And check to see that it exists for this object
             if (! method_exists($anObject, $method_name)) {
-                // exit();
                 continue;
             }
             // It did, so lets call it!
@@ -126,9 +120,6 @@ class Serializor
 
             // If it is an object, we need to handle that
             if (is_object($aValue)) {
-                // dump($method_name);
-                // dump(get_class($aValue));
-                // dump($aValue);
                 // If it is a datetime, lets make it a string
                 if (get_class($aValue) === 'DateTime') {
                     $anArray[$prop->name] = $aValue->format('Y-m-d H:i:s');
@@ -138,8 +129,7 @@ class Serializor
                 // oneToMany ou ManyToMany
                     $collect = array();
                     foreach ($aValue as $val) {
-                        $collect[] = $val->getId();//Serializor::toArray($val, $nextDepth, $whitelist, $blacklist);
-                       // $collect[] = Serializor::toArray($val, $nextDepth, $whitelist, $blacklist);
+                        $collect[] = $val->getId();
                     }
 
                     $anArray[$prop->name] = $collect;
@@ -147,9 +137,7 @@ class Serializor
                 // Otherwise, we can simply make it an array
                 // ManyToOne
                 } else {
-                    // dump( $prop->name . "-----".$aValue->__toString());
                     $anArray[$prop->name] = $aValue->__toString();
-                    //$anArray[$prop->name] = Serializor::toArray($aValue, $nextDepth, $whitelist, $blacklist);
                 }
             // Otherwise, we just use the base value
             } else {
