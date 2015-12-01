@@ -24,8 +24,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 class SGNFixtureGenerator extends SGNGenerator
 {
 
-    private $filesystem;
-
     private $className;
 
     private $classPath;
@@ -157,6 +155,4 @@ class SGNFixtureGenerator extends SGNGenerator
 
         return $fields;
     }
-
-
 }

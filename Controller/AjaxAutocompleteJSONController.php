@@ -12,7 +12,6 @@ class AjaxAutocompleteJSONController extends Controller
 
     public function getJSONAction($init)
     {
-        $em           = $this->get('doctrine')->getManager();
         $request      = $this->getRequest();
         $entity_alias = $request->get('entity_alias');
 
@@ -127,7 +126,6 @@ class AjaxAutocompleteJSONController extends Controller
     {
         $em      = $this->get('doctrine')->getManager();
         $request = $this->getRequest();
-        // dump($request);
         $class   = $entity_info['class'];
         $method  = $entity_info['method'];
         $like    = $this->getLike($entity_info);
@@ -148,10 +146,8 @@ class AjaxAutocompleteJSONController extends Controller
             $results = $query->getScalarResult();
         }
 
-        // dump( $query->getSql() ) ;
         $res = array();
 
-        // dump($results);
         foreach ($results as $r) {
             $res[] = array(
                       'id'   => $r['id'],
@@ -207,7 +203,6 @@ class AjaxAutocompleteJSONController extends Controller
         }
 
         $req = $em->createQuery($sql)->setParameter('like', $like)->setMaxResults($maxRows);
-        // print_r( $req->getSql() ) ; exit();
         $results = $req->getScalarResult();
 
         $res = array();
@@ -321,14 +316,14 @@ class AjaxAutocompleteJSONController extends Controller
         if ($case_insensitive) {
             $where_clause_lhs1 = 'LOWER('.$target1.')';
             $where_clause_rhs1 = 'LIKE LOWER(:like)';
-            if ($target2 != null) {
+            if ($target2 !== null) {
                 $where_clause_lhs2 = 'LOWER('.$target2.')';
                 $where_clause_rhs2 = 'LIKE LOWER(:like)';
             }
         } else {
             $where_clause_lhs1 = $target1;
             $where_clause_rhs1 = 'LIKE :like';
-            if ($target2 != null) {
+            if ($target2 !== null) {
                 $where_clause_lhs2 = $target2;
                 $where_clause_rhs2 = 'LIKE :like';
             }

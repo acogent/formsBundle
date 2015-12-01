@@ -2,9 +2,6 @@
 
 namespace SGN\FormsBundle\Twig;
 
-use Symfony\Bundle\TwigBundle\DependencyInjection\TwigExtension;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\HttpKernel\HttpKernel;
 use \Twig_Function_Method;
 use \Twig_Filter_Method;
 
@@ -218,11 +215,11 @@ class FormsCrudExtension extends \Twig_Extension
     }
 
 
-    function routeExists($path)
+    public function routeExists($path)
     {
         $router = $this->container->get('router');
         $routes = $router->getRouteCollection();
-        foreach($routes as $route) {
+        foreach ($routes as $route) {
             if ($route->getPath() === $path) {
                 return true;
             }

@@ -18,3 +18,20 @@ services:
         class: SGN\FormsBundle\Form\Type\BDGCartePointType
         tags:
             - { name: form.type, alias: bdg_carte_point }
+
+
+    sgn_forms.command.kernel:
+        class: SGN\FormsBundle\Command\SGNGeneratorCommand
+        arguments: [@kernel]
+
+    sgn_forms.fixture.kernel:
+        class: SGN\FormsBundle\Command\generateFixturesCommand
+        arguments: [@kernel]
+
+    sgn_forms.forms.kernel:
+        class: SGN\FormsBundle\Command\generateFormsCommand
+        arguments: [@kernel]
+
+    sgn_forms.test.kernel:
+        class: SGN\FormsBundle\Command\generateTestsCommand
+        arguments: [@kernel]

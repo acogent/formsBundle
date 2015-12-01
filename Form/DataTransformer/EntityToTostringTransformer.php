@@ -30,7 +30,7 @@ class EntityToTostringTransformer implements DataTransformerInterface
         if ($this->unitOfWork->isInIdentityMap($entity) === false) {
             throw new TransformationFailedException('Entities passed to the choice field must be managed');
         }
-        // dump($entity);
+
         return $entity->__toString();
     }
 

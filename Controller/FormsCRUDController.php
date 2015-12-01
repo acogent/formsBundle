@@ -92,7 +92,6 @@ class FormsCRUDController extends Controller
              ),
             )
         );
-        // dump($ajax);
 
         $form->handleRequest($request);
         $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
@@ -122,7 +121,6 @@ class FormsCRUDController extends Controller
             ));
         }
 
-// dump( $form); exit();
         // ajax pas valide
         if ($ajax === 'validate' && $form->isValid() === false) {
             return array('form' => $form->createView());
@@ -401,7 +399,6 @@ class FormsCRUDController extends Controller
                 $formBundleName  = Validators::validateBundleName($formBundle);
                 $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
                 $formDir         = $formBundleValid->getNamespace();
-                $type            = $formDir.'\Form\\'.$table.'Type';
             }
         }
 
@@ -488,7 +485,6 @@ class FormsCRUDController extends Controller
                     $tabResult['columnModel'] = SGNTwigCrudTools::getColumnModel(array(), $eManager, $assocClass, $this->container->getParameter('sgn_forms.entities_filters'), $arraySmallFields);
 
                     if ($tabResult['parent'] === null) {
-                        // $assocBundle    = SGNTwigCrudTools::getBundleShortName($assocClass);
                         $assocTable      = SGNTwigCrudTools::getName($assocClass);
                         $configTablAssoc = $this->getConfigFromtable($assocTable);
                         $collectionUrls  = $this->getCollectionNames($configTablAssoc, $collection);
@@ -597,11 +593,6 @@ class FormsCRUDController extends Controller
         $res['total']   = $totalPages;
         $res['rows']    = $result;
 
-        $configTable = $this->getConfigFromtable($table);
-        $eManager    = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
-
-        // $truc = SGNTwigCrudTools::getFormatJson($eManager, $configTable, $filters, $params);
-
         $json     = json_encode($res);
         $response = new Response($json);
         $response->headers->set('Content-Type', 'application/json');
@@ -636,7 +627,6 @@ class FormsCRUDController extends Controller
     {
         $auditManager = $this->container->get('simplethings_entityaudit.manager');
         $configTable  = $this->getConfigFromtable($table);
-        // $tableAudit   = $configTable['meta']->rootEntityName;
 
         $tableAudit = $configTable['alias'].'\\'.$configTable['table'];
 

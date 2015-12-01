@@ -24,8 +24,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 class SGNDoctrineFormGenerator extends SGNGenerator
 {
 
-    private $filesystem;
-
     private $className;
 
     private $classPath;
@@ -158,6 +156,4 @@ class SGNDoctrineFormGenerator extends SGNGenerator
 
         return $fields;
     }
-
-
 }

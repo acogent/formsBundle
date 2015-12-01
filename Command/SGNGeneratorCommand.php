@@ -11,8 +11,11 @@
 
 namespace SGN\FormsBundle\Command;
 
+use SGN\FormsBundle\Generator\SGNGenerator;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\DialogHelper;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use Sensio\Bundle\GeneratorBundle\Generator;
 
 /**
  * Base class for generator commands.
@@ -25,6 +28,15 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
     private $generator;
 
     // only useful for unit tests
+
+
+    protected $kernel;
+
+    public function __construct(KernelInterface $kernel)
+    {
+        $this->kernel = $kernel;
+    }
+
 
 
     public function setGenerator(Generator $generator)
@@ -60,8 +72,8 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
             $skeletonDirs[] = $this->getContainer()->get('kernel')->getRootdir().'/Resources/SensioGeneratorBundle/skeleton';
         }
 
-        $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
-        $skeletonDirs[] = __DIR__.'/../Resources';
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/skeleton/');
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/');
 
 
         return $skeletonDirs;
@@ -71,13 +83,11 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
     protected function getDialogHelper()
     {
         $dialog = $this->getHelperSet()->get('dialog');
-        if ($dialog === false || get_class($dialog) !== 'Symfony\Component\Console\Helper\DialogHelper') {
-            $dialog = new DialogHelper();
+        if ($dialog === false || get_class($dialog) !== 'Symfony\Component\Console\Helper\QuestionHelper') {
+            $dialog = new QuestionHelper();
             $this->getHelperSet()->set($dialog);
         }
 
         return $dialog;
     }
-
-
 }

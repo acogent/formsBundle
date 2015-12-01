@@ -63,4 +63,64 @@ class SGNGenerator
     }
 
 
+    /**
+     * Returns an array of fields. Fields can be both column fields and
+     * association fields.
+     *
+     * @param  ClassMetadataInfo $metadata
+     * @return array             $fields
+     */
+    protected function getFieldsFromMetadata(ClassMetadataInfo $metadata)
+    {
+        $fields = (array) $metadata->fieldNames;
+
+        // Remove the primary key field if it's not managed manually
+        if (!$metadata->isIdentifierNatural()) {
+            $fields = array_diff($fields, $metadata->identifier);
+        }
+
+        return $fields;
+    }
+
+
+   /**
+     * Returns an array of fields. Fields can be both column fields and
+     * association fields.
+     *
+     * @param  ClassMetadataInfo $metadata
+     * @return array             $fields
+     */
+    protected function getFieldsOneToManyFromMetadata(ClassMetadataInfo $metadata)
+    {
+        $fields = array();
+
+        foreach ($metadata->associationMappings as $fieldName => $relation) {
+            if ($relation['type'] == ClassMetadataInfo::ONE_TO_MANY) {
+                $fields[] = $fieldName;
+            }
+        }
+
+        return $fields;
+    }
+
+
+    /**
+     * Returns an array of fields. Fields can be both column fields and
+     * association fields.
+     *
+     * @param  ClassMetadataInfo $metadata
+     * @return array             $fields
+     */
+    private function getFieldsManyToOneFromMetadata(ClassMetadataInfo $metadata)
+    {
+        $fields = array();
+
+        foreach ($metadata->associationMappings as $fieldName => $relation) {
+            if ($relation['type'] == ClassMetadataInfo::MANY_TO_ONE) {
+                $fields[] = $fieldName;
+            }
+        }
+
+        return $fields;
+    }
 }

@@ -12,14 +12,11 @@
 namespace SGN\FormsBundle\Command;
 
 use SGN\FormsBundle\Generator\SGNDoctrineFormGenerator;
-use Sensio\Bundle\GeneratorBundle\Command\Helper\DialogHelper;
-use Sensio\Bundle\GeneratorBundle\Manipulator\RoutingManipulator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 
 /**
  * Generates a CRUD for a Doctrine entity.
@@ -49,13 +46,10 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
 
         $entity = $this->validateEntityName($input->getOption('entity'));
         list($bundle, $entity) = $this->parseShortcutNotation($entity);
-        $format = $this->validateFormat($input->getOption('format'));
-        $prefix = $this->getRoutePrefix($input, $entity);
 
         $entityClass   = $this->getContainer()->get('doctrine')->getAliasNamespace($bundle).'\\'.$entity;
         $metadata      = $this->getEntityMetadata($entityClass);
         $bundle        = $this->getContainer()->get('kernel')->getBundle($bundle);
-        $entityManager = $this->getContainer()->get('doctrine')->getManager();
 
         $this->generateForm($bundle, $entity, $metadata);
         $output->writeln('Generating the Form code: <info>OK</info>');
@@ -124,6 +118,4 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
 
         return $entity;
     }
-
-
 }
