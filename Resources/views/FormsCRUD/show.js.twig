@@ -1,0 +1,245 @@
+<script >
+
+$.jgrid.defaults.responsive = true;
+$.jgrid.defaults.styleUI = 'Bootstrap';
+
+function showHide(id) {
+    jQuery("#show").hide();
+    jQuery("#edit").hide();
+    jQuery("#new").hide();
+    jQuery("#delete").hide();
+    jQuery("#related-grids").hide();
+
+    jQuery("#"+id).show();
+}
+
+function showHideSub(id) {
+    var sel_id = $("#list-grid-"+id).getGridParam('selrow');
+    $("#related-grids-"+id).toggle(0, function(){
+        if ($(this).is(":visible") && sel_id == null) {
+            var rowArray = jQuery("#list-grid-"+id).jqGrid('getDataIDs');
+
+            jQuery("#list-grid-"+id).jqGrid('setSelection', rowArray[0], true);
+        }
+    });
+}
+
+function ajaxFormRequest(form, ajax) {
+    var formName = form.action.indexOf("/edit/") > 0 ? '#editEntity' : '#newEntity';
+    // On empêche le comportement par défaut du navigateur, c-à-d de soumettre le formulaire :
+    $(formName).submit(function(e) {
+        e.preventDefault();
+    });
+
+    $.ajax({
+        type: "POST",
+        url:  form.action + ajax,
+        data: $(form).serialize()
+    })
+    .done(function(result){
+        if (result.indexOf('<form') == 0 || ajax == 'dynamic') {
+            // Le formulaire modifié dynamiquement ou avec des erreurs de validation :
+            jQuery(formName).html(result);
+        } else {
+            // L’objet a été modifié ou inséré, on redirige :
+            window.location.replace(result);
+        }
+    })
+    .fail(function(result) {
+        console.log (form.action + ajax);
+        // alert( "error" );
+        // jQuery(formName).html(result);
+    })
+}
+
+jQuery(window).bind('resize', function() {
+    // Get width of parent container
+    var width = jQuery("#grid_container2").width();
+    if (width == null || width < 1) {
+        // For IE, revert to offsetWidth if necessary
+        width = jQuery("#grid_container2").attr('offsetWidth');
+    }
+    width = width - 2; // Fudge factor to prevent horizontal scrollbars
+    if (width > 0 && Math.abs(width - jQuery("#list-grid").width()) > 5)         {
+        $("#list-grid").setGridWidth(width);
+    }
+}).trigger('resize');
+
+var last_selected = null;
+var last_loaded   = null;
+var wait = "<div class='loading-big'  style='display:block'>Loading&#8230;</div>";
+
+$(document).ready(function() {
+    $('#e1').select2({ placeholder: 'Choisissez une table ...' });
+    $.jgrid.styleUI.Bootstrap.base.rowTable = "table table-bordered table-striped";
+
+    var url = window.location.search;
+    myURL = "{{ url(
+                    'sgn_forms_formscrud_show',
+                    {
+                        'format' : 'json' ,
+                        'table'  : entity,
+                        'params' : params
+                    } ) }}" + url.substring(url.lastIndexOf("?"));
+    var width = $('#grid_container2').width()-30;
+
+    $('#list-grid').jqGrid({
+            autowidth   : true,
+            height      : 'auto',
+            shrinkToFit : false,
+            mtype       : 'GET',
+            url         : myURL,
+            datatype    : "json",
+            viewrecords : true,
+            jsonReader  : {
+            repeatitems : false
+            },
+            colModel    : {{ columnModel|raw }} ,
+            rowNum      : {{ limit }},
+            rowList     : {{ rowsList |raw }},
+            pager       : "#grid-nav",
+            sortname    : 'id',
+            viewrecords : true,
+            gridview    : true,
+            sortorder   : 'asc',
+            caption     : '',
+            onSelectRow : relatedGridsReload
+    });
+
+    $('#list-grid').jqGrid('bindKeys');
+
+    $('.ui-jqgrid-sortable').css('height', '100%');
+    $('.ui-jqgrid-sortable').css('font-size', '16px');
+
+    function relatedGridsReload(sel_id) {
+        if (sel_id != last_loaded) {
+            jQuery('#editEntity').html(wait);
+            jQuery('#showEntity').html(wait);
+            jQuery('#deletEntity').html(wait);
+
+            myUrl = "{{ url_edit }}";
+            myUrl = myUrl.replace('%23', sel_id); // %23 = #
+
+            $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+                .done(function(data) {
+                    console.log( data);
+                    jQuery('#editEntity').html( data );
+                })
+                .fail(function(e, data) {
+                    // alert( "error "+myUrl );
+                    console.log (e);
+                })
+                .always(function() {
+                // alert( "complete" );
+                });
+
+            myUrl = "{{ url_showone }}";
+            myUrl = myUrl.replace('%23', sel_id); // %23 = #
+            $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+                .done(function(data) {
+                    // console.log( data);
+                    jQuery('#showEntity').html( data );
+                })
+                .fail(function(e, data) {
+                    // alert( "error "+myUrl );
+                    console.log (e);
+                })
+                .always(function() {
+                    // alert( "complete" );
+                });
+
+            myUrl = "{{ url_delete }}";
+            myUrl = myUrl.replace('%23', sel_id); // %23 = #
+            $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+                .done(function(data) {
+                    jQuery('#deleteEntity').html( data );
+                })
+                .fail(function(e, data) {
+                    // alert( "error "+myUrl );
+                    console.log (e);
+                })
+                .always(function() {
+                    // alert( "complete" );
+                });
+
+            jQuery(".selectedEntityId").text(getSelectedEntityId);
+
+             {% for collection, attributs in collectionNames %}
+                jQuery("#list-grid-{{ collection }}" ).clearGridData();
+                {% if attributs.collections is defined and attributs.collections is not empty %}
+                    {% for subcollection, subattributs in attributs.collections %}
+                        jQuery("#list-grid-{{ collection }}-{{ subcollection }}").clearGridData();
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+
+        }
+
+        if (jQuery("#related-grids").is(":visible") || sel_id == last_loaded ) {
+            {% for collection, attributs in collectionNames %}
+                jQuery("#list-grid-{{ collection }}" ).clearGridData();
+                jQuery("#list-grid-{{ collection }}").trigger('reloadGrid');
+                {% if attributs.collections is defined and attributs.collections is not empty %}
+                    {% for subcollection, subattributs in attributs.collections %}
+                        jQuery("#list-grid-{{ collection }}-{{ subcollection }}").clearGridData();
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+
+            {% for collection, attributs in collectionNames %}
+                // console.log ("{{collection}}");
+                myUrl = "{{ attributs.url }}";
+                myUrl = myUrl.replace('%23', sel_id); // %23 = #
+                $.ajax( { url: myUrl , dataType : "html" , cache  : false})
+                    .done(function(data) {
+                        $('#related-grid-{{collection}}').append(data);
+                    })
+                    .fail(function(e, data) {
+                        // alert( "error "+myUrl );
+                        console.log (e);
+                    })
+                    .always(function() {
+                        // alert( "complete" );
+                    });
+            {% endfor %}
+        }
+        last_loaded   = sel_id;
+        last_selected = sel_id;
+
+    }
+
+    function getSelectedEntityId() {
+        var sel_id = jQuery("#list-grid").getGridParam('selrow');
+        if (last_loaded) jQuery("#list-grid tr#" + last_loaded + " td").css('font-weight', 'normal');
+        jQuery("#list-grid tr#" + sel_id + " td").css('font-weight', 'bold');
+        var id = jQuery("#list-grid").getCell(sel_id, 'id');
+
+        return id;
+    }
+
+    function hideResearch() {
+        if (jQuery("#searchmodfbox_list-grid")) {
+            jQuery("#searchmodfbox_list-grid a.ui-jqdialog-titlebar-close").click();
+        }
+    }
+
+    $("#list-grid").navGrid ("#grid-nav",
+        {
+            view   : false,
+            add    : false,
+            edit   : false,
+            del    : false,
+            search : true,
+            align  : "left"
+        },
+        { } //edit options
+    );
+
+    $("#list-grid").jqGrid("filterToolbar", {
+        defaultSearch: "cn"
+    });
+
+    $("#list-grid").setCell(1);
+ });
+
+</script>

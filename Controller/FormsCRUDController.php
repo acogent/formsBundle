@@ -9,8 +9,10 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Sensio\Bundle\GeneratorBundle\Command\Validators;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\EntityManager;
 
 /**
  * @SuppressWarnings(PHPMD.StaticAccess)
@@ -93,6 +95,12 @@ class FormsCRUDController extends Controller
             )
         );
 
+        return $this->formRequestNew($form, $request, $ajax);
+    }
+
+
+    private function formRequestNew(Form $form, Request $request, $ajax)
+    {
         $form->handleRequest($request);
         $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
 
@@ -152,7 +160,6 @@ class FormsCRUDController extends Controller
 
         return array('form' => $form->createView());
     }
-
     /**
      * @Route("/{table}/edit/{ident}/")
      * @Route("/{table}/edit/{ident}/{ajax}")
@@ -221,9 +228,7 @@ class FormsCRUDController extends Controller
             ));
         }
 
-        return array(
-                'form' => $form->createView(),
-               );
+        return array( 'form' => $form->createView() );
     }
 
     /**
@@ -238,7 +243,7 @@ class FormsCRUDController extends Controller
      *
      * @SuppressWarnings(PHPMD.StaticAccess)
      */
-    private function getFormatHtml($request, $eManager, $configTable, $params)
+    private function getFormatHtml(Request $request, EntityManager $eManager, $configTable, $params)
     {
         $limits   = SGNTwigCrudTools::getLimitsFromParams($params);
         $limit    = $limits[0];
@@ -396,13 +401,11 @@ class FormsCRUDController extends Controller
             $formBundle = $this->container->getParameter('sgn_forms.forms.'.$bundle);
             if ($formBundle !== '@service') {
                 $formBundleName  = Validators::validateBundleName($formBundle);
-                $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
             }
         }
 
         $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         $obj      = $eManager->getRepository($configTable['alias'].':'.$table)->findOneById($ident);
-
         $form = $this->createFormBuilder($obj)->setAction($this->generateUrl('sgn_forms_formscrud_delete', array('bundle' => $bundle, 'table' => $table, 'ident' => $ident)))->getForm();
         $form->handleRequest($request);
 
@@ -427,9 +430,7 @@ class FormsCRUDController extends Controller
             ));
         }
 
-        return array(
-                'form' => $form->createView(),
-               );
+        return array( 'form' => $form->createView());
     }
 
     /**
@@ -526,7 +527,7 @@ class FormsCRUDController extends Controller
     public function selectJqGridAction(Request $request, $table, $collection, $ident = 0)
     {
         $filters    = $request->query->all();
-        $result     = array();
+
         $datas      = array();
         $limit      = 10;
         $page       = 0;
@@ -547,42 +548,11 @@ class FormsCRUDController extends Controller
         }
 
         if (isset($sourceId) === true && $sourceId !== 'undefined') {
-            if ($collection === 'Audit') {
-                $datas = $this->getAudit($table, $sourceId);
-                $count = count($datas);
-                if ($count > 0) {
-                    for ($i = 0; $i < $limit; ++$i) {
-                        $index = ($i + ($page * $limit) - $limit);
-                        if ($index === $count) {
-                            break;
-                        }
-
-                        $result[] = $datas[$index];
-                    }
-                }
-            } else {
-                $datas = $this->getCollection($table, $collection, $sourceId);
-                $count = count($datas);
-                if ($count > 0) {
-                    for ($i = 0; $i < $limit; ++$i) {
-                        $index = ($i + ($page * $limit) - $limit);
-                        if ($index === $count) {
-                            break;
-                        }
-
-                        $result[] = Serializor::toArray($datas[$index]);
-                    }
-                }
-            }
+            $result = $this->getResultJqGrid($table, $collection, $sourceId, $count);
         }
 
         if ($count > 0 && $limit > 0) {
             $totalPages = ceil($count / $limit);
-        }
-
-        $start = ($limit * $page - $limit);
-        if ($start < 0) {
-            $start = 0;
         }
 
         $res            = array();
@@ -596,6 +566,32 @@ class FormsCRUDController extends Controller
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
+    }
+
+    private function getResultJqGrid($table, $collection, $sourceId, &$count)
+    {
+        $result     = array();
+        if ($collection === 'Audit') {
+            $datas = $this->getAudit($table, $sourceId);
+        } else {
+            $datas = $this->getCollection($table, $collection, $sourceId);
+        }
+        $count = count($datas);
+        if ($count > 0) {
+            for ($i = 0; $i < $limit; ++$i) {
+                $index = ($i + ($page * $limit) - $limit);
+                if ($index === $count) {
+                    break;
+                }
+                if ($collection === 'Audit') {
+                    $result[] = $datas[$index];
+
+                } else {
+                    $result[] = Serializor::toArray($datas[$index]);
+                }
+            }
+        }
+        return $result;
     }
 
     private function getCollection($table, $collection, $sourceId)
