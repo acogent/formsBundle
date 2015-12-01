@@ -243,7 +243,7 @@ class FormsCRUDController extends Controller
      *
      * @SuppressWarnings(PHPMD.StaticAccess)
      */
-    private function getFormatHtml(Request $request, EntityManager $eManager, $configTable, $params)
+    private function getFormatHtml(Request $request, $eManager, $configTable, $params)
     {
         $limits   = SGNTwigCrudTools::getLimitsFromParams($params);
         $limit    = $limits[0];
@@ -397,12 +397,6 @@ class FormsCRUDController extends Controller
     {
         $configTable = $this->getConfigFromtable($table);
         $bundle      = $configTable['bundle'];
-        if ($this->container->hasParameter('sgn_forms.forms.'.$bundle) === true) {
-            $formBundle = $this->container->getParameter('sgn_forms.forms.'.$bundle);
-            if ($formBundle !== '@service') {
-                $formBundleName  = Validators::validateBundleName($formBundle);
-            }
-        }
 
         $eManager = $this->getDoctrine()->getManager($this->container->getParameter('sgn_forms.orm'));
         $obj      = $eManager->getRepository($configTable['alias'].':'.$table)->findOneById($ident);
@@ -527,8 +521,6 @@ class FormsCRUDController extends Controller
     public function selectJqGridAction(Request $request, $table, $collection, $ident = 0)
     {
         $filters    = $request->query->all();
-
-        $datas      = array();
         $limit      = 10;
         $page       = 0;
         $sourceId   = null;

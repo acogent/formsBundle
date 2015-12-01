@@ -2,11 +2,12 @@
 
 namespace SGN\FormsBundle\Utils;
 
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use SGN\FormsBundle\Controller\FormsCRUDController;
 use SGN\FormsBundle\Utils\Serializor;
 use Symfony\Component\HttpFoundation\Response;
-use Doctrine\ORM\EntityManager;
 
 class SGNTwigCrudTools
 {
@@ -98,7 +99,7 @@ class SGNTwigCrudTools
      *
      * @return json         Les données filtrées au format json
      */
-    public static function getFormatJson(EntityManager $eManager, $configTable, $filters, $params)
+    public static function getFormatJson($eManager, $configTable, $filters, $params)
     {
         $search      = 'false';
         $searchField = 'false';
@@ -131,7 +132,7 @@ class SGNTwigCrudTools
     }
 
 
-    private static function noSearch(EntityManager $eManager, $entity, $filters, $params)
+    private static function noSearch($eManager, $entity, $filters, $params)
     {
         $totalPages = 0;
         $orderBy    = array();
@@ -195,7 +196,7 @@ class SGNTwigCrudTools
     }
 
 
-    private static function searchDialog(EntityManager $eManager, $entity, $filters)
+    private static function searchDialog($eManager, $entity, $filters)
     {
         $result = array();
         $page   = 0;
@@ -238,7 +239,7 @@ class SGNTwigCrudTools
     }
 
 
-    private static function searchBar(EntityManager $eManager, $entity, $filters)
+    private static function searchBar($eManager, $entity, $filters)
     {
         $result     = array();
         $totalPages = 0;
@@ -333,7 +334,7 @@ class SGNTwigCrudTools
      * @param  string $params la chaine de caractère contenant les parametres
      * @return builder
      */
-    public static function getWhereFromFilters($filters, $builder, $order = false)
+    public static function getWhereFromFilters($filters, QueryBuilder $builder, $order = false)
     {
         $arrayExclude = array(
                          'rows',
@@ -384,7 +385,7 @@ class SGNTwigCrudTools
      * @param  string $params la chaine de caractère contenant les parametres
      * @return builder
      */
-    public static function getWhereFromParams($params, $builder)
+    public static function getWhereFromParams($params, QueryBuilder $builder)
     {
         $tParams = explode('/', $params);
         $builder->where('1=1');
@@ -465,7 +466,7 @@ class SGNTwigCrudTools
      * @param string $searchOper   l'opérateur
      * @return   le QueryBuilder avec un where de plus
      */
-    private static function addWhere(EntityManager $eManager, $entity, $builder, $searchField, $searchString, $searchOper)
+    private static function addWhere(EntityManager $eManager, $entity, QueryBuilder $builder, $searchField, $searchString, $searchOper)
     {
         $metadata = $eManager->getClassMetadata($entity);
         if ($metadata->getTypeOfField($searchField) === false) {
