@@ -7,9 +7,9 @@ use SGN\FormsBundle\Form\DataTransformer\EntityToPropertyTransformer;
 use SGN\FormsBundle\Form\DataTransformer\EntityToQuerypropertyTransformer;
 use SGN\FormsBundle\Form\DataTransformer\EntityToTostringTransformer;
 use SGN\FormsBundle\Form\DataTransformer\QueryvalueToPropertyTransformer;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Exception\FormException;
+
 use Symfony\Component\Form\Exception\LogicException;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
@@ -31,13 +31,14 @@ class AjaxAutocompleteType extends AbstractType
     public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
         $resolver->setDefaults(
-        array(
+            array(
             'entity_alias' => null,
             'class'        => null,
             'property'     => null,
             'value'        => null,
             'compound'     => false
-        ));
+            )
+        );
     }
 
 
@@ -61,7 +62,7 @@ class AjaxAutocompleteType extends AbstractType
             throw new LogicException('You must provide a entity alias "entity_alias" and tune it in config file');
         }
 
-        if (!isset ($entities[$options['entity_alias']])){
+        if (!isset($entities[$options['entity_alias']])) {
             throw new LogicException('There are no entity alias "'.$options['entity_alias'] . '" in your config file');
         }
 
@@ -72,7 +73,7 @@ class AjaxAutocompleteType extends AbstractType
         $options['query']     = $entities[$options['entity_alias']]['query'];
         $options['minLength'] = $entities[$options['entity_alias']]['minLength'];
 
-        if ( $options['class'] !== "query"
+        if ($options['class'] !== "query"
           && $options['query'] === "class"
           && $options['value'] === 'id'
           && $options['entity']
@@ -85,7 +86,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
-        if ( $options['class'] !== "query" && $options['property'] === "__toString" ) {
+        if ($options['class'] !== "query" && $options['property'] === "__toString") {
             $builder->addViewTransformer(new EntityToTostringTransformer(
                 $this->container->get('doctrine')->getManager(),
                 $options['class'],
@@ -93,7 +94,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
-        if ( $options['class'] !== "query" && !$options['entity'] ) {
+        if ($options['class'] !== "query" && !$options['entity']) {
             $builder->addViewTransformer(new ClassvalueToPropertyTransformer(
                 $this->container->get('doctrine')->getManager(),
                 $options['class'],
@@ -103,7 +104,7 @@ class AjaxAutocompleteType extends AbstractType
         }
 
 
-        if ( $options['query'] !== "class" && $options['class'] === "query" ) {
+        if ($options['query'] !== "class" && $options['class'] === "query") {
             $builder->addViewTransformer(new QueryvalueToPropertyTransformer(
                 $this->container->get('doctrine')->getManager(),
                 $options['query'],
@@ -112,7 +113,7 @@ class AjaxAutocompleteType extends AbstractType
             ), true);
         }
 
-        if ( $options['query'] !== 'class' && $options['class'] !== 'query') {
+        if ($options['query'] !== 'class' && $options['class'] !== 'query') {
             $builder->addViewTransformer(new EntityToQuerypropertyTransformer(
                 $this->container->get('doctrine')->getManager(),
                 $options['class'],
@@ -132,6 +133,4 @@ class AjaxAutocompleteType extends AbstractType
         $view->vars['entity_alias'] = $form->getConfig()->getAttribute('entity_alias');
         $view->vars['minLength']    = $form->getConfig()->getAttribute('minLength');
     }
-
-
 }

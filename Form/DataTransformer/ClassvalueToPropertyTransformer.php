@@ -6,7 +6,6 @@ use Symfony\Component\Form\DataTransformerInterface;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Form\Exception\UnexpectedTypeException;
-use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class ClassvalueToPropertyTransformer implements DataTransformerInterface
 {
@@ -25,16 +24,17 @@ class ClassvalueToPropertyTransformer implements DataTransformerInterface
 
     public function transform($val_value)
     {
-        if (!$val_value)
-        {
-            return NULL;
+        if (!$val_value) {
+            return null;
         }
 
         $entity = $this->em
                        ->getRepository($this->class)
                        ->findOneBy(array($this->value => $val_value));
 
-        if (NULL == $entity) return NULL;
+        if (null == $entity) {
+            return null;
+        }
 
         $propertyAccessor = PropertyAccess::getPropertyAccessor();
         return $propertyAccessor->getValue($entity, $this->property);
@@ -45,19 +45,19 @@ class ClassvalueToPropertyTransformer implements DataTransformerInterface
     {
         // $prop_value est la valeur de “property” si le champ reste inchangé, la valeur de ”value” si le champ a changé.
 
-        if (!$prop_value)
-        {
-            return NULL;
+        if (!$prop_value) {
+            return null;
         }
 
         $entity = $this->em
                        ->getRepository($this->class)
                        ->findOneBy(array($this->property => $prop_value));
 
-        if (NULL == $entity) return $prop_value;
+        if (null == $entity) {
+            return $prop_value;
+        }
 
         $propertyAccessor = PropertyAccess::getPropertyAccessor();
         return $propertyAccessor->getValue($entity, $this->value);
     }
-
 }

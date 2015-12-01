@@ -5,9 +5,7 @@ namespace SGN\FormsBundle\Command;
 use Doctrine\Bundle\DoctrineBundle\Mapping\DisconnectedMetadataFactory;
 use SGN\FormsBundle\Generator\SGNTestControllerGenerator;
 use SGN\FormsBundle\Generator\SGNTestValidatorGenerator;
-use SGN\FormsBundle\Utils\SGNTwigCrudTools;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,6 +17,12 @@ use Symfony\Component\Finder\Finder;
 class generateTestsCommand extends ContainerAwareCommand
 {
 
+    protected $kernel;
+
+    public function __construct(KernelInterface $kernel)
+    {
+        $this->kernel = $kernel;
+    }
 
     /**
      * Configuration
@@ -38,7 +42,6 @@ class generateTestsCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $command      = $this->getApplication()->find('sgn:generate:tests');
         $bundleName   = $input->getArgument('bundle');
         $dir          = $input->getArgument('dir');
         $databaseDir  = $this->getContainer()->get('kernel')->getBundle($bundleName)->getPath();
@@ -64,8 +67,12 @@ class generateTestsCommand extends ContainerAwareCommand
         $bundle      = $this->getContainer()->get('kernel')->getBundle($bundleName);
         $databaseDir = $bundle->getPath();
         $dirPath     = $bundle->getPath().'/Tests/Controller';
-        copy(__DIR__.'/../Resources/skeleton/Tests/InterfaceControllerTest.php', $dirPath.'/InterfaceControllerTest.php.dist');
-        copy(__DIR__.'/../Resources/skeleton/Tests/ModelControllerTest.php', $dirPath.'/ModelControllerTest.php.dist');
+
+        $resource = $this->kernel->locateResource('@SGNFormsBundle/Resources/skeleton/Tests/InterfaceControllerTest.php');
+        copy($resource, $dirPath.'/InterfaceControllerTest.php.dist');
+
+        $resource = $this->kernel->locateResource('@SGNFormsBundle/Resources/skeleton/Tests/ModelControllerTest.php');
+        copy($resource, $dirPath.'/ModelControllerTest.php.dist');
 
         $pathTest = $databaseDir.'/Tests/Controller/';
 
@@ -137,8 +144,8 @@ class generateTestsCommand extends ContainerAwareCommand
     protected function generateControllerTest($bundle, $entity, $metadata)
     {
         $generator      = new SGNTestControllerGenerator($this->getContainer()->get('filesystem'));
-        $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
-        $skeletonDirs[] = __DIR__.'/../Resources';
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/skeleton/');
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/');
 
         $generator->setSkeletonDirs($skeletonDirs);
         $generator->generate($bundle, $entity, $metadata[0]);
@@ -150,11 +157,10 @@ class generateTestsCommand extends ContainerAwareCommand
     protected function generateValidatorTest($bundle, $entity, $metadata)
     {
         $generator      = new SGNTestValidatorGenerator($this->getContainer()->get('filesystem'));
-        $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
-        $skeletonDirs[] = __DIR__.'/../Resources';
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/skeleton/');
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/');
 
         $generator->setSkeletonDirs($skeletonDirs);
         $generator->generate($bundle, $entity, $metadata[0]);
     }
-
 }

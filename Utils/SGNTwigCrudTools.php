@@ -176,10 +176,7 @@ class SGNTwigCrudTools
 
         $data = $eManager->getRepository($entity)->findBy($criteria, $orderBy, $limit, $start);
 
-        // var_dump($data);
-
         $result = array();
-        // $result['debug'] = print_r('search false', true);
 
         $result['page']    = $page;
         $result['records'] = $count;
@@ -666,7 +663,6 @@ class SGNTwigCrudTools
                 $columnModel .= "{ name: '".$champ."', width : ".$width.", align : '".$align."', index: '".$champ."' , search: ".$search.' },';
             }
 
-            // dump($columnModel);
             return '['.substr($columnModel, 0, -1).']';
         }
 

@@ -4,9 +4,6 @@ namespace SGN\FormsBundle\Form\DataTransformer;
 
 use Symfony\Component\Form\DataTransformerInterface;
 use Doctrine\ORM\EntityManager;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Form\Exception\UnexpectedTypeException;
-use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class QueryvalueToPropertyTransformer implements DataTransformerInterface
 {
@@ -25,9 +22,8 @@ class QueryvalueToPropertyTransformer implements DataTransformerInterface
 
     public function transform($val_value)
     {
-        if (!$val_value)
-        {
-            return NULL;
+        if (!$val_value) {
+            return null;
         }
 
         $result = $this->em
@@ -42,9 +38,8 @@ class QueryvalueToPropertyTransformer implements DataTransformerInterface
     {
         // $prop_value est la valeur de “property” si le champ reste inchangé, la valeur de ”value” si le champ a changé.
 
-        if (!$prop_value)
-        {
-            return NULL;
+        if (!$prop_value) {
+            return null;
         }
 
         $result = $this->em
@@ -54,5 +49,4 @@ class QueryvalueToPropertyTransformer implements DataTransformerInterface
 
         return $result[$this->value];
     }
-
 }

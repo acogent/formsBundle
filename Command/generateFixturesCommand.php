@@ -6,7 +6,6 @@ use Doctrine\Bundle\DoctrineBundle\Mapping\DisconnectedMetadataFactory;
 
 use SGN\FormsBundle\Generator\SGNFixtureGenerator;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,6 +16,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 class generateFixturesCommand extends ContainerAwareCommand
 {
 
+
+    protected $kernel;
+
+    public function __construct(KernelInterface $kernel)
+    {
+        $this->kernel = $kernel;
+    }
 
     /**
      * Configuration
@@ -34,7 +40,6 @@ class generateFixturesCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $command      = $this->getApplication()->find('sgn:generate:fixtures');
         $bundleName   = $input->getArgument('bundle');
         $databaseDir  = $this->getContainer()->get('kernel')->getBundle($bundleName)->getPath();
         $entities     = array();
@@ -89,12 +94,10 @@ class generateFixturesCommand extends ContainerAwareCommand
     protected function generateFixture($bundle, $entity, $metadata)
     {
         $generator      = new SGNFixtureGenerator($this->getContainer()->get('filesystem'));
-        $skeletonDirs[] = __DIR__.'/../Resources/skeleton';
-        $skeletonDirs[] = __DIR__.'/../Resources';
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/skeleton/');
+        $skeletonDirs[] = $this->kernel->locateResource('@SGNFormsBundle/Resources/');
 
         $generator->setSkeletonDirs($skeletonDirs);
         $generator->generate($bundle, $entity, $metadata[0]);
     }
-
-
 }

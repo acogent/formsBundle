@@ -6,8 +6,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
-use Symfony\Component\Process\Exception\RuntimeException;
-use Symfony\Component\Process\Process;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class BDGCartePointType extends AbstractType
@@ -61,6 +59,4 @@ class BDGCartePointType extends AbstractType
         $view->vars['lat']  = $lat;
         $view->vars['zoom'] = 14;
     }
-
-
 }

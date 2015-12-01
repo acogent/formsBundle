@@ -50,8 +50,6 @@ abstract class SGNGenerateDoctrineCommand extends SGNGeneratorCommand
 
     protected function createGenerator($bundle = null)
     {
-        return new SGNDoctrineCrudGenerator($this->getContainer()->get('filesystem'));
+        // return new SGNDoctrineCrudGenerator($this->getContainer()->get('filesystem'));
     }
-
-
 }

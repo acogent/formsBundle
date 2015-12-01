@@ -24,8 +24,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
 class SGNTestControllerGenerator extends SGNGenerator
 {
 
-    private $filesystem;
-
     private $className;
 
     private $classPath;
@@ -92,53 +90,9 @@ class SGNTestControllerGenerator extends SGNGenerator
              'entity_class'     => $entityClass,
              'bundle'           => $bundle->getName(),
              'test_class'       => $this->className,
-            // 'form_type_name'   => strtolower(str_replace('\\', '_', $bundle->getNamespace()).($parts ? '_' : '').implode('_', $parts).'_'.substr($this->className, 0, -4)),
             )
         );
     }
-
-
-    /**
-     * Returns an array of fields. Fields can be both column fields and
-     * association fields.
-     *
-     * @param  ClassMetadataInfo $metadata
-     * @return array             $fields
-     */
-    private function getFieldsFromMetadata(ClassMetadataInfo $metadata)
-    {
-        $fields = (array) $metadata->fieldNames;
-
-        // Remove the primary key field if it's not managed manually
-        if (!$metadata->isIdentifierNatural()) {
-            $fields = array_diff($fields, $metadata->identifier);
-        }
-
-        return $fields;
-    }
-
-
-   /**
-     * Returns an array of fields. Fields can be both column fields and
-     * association fields.
-     *
-     * @param  ClassMetadataInfo $metadata
-     * @return array             $fields
-     */
-    private function getFieldsOneToManyFromMetadata(ClassMetadataInfo $metadata)
-    {
-        $fields = array();
-
-        foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::ONE_TO_MANY) {
-// $fields[] = substr($fieldName,0,strlen($fieldName)-1);
-                $fields[] = $fieldName;
-            }
-        }
-
-        return $fields;
-    }
-
 
    /**
      * Returns an array of fields. Fields can be both column fields and
@@ -152,13 +106,11 @@ class SGNTestControllerGenerator extends SGNGenerator
         $fields = array();
 
         foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::MANY_TO_ONE) {
+            if ($relation['type'] === ClassMetadataInfo::MANY_TO_ONE) {
                 $fields[] = $fieldName;
             }
         }
 
         return $fields;
     }
-
-
 }

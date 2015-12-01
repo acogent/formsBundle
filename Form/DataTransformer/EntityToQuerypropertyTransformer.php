@@ -2,13 +2,10 @@
 
 namespace SGN\FormsBundle\Form\DataTransformer;
 
-
 use Symfony\Component\Form\DataTransformerInterface;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Form\Exception\UnexpectedTypeException;
 use Symfony\Component\Form\Exception\TransformationFailedException;
-
 
 class EntityToQuerypropertyTransformer implements DataTransformerInterface
 {
@@ -32,17 +29,14 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
 
     public function transform($entity)
     {
-        if (NULL === $entity)
-        {
-            return NULL;
+        if (null === $entity) {
+            return null;
         }
 
-        if (!$this->unitOfWork->isInIdentityMap($entity))
-        {
+        if (!$this->unitOfWork->isInIdentityMap($entity)) {
             throw new TransformationFailedException('Entities passed to the choice field must be managed');
         }
-        if ($this->property) 
-        {
+        if ($this->property) {
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
             $val_value = $propertyAccessor->getValue($entity, $this->value);
 
@@ -50,8 +44,8 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
                            ->createQuery($this->query." AND e.".$this->value." = :val_value")
                            ->setParameter('val_value', $val_value)
                            ->getOneOrNullResult();
-            
-            $property = strpos($this->property, ".") !== FALSE ? explode(".", $this->property)[1] : $this->property;
+
+            $property = strpos($this->property, ".") !== false ? explode(".", $this->property)[1] : $this->property;
 
             return $result[$property];
         }
@@ -62,12 +56,11 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
     {
         // $prop_value est la valeur de “property” si le champ reste inchangé, la valeur de ”value” si le champ a changé.
 
-        if ( !$prop_value )
-        {
-            return NULL;
+        if (!$prop_value) {
+            return null;
         }
 
-        $prop_query = strpos($this->property, ".") !== FALSE ? $this->property : "e.".$this->property;
+        $prop_query = strpos($this->property, ".") !== false ? $this->property : "e.".$this->property;
 
         $result = $this->em
                        ->createQuery($this->query." AND ".$prop_query." = :prop_value")
@@ -76,9 +69,10 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
 
         $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $result[$this->value]));
 
-        if ( $entity == NULL ) $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $prop_value));
+        if ($entity == null) {
+            $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $prop_value));
+        }
 
         return $entity;
     }
-
 }
