@@ -1,5 +1,6 @@
 {
     "name": "sgn/forms-bundle",
+    "license": "proprietary",
     "description": "Bundle Symfony pour la gestion des formulaire",
     "autoload": {
         "psr-0": { "SGN\\FormsBundle": "" }
