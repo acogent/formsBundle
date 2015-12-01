@@ -1,6 +1,6 @@
 <?php
 
-namespace SGN\FormsBundle\Form\Model;
+namespace SGN\FormsBundle\Form\Type;
 
 use Symfony\Component\Form\AbstractType;
 

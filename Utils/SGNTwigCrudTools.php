@@ -3,8 +3,10 @@
 namespace SGN\FormsBundle\Utils;
 
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
-use Symfony\Component\HttpFoundation\Response;
+use SGN\FormsBundle\Controller\FormsCRUDController;
 use SGN\FormsBundle\Utils\Serializor;
+use Symfony\Component\HttpFoundation\Response;
+use Doctrine\ORM\EntityManager;
 
 class SGNTwigCrudTools
 {
@@ -14,8 +16,9 @@ class SGNTwigCrudTools
      * getMenuTabEntities
      *
      */
-    public static function getMenuTabEntities($me, $bundle, $select_entity = array())
+    public static function getMenuTabEntities(FormsCRUDController $me, $bundle, $select_entity = array())
     {
+
         $eManager     = $me->getDoctrine()->getManager();
         $metadatas    = $eManager->getMetadataFactory()->getAllMetadata();
         $tab_entities = array();
@@ -46,7 +49,7 @@ class SGNTwigCrudTools
      * @param  string $name
      * @return string
      */
-    private static function getEntityLink($me, $name, $bundle)
+    private static function getEntityLink(FormsCRUDController $me, $name, $bundle)
     {
         $url = $me->get('router')->generate('sgn_forms_formscrud_show', array('bundle' => $bundle, 'table' => $name, 'format' => 'html'), true);
 
@@ -95,7 +98,7 @@ class SGNTwigCrudTools
      *
      * @return json         Les données filtrées au format json
      */
-    public static function getFormatJson($eManager, $configTable, $filters, $params)
+    public static function getFormatJson(EntityManager $eManager, $configTable, $filters, $params)
     {
         $search      = 'false';
         $searchField = 'false';
@@ -128,7 +131,7 @@ class SGNTwigCrudTools
     }
 
 
-    private static function noSearch($eManager, $entity, $filters, $params)
+    private static function noSearch(EntityManager $eManager, $entity, $filters, $params)
     {
         $totalPages = 0;
         $orderBy    = array();
@@ -192,7 +195,7 @@ class SGNTwigCrudTools
     }
 
 
-    private static function searchDialog($eManager, $entity, $filters)
+    private static function searchDialog(EntityManager $eManager, $entity, $filters)
     {
         $result = array();
         $page   = 0;
@@ -235,7 +238,7 @@ class SGNTwigCrudTools
     }
 
 
-    private static function searchBar($eManager, $entity, $filters)
+    private static function searchBar(EntityManager $eManager, $entity, $filters)
     {
         $result     = array();
         $totalPages = 0;
@@ -462,7 +465,7 @@ class SGNTwigCrudTools
      * @param string $searchOper   l'opérateur
      * @return   le QueryBuilder avec un where de plus
      */
-    private static function addWhere($eManager, $entity, $builder, $searchField, $searchString, $searchOper)
+    private static function addWhere(EntityManager $eManager, $entity, $builder, $searchField, $searchString, $searchOper)
     {
         $metadata = $eManager->getClassMetadata($entity);
         if ($metadata->getTypeOfField($searchField) === false) {
@@ -600,7 +603,7 @@ class SGNTwigCrudTools
      * @param string $searchOper   l'opérateur
      * @return NativeQuery
      */
-    private static function getNativeQuery($eManager, $entity, $searchField, $searchString, $searchOper)
+    private static function getNativeQuery(EntityManager $eManager, $entity, $searchField, $searchString, $searchOper)
     {
         $metadata = $eManager->getClassMetadata($entity);
         $table    = $metadata->getTableName();
@@ -631,7 +634,7 @@ class SGNTwigCrudTools
      *
      * @return string         le tableau au format json du modèle des colonnes
      */
-    public static function getColumnModel($data, $eManager = null, $entity = null, $tableFilters = null, $arraySmallFields = array())
+    public static function getColumnModel($data, EntityManager $eManager = null, $entity = null, $tableFilters = null, $arraySmallFields = array())
     {
         $columnModel = '';
 
