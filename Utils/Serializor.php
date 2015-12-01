@@ -4,6 +4,8 @@ namespace SGN\FormsBundle\Utils;
 
 class Serializor
 {
+
+
     /**
      * Converts the Doctrine Entity into a JSON Representation.
      *
@@ -16,7 +18,7 @@ class Serializor
      */
     public static function json_encode($object, $depth = 1, $whitelist = array(), $blacklist = array())
     {
-        return json_encode(Serializor::toArray($object, $depth, $whitelist, $blacklist));
+        return json_encode(self::toArray($object, $depth, $whitelist, $blacklist));
     }
 
     /**
@@ -41,20 +43,21 @@ class Serializor
         }
 
         // If this is an array, we need to loop through the values
-        if (is_array($object)) {
+        if (is_array($object) === true) {
             // Somthing to Hold Return Values
             $anArray = array();
 
             // The Loop
             foreach ($object as $value) {
                 // Store the results
-                $anArray[] = Serializor::arrayizor($value, $depth, $whitelist, $blacklist);
+                $anArray[] = self::arrayizor($value, $depth, $whitelist, $blacklist);
             }
+
             // Return it
             return $anArray;
         } else {
             // Just return it
-            return Serializor::arrayizor($object, $depth, $whitelist, $blacklist);
+            return self::arrayizor($object, $depth, $whitelist, $blacklist);
         }
     }
 }

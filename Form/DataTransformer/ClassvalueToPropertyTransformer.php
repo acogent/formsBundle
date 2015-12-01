@@ -5,14 +5,18 @@ namespace SGN\FormsBundle\Form\DataTransformer;
 use Symfony\Component\Form\DataTransformerInterface;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Form\Exception\UnexpectedTypeException;
 
 class ClassvalueToPropertyTransformer implements DataTransformerInterface
 {
+
     protected $em;
+
     protected $class;
+
     protected $property;
+
     protected $value;
+
 
     public function __construct(EntityManager $em, $class, $property, $value)
     {
@@ -28,11 +32,9 @@ class ClassvalueToPropertyTransformer implements DataTransformerInterface
             return null;
         }
 
-        $entity = $this->em
-                       ->getRepository($this->class)
-                       ->findOneBy(array($this->value => $val_value));
+        $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $val_value));
 
-        if (null == $entity) {
+        if (null === $entity) {
             return null;
         }
 
@@ -49,11 +51,9 @@ class ClassvalueToPropertyTransformer implements DataTransformerInterface
             return null;
         }
 
-        $entity = $this->em
-                       ->getRepository($this->class)
-                       ->findOneBy(array($this->property => $prop_value));
+        $entity = $this->em->getRepository($this->class)->findOneBy(array($this->property => $prop_value));
 
-        if (null == $entity) {
+        if (null === $entity) {
             return $prop_value;
         }
 

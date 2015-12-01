@@ -44,12 +44,12 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
     {
         $dialog = $this->getDialogHelper();
 
-        $entity = $this->validateEntityName($input->getOption('entity'));
+        $entity                = $this->validateEntityName($input->getOption('entity'));
         list($bundle, $entity) = $this->parseShortcutNotation($entity);
 
-        $entityClass   = $this->getContainer()->get('doctrine')->getAliasNamespace($bundle).'\\'.$entity;
-        $metadata      = $this->getEntityMetadata($entityClass);
-        $bundle        = $this->getContainer()->get('kernel')->getBundle($bundle);
+        $entityClass = $this->getContainer()->get('doctrine')->getAliasNamespace($bundle).'\\'.$entity;
+        $metadata    = $this->getEntityMetadata($entityClass);
+        $bundle      = $this->getContainer()->get('kernel')->getBundle($bundle);
 
         $this->generateForm($bundle, $entity, $metadata);
         $output->writeln('Generating the Form code: <info>OK</info>');
@@ -95,18 +95,6 @@ class generateFormCommand extends SGNGenerateDoctrineCommand
         }
 
         return $this->formGenerator;
-    }
-
-
-    private function validateFormat($format)
-    {
-        $format = strtolower($format);
-
-        if (!in_array($format, array('php', 'xml', 'yml', 'annotation'))) {
-            throw new \RuntimeException(sprintf('Format "%s" is not supported.', $format));
-        }
-
-        return $format;
     }
 
 

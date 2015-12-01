@@ -8,10 +8,15 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class EntityToTostringTransformer implements DataTransformerInterface
 {
+
     protected $em;
+
     protected $class;
+
     protected $unitOfWork;
+
     protected $value;
+
 
     public function __construct(EntityManager $em, $class, $value)
     {

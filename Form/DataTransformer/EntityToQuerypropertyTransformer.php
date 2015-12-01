@@ -9,12 +9,19 @@ use Symfony\Component\Form\Exception\TransformationFailedException;
 
 class EntityToQuerypropertyTransformer implements DataTransformerInterface
 {
+
     protected $em;
+
     protected $class;
+
     protected $query;
+
     protected $property;
+
     protected $unitOfWork;
+
     protected $value;
+
 
     public function __construct(EntityManager $em, $class, $query, $property, $value)
     {
@@ -36,19 +43,18 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
         if (!$this->unitOfWork->isInIdentityMap($entity)) {
             throw new TransformationFailedException('Entities passed to the choice field must be managed');
         }
+
         if ($this->property) {
             $propertyAccessor = PropertyAccess::getPropertyAccessor();
-            $val_value = $propertyAccessor->getValue($entity, $this->value);
+            $val_value        = $propertyAccessor->getValue($entity, $this->value);
 
-            $result = $this->em
-                           ->createQuery($this->query." AND e.".$this->value." = :val_value")
-                           ->setParameter('val_value', $val_value)
-                           ->getOneOrNullResult();
+            $result = $this->em->createQuery($this->query.' AND e.'.$this->value.' = :val_value')->setParameter('val_value', $val_value)->getOneOrNullResult();
 
-            $property = strpos($this->property, ".") !== false ? explode(".", $this->property)[1] : $this->property;
+            $property = strpos($this->property, '.') !== false ? explode('.', $this->property)[1] : $this->property;
 
             return $result[$property];
         }
+
         return current($this->unitOfWork->getEntityIdentifier($entity));
     }
 
@@ -60,16 +66,13 @@ class EntityToQuerypropertyTransformer implements DataTransformerInterface
             return null;
         }
 
-        $prop_query = strpos($this->property, ".") !== false ? $this->property : "e.".$this->property;
+        $prop_query = strpos($this->property, '.') !== false ? $this->property : 'e.'.$this->property;
 
-        $result = $this->em
-                       ->createQuery($this->query." AND ".$prop_query." = :prop_value")
-                       ->setParameter('prop_value', $prop_value)
-                      ->getOneOrNullResult();
+        $result = $this->em->createQuery($this->query.' AND '.$prop_query.' = :prop_value')->setParameter('prop_value', $prop_value)->getOneOrNullResult();
 
         $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $result[$this->value]));
 
-        if ($entity == null) {
+        if ($entity === null) {
             $entity = $this->em->getRepository($this->class)->findOneBy(array($this->value => $prop_value));
         }
 

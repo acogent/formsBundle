@@ -202,7 +202,7 @@ class AjaxAutocompleteJSONController extends Controller
             $sql = $query.'AND '.$filter.' AND '.$where_clause.' '.'ORDER BY '.$prop_query;
         }
 
-        $req = $em->createQuery($sql)->setParameter('like', $like)->setMaxResults($maxRows);
+        $req     = $em->createQuery($sql)->setParameter('like', $like)->setMaxResults($maxRows);
         $results = $req->getScalarResult();
 
         $res = array();

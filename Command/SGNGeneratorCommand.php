@@ -11,11 +11,10 @@
 
 namespace SGN\FormsBundle\Command;
 
-use SGN\FormsBundle\Generator\SGNGenerator;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Helper\DialogHelper;
-use Symfony\Component\HttpKernel\Bundle\BundleInterface;
+use Sensio\Bundle\GeneratorBundle\Command\Helper\QuestionHelper;
 use Sensio\Bundle\GeneratorBundle\Generator;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\HttpKernel\Bundle\BundleInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
@@ -32,6 +31,7 @@ abstract class SGNGeneratorCommand extends ContainerAwareCommand
 
 
     protected $kernel;
+
 
     public function __construct(KernelInterface $kernel)
     {

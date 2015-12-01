@@ -11,6 +11,8 @@
 
 namespace SGN\FormsBundle\Generator;
 
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
+
 /**
  * Generator is the base class for all generators.
  *
@@ -95,7 +97,7 @@ class SGNGenerator
         $fields = array();
 
         foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::ONE_TO_MANY) {
+            if ($relation['type'] === ClassMetadataInfo::ONE_TO_MANY) {
                 $fields[] = $fieldName;
             }
         }
@@ -111,12 +113,12 @@ class SGNGenerator
      * @param  ClassMetadataInfo $metadata
      * @return array             $fields
      */
-    private function getFieldsManyToOneFromMetadata(ClassMetadataInfo $metadata)
+    protected function getFieldsManyToOneFromMetadata(ClassMetadataInfo $metadata)
     {
         $fields = array();
 
         foreach ($metadata->associationMappings as $fieldName => $relation) {
-            if ($relation['type'] == ClassMetadataInfo::MANY_TO_ONE) {
+            if ($relation['type'] === ClassMetadataInfo::MANY_TO_ONE) {
                 $fields[] = $fieldName;
             }
         }

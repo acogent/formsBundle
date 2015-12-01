@@ -37,6 +37,7 @@ class SGNTwigCrudTools
         }
 
         ksort($tab_entities);
+
         return $tab_entities;
     }
 
@@ -437,6 +438,7 @@ class SGNTwigCrudTools
                              $lim1,
                              $rowsList,
                             );
+
                 return $Limit;
             } elseif ($tParams[0] === 'all') {
                 $tParams = array_slice($tParams, 1);

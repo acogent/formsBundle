@@ -135,7 +135,7 @@ class FormsCRUDController extends Controller
         }
 
         // Pb des formulaires avec file et ajax, on est obligé de bricoler !!!!
-        // @todo : voir si on ne peux pas faire mieux !!
+        // voir si on ne peux pas faire mieux !!
         if ($request->isXmlHttpRequest() === true) {
             $errors = $form->get('file')->getErrors();
             $request->getSession()->getFlashBag()->add('info', 'Fichier ajouté.');
@@ -392,13 +392,11 @@ class FormsCRUDController extends Controller
     {
         $configTable = $this->getConfigFromtable($table);
         $bundle      = $configTable['bundle'];
-        $type        = $configTable['type'];
         if ($this->container->hasParameter('sgn_forms.forms.'.$bundle) === true) {
             $formBundle = $this->container->getParameter('sgn_forms.forms.'.$bundle);
             if ($formBundle !== '@service') {
                 $formBundleName  = Validators::validateBundleName($formBundle);
                 $formBundleValid = $this->get('Kernel')->getBundle($formBundleName);
-                $formDir         = $formBundleValid->getNamespace();
             }
         }
 
